@@ -1,0 +1,761 @@
+# Asif Health Tracker — Requirements + Wireframe Design Document
+
+## 1. Project Purpose
+
+Build a private, local-first health tracking SPA for Asif to track fat loss, food intake, workouts/walks, cannabis reduction, cannabis inventory, and health progress.
+
+The app should be simple, compact, responsive, and designed for daily use. The main screen should not be overloaded. The first page should always prioritize today’s active logging and overall progress. Historical data, settings, profile, cannabis certification, and inventory should live in separate views.
+
+This document is intended to be pasted into Claude Code or VSCode as the source requirements for building the application.
+
+---
+
+# 2. User Profile and Baseline Data
+
+## User
+
+| Field | Value |
+|---|---|
+| Name | Asif |
+| Height | 5 ft 10 in |
+| Starting weight | 241.8 lb |
+| Goal weight | 200 lb |
+| Weight-loss target | 41.8 lb |
+| Current body fat | 35.1% |
+| BMI | 34.5 |
+| Visceral fat | 17 |
+| Muscle mass | 148.6 lb |
+| BMR | 1877 kcal |
+| Goal | Lose fat, reduce belly fat, build muscle, control cannabis-driven munchies |
+
+## Medical Flags
+
+The app must display medical safety guardrails because the user reported:
+
+- Prediabetes
+- High cholesterol
+- Chest pain
+- Getting out of breath very quickly
+- Xanax use
+- Lexapro use
+- Medical cannabis use
+
+## Medical Safety Rule
+
+Hard workouts must be marked as **locked / pending medical clearance** until the user confirms medical clearance.
+
+The app should allow:
+
+- Easy walks
+- Mobility
+- Stretching
+- Light activity
+
+The app should restrict or visually warn against:
+
+- HIIT
+- Running
+- Heavy lifting
+- Breathless circuits
+- Max-effort workouts
+
+---
+
+# 3. Nutrition Requirements
+
+## Diet Preferences
+
+| Requirement | Value |
+|---|---|
+| Food style | Halal |
+| Preferred food | Home-cooked meals |
+| Eating pattern | 2 meals/day, no fixed breakfast/lunch/dinner assumption |
+| Allergies/exclusions | Shellfish, shrimp, prawns |
+| Sugar | Controlled sugar, not zero sugar |
+| Dairy | Allowed |
+| Eggs | Loved/preferred |
+| Tofu | Not preferred |
+| Cuisine style | Mixed: South Asian, Middle Eastern, American, restaurant meals |
+
+## Nutrition Targets
+
+| Target | Value |
+|---|---|
+| Daily calories | ~1900 kcal rest/light day |
+| Workout day calories | ~2000–2100 kcal |
+| Protein | 160–170g/day |
+| Step target starting point | 6000/day |
+| Long-term step target | 8000–10000/day |
+
+## Food Tracking Requirements
+
+The user does **not** want the meal tracker fixed to breakfast/lunch/dinner/snack.
+
+The app must support flexible food entry labels, such as:
+
+- Meal
+- Snack
+- Munchies Box
+- Restaurant Meal
+- Protein Shake
+- Late Snack
+- Custom name
+
+Each food entry should track:
+
+| Field | Type |
+|---|---|
+| Name | Text |
+| Time | Time |
+| Calories | Number |
+| Protein grams | Number |
+| Carbs grams | Number, optional |
+| Fat grams | Number, optional |
+| Notes | Text |
+| Source | Manual, MyNetDiary Import, Template |
+| Cannabis-triggered? | Boolean |
+| Munchies-related? | Boolean |
+
+## Food/Munchies Rules
+
+The app should visually reinforce:
+
+- Log food before eating when cannabis is involved
+- No default chips
+- No default ice cream
+- No orange juice
+- No butter toast after cannabis
+- Use pre-approved munchies boxes
+- Sugar should be planned, not impulsive
+
+---
+
+# 4. Cannabis Requirements
+
+## Cannabis Goal
+
+The user currently uses cannabis daily and wants to reduce from all-day use to planned, controlled use.
+
+The app should track cannabis as a harm-reduction and control system, not as a punitive system.
+
+## Daily Cannabis Plan
+
+| Field | Requirement |
+|---|---|
+| Daily target | 2 sessions/day |
+| Flexibility | 20% deviation allowed |
+| Tracking unit | Start with sessions + estimated THC mg + grams where applicable |
+| Preferred products | Hybrid and indica |
+| Avoid | All-day drift |
+| Hard rule | No stacking RSO + infused pre-rolls |
+| Hard rule | No cannabis before first meal |
+| Hard rule | No use before workouts |
+| Hard rule | No use before grocery shopping |
+
+## Cannabis Session Fields
+
+Each cannabis use/session should track:
+
+| Field | Type |
+|---|---|
+| Date | Date |
+| Time | Time |
+| Product used | Relation to CannabisProduct |
+| Product form | Flower, capsule, pre-roll, etc. |
+| Session number | Number |
+| Amount used | Number |
+| Unit | grams, capsule, pre-roll fraction, mg THC |
+| Estimated THC mg | Number |
+| Intended reason | Anxiety, sleep, pain, recreation, craving, other |
+| Effect | Calm, sleepy, anxious, hungry, relaxed, focused |
+| Munchies triggered? | Boolean |
+| Notes | Text |
+
+## Cannabis Weekly/Monthly Analytics
+
+The overview and history should show:
+
+- Sessions today
+- Sessions this week
+- Sessions this month
+- THC mg estimate this week
+- Deviation days
+- Cannabis-free days
+- Average sessions/day
+- Product most associated with munchies
+- Product most associated with sedation
+- Product most associated with overuse
+
+---
+
+# 5. Cannabis Inventory Requirements
+
+Create a separate dedicated **Inventory** view.
+
+Inventory must track what the user ordered, current remaining amount, effects, qualities, potency, class, and usage controls.
+
+## Current Cannabis Inventory
+
+| Product | Brand | Form | Ordered | Remaining | Class | Potency | Risk | Plan |
+|---|---|---|---|---|---|---|---|---|
+| RSO Capsules | Grassroots | Capsule | 10 capsules x 50mg | 10 capsules | Hybrid/full spectrum | 50mg THC each | High | Evening only, no stacking |
+| Double Baked Cake | Binske | Flower | 1/2 oz | 14g | Hybrid / indica-leaning | 22.16% THC | Medium | Controlled low sessions |
+| Sunday Gravy Flower | Knack | Flower | 1 oz | 28g | Indica-dominant hybrid | 33.44% THC | Medium-high | Strong flower, small sessions |
+| Cheddar Cheeze | RYTHM | Flower | 1 oz | 28g | Indica-hybrid | 32.46% THC | Medium-high | Wind-down only |
+| Cereal Milk #1 Infused Pre-Roll | Dogwalkers | Infused pre-roll | 0.45g x 12 | 12 pre-rolls | Needs package label confirmation | High potency | High | Avoid during reduction phase |
+| Jungle Pie | Binske | Flower | 1/8 oz | 3.5g | Hybrid | ~20% THC | Medium | Best controlled-use candidate |
+
+## Inventory Product Fields
+
+| Field | Type |
+|---|---|
+| Product name | Text |
+| Brand | Text |
+| Form | Flower, capsule, pre-roll, edible, vape, tincture |
+| Type | Indica, hybrid, indica-dominant hybrid, etc. |
+| Ordered amount | Text + normalized quantity |
+| Remaining amount | Number |
+| Remaining unit | g, capsule, pre-roll, mg |
+| THC % | Number, optional |
+| THC mg per unit | Number, optional |
+| CBD % / mg | Number, optional |
+| Product image | Local file or URL |
+| Dominant effects | Text/tags |
+| Qualities | Tags |
+| Risk level | Low, medium, medium-high, high |
+| Usage plan | Text |
+| Not-to-exceed | Text |
+| Munchies risk | Low, medium, high |
+| Sedation risk | Low, medium, high |
+| Last used | Date/time |
+| Notes | Text |
+
+## Inventory View Requirements
+
+Inventory page should show:
+
+- Total products
+- Total flower grams remaining
+- High-risk product count
+- Product cards
+- Risk badges
+- Remaining amount
+- Ordered amount
+- Effects
+- Usage plan
+- Not-to-exceed warning
+- Ability to later subtract usage from inventory
+
+---
+
+# 6. Medical Cannabis Certification
+
+The user uploaded a New York State medical cannabis certification.
+
+The certification should **not** appear on the Today dashboard or Cannabis Inventory page.
+
+It belongs under **Profile**.
+
+## Certification Card Fields
+
+| Field | Value |
+|---|---|
+| Program | New York State Medical Cannabis Program |
+| Certification number | PC3-47311910 |
+| Registry ID | 47311911 |
+| Issue date | 04/16/2026 |
+| Expiration date | 04/16/2028 |
+| Practitioner | Devin Kaplan |
+| Dosing recommendation | Per Pharmacist Consultation |
+
+## Privacy Requirement
+
+Do not display full DOB, home address, phone, or email by default.
+
+Profile should show a privacy note:
+
+> Personal identifying details should stay hidden unless explicitly unlocked.
+
+---
+
+# 7. Workout and Activity Requirements
+
+## Current Safety Status
+
+The user reported chest pain and getting out of breath quickly. App must present a warning:
+
+> Chest pain and shortness of breath reported. Hard workouts stay locked until medical clearance.
+
+## Activity Tracking Fields
+
+| Field | Type |
+|---|---|
+| Date | Date |
+| Steps | Number |
+| Walk duration | Minutes |
+| Workout type | Mobility, walk, strength, cardio |
+| Workout completed | Boolean |
+| Intensity | Easy, moderate, hard |
+| Chest pain? | Boolean |
+| Shortness of breath? | Boolean |
+| Notes | Text |
+
+## Initial Allowed Activity
+
+Until medical clearance:
+
+- Easy walks
+- Mobility
+- Stretching
+- Light movement
+
+## Post-clearance Activity Plan
+
+After clearance, app should support:
+
+- Strength A
+- Strength B
+- Strength C
+- Walks
+- Weekly progress
+
+Critical muscles to target:
+
+- Glutes
+- Legs
+- Back/lats
+- Chest
+- Shoulders
+- Core
+- Hamstrings
+- Lower back
+
+---
+
+# 8. MyNetDiary Integration Requirements
+
+The user uses:
+
+> https://www.mynetdiary.com/dashboard.do
+
+The app should support MyNetDiary integration in phases.
+
+## Version 1
+
+Manual tracking inside this app.
+
+## Version 2
+
+CSV import/export from MyNetDiary if available.
+
+## Version 3
+
+Live sync only if MyNetDiary provides supported API access, OAuth, or an export mechanism.
+
+## UI Requirements
+
+Show an **Import MyNetDiary** button, but mark it as:
+
+> Placeholder until API/export method is confirmed.
+
+Do not fake a real-time integration.
+
+---
+
+# 9. Renpho / Body Metrics Requirements
+
+The user uploaded Renpho screenshots with body composition metrics.
+
+Track:
+
+| Metric | Value |
+|---|---|
+| Weight | 241.8 lb |
+| BMI | 34.5 |
+| Body fat | 35.1% |
+| Skeletal muscle | 41.7% |
+| Fat-free mass | 156.2 lb |
+| Subcutaneous fat | 30.2% |
+| Visceral fat | 17 |
+| Body water | 46.9% |
+| Muscle mass | 148.6 lb |
+| Bone mass | 7.6 lb |
+| Protein | 14.8% |
+| BMR | 1877 kcal |
+| Metabolic age | 60 |
+
+These should live in:
+
+- Profile baseline
+- Progress history
+- Dashboard summary
+
+---
+
+# 10. Progress Photo Requirements
+
+The homepage should eventually contain latest progress photos.
+
+However, the current layout should stay simple.
+
+## Photo Display Rules
+
+Today page:
+
+- Show only latest progress summary
+- Optional small photo preview
+- Do not overload dashboard
+
+History/Profile:
+
+- Full photo timeline
+- Front view
+- Side view
+- Date stamped
+- Weight at time of photo
+- Waist measurement if available
+
+---
+
+# 11. Information Architecture
+
+The app should have 4 primary views:
+
+1. Today
+2. Inventory
+3. History
+4. Profile
+
+## Navigation
+
+Desktop/tablet:
+
+- Left sidebar navigation
+
+Mobile:
+
+- Bottom navigation bar
+
+## View Responsibilities
+
+### Today
+
+Daily active tracking only.
+
+Contains:
+
+- Overall progress hero
+- Daily aggregate tiles
+- Accordion sections:
+  1. Food, snacks, munchies
+  2. Cannabis daily control
+  3. Workout, walks, recovery
+
+### Inventory
+
+Dedicated cannabis inventory.
+
+Contains:
+
+- Product list
+- Ordered amount
+- Remaining amount
+- Effects
+- Class
+- Potency
+- Risk
+- Usage plan
+- Not-to-exceed rules
+
+### History
+
+Historical charts and trends.
+
+Contains:
+
+- Weight trend
+- Cannabis trend
+- THC trend
+- Food compliance
+- Protein trend
+- Sugar/munchies pattern
+- Progress photos
+- Weekly/monthly summaries
+
+### Profile
+
+Long-lived user context, settings, credentials, privacy, and integrations.
+
+Contains:
+
+- User profile
+- Body baseline
+- Dietary rules
+- Medical flags
+- Medications
+- Cannabis certification card
+- MyNetDiary integration settings
+- Renpho import settings
+- Local hosting settings
+- Privacy settings
+- Backup/export settings
+
+---
+
+# 12. Today Page Wireframe
+
+```text
+┌──────────────────────────────────────────────────────────────┐
+│ Top Nav / Header                                              │
+│ Today · Date                                Import · Quick Add │
+└──────────────────────────────────────────────────────────────┘
+
+┌──────────────────────────────────────────────────────────────┐
+│ Overall Progress Hero                                         │
+│                                                              │
+│ 0.0 lb lost                                                   │
+│ 241.8 lb current · 200 lb goal · 41.8 lb remaining             │
+│ [Progress bar]                                                │
+│                                                              │
+│ Calories Today | Protein Today | Cannabis Today | Walk Today  │
+└──────────────────────────────────────────────────────────────┘
+
+┌───────────────┬───────────────┬───────────────┬──────────────┐
+│ Weight        │ Calories      │ Cannabis      │ Steps        │
+│ 241.8 lb      │ 1790 / 1900   │ 2 / 2         │ 3400 / 6000  │
+└───────────────┴───────────────┴───────────────┴──────────────┘
+
+┌──────────────────────────────────────────────────────────────┐
+│ Accordion 1: Food, snacks, munchies                           │
+│ Expanded by default                                           │
+└──────────────────────────────────────────────────────────────┘
+
+┌──────────────────────────────────────────────────────────────┐
+│ Accordion 2: Cannabis daily control                           │
+│ Collapsed                                                     │
+└──────────────────────────────────────────────────────────────┘
+
+┌──────────────────────────────────────────────────────────────┐
+│ Accordion 3: Workout, walks, recovery                         │
+│ Collapsed                                                     │
+└──────────────────────────────────────────────────────────────┘
+
+---
+
+# 13. Design & Architecture Decisions (Addendum — May 3, 2026)
+
+Resolved during requirements review. These decisions are binding for v1 implementation.
+
+---
+
+## 13.1 Tech Stack
+
+| Decision | Value |
+|---|---|
+| Framework | React |
+| Data storage | Browser localStorage + IndexedDB (no backend) |
+| Hosting | Local only (SPA, open index.html or local dev server) |
+| "Local hosting settings" in Profile | Toggle to expose on local network (0.0.0.0) |
+
+---
+
+## 13.2 Data Seeding
+
+On first launch, the app must pre-seed:
+
+- Full user profile (Asif, 241.8 lb, all Renpho baseline metrics)
+- All 6 cannabis inventory products from Section 5
+- Medical cannabis certification from Section 6
+- Dietary rules and medical flags
+
+---
+
+## 13.3 Visual Design
+
+| Decision | Value |
+|---|---|
+| Default theme | Dark mode |
+| Tone | Calm, minimal |
+| Accent color | Teal / green |
+| Density | Compact (maximize data visible per screen) |
+
+---
+
+## 13.4 Today Page — Quick Add
+
+Tapping **Quick Add** opens a picker modal with five options:
+
+1. Food / Meal
+2. Cannabis Session
+3. Steps
+4. Weight
+5. Workout / Walk
+
+Each option opens its respective entry modal/drawer.
+
+---
+
+## 13.5 Food Entry UX
+
+- Opens as a modal or bottom drawer
+- Name field is free text (no fixed categories)
+- Macros entered manually (calories, protein required; carbs, fat optional)
+- Meal label is free text with suggestions: Meal, Snack, Munchies Box, Restaurant Meal, Protein Shake, Late Snack, Custom
+- User can save any entry as a named template for quick reuse
+- Source field: Manual, MyNetDiary Import, Template
+
+---
+
+## 13.6 Cannabis Hard Rule Enforcement
+
+| Rule | Enforcement |
+|---|---|
+| RSO capsule + infused pre-roll stacking | Hard block — user must explicitly dismiss a blocking confirmation dialog before the session can be logged |
+| Cannabis before first meal of the day | Warning toast only — log is allowed |
+| Cannabis before workout | Warning toast only — log is allowed |
+| Cannabis before grocery shopping | Warning toast only — log is allowed |
+| Session count exceeding daily target (>2) | Warning toast only — log is allowed |
+
+---
+
+## 13.7 Medical Clearance
+
+- Lives in Profile under Medical Flags
+- Implemented as a toggle switch: "Medical clearance received"
+- When toggled on, a confirmation dialog asks for the clearance date
+- Confirmed clearance date is stored and shown on the toggle
+- Unlocks HIIT, running, heavy lifting, and breathless circuit workout types throughout the app
+
+---
+
+## 13.8 Body Metrics Entry
+
+- **Daily weight**: Logged from the Today page (Weight tile → tap to log today's weight)
+- **Full body composition** (body fat %, visceral fat, skeletal muscle, BMR, etc.): Entered in Profile → Body Baseline, updated occasionally (e.g., after a Renpho weigh-in)
+- Weight history and body comp history both feed into History charts
+
+---
+
+## 13.9 Steps Tracking
+
+- Manual entry only in v1
+- Entered via Quick Add → Steps, or directly on the Steps tile on Today
+- Apple Health and Renpho sync deferred to a future version
+
+---
+
+## 13.10 Progress Photos
+
+- Added via browser file picker (no external service)
+- Each photo is tagged with:
+  - View type: Front / Side / Back
+  - Date (defaults to today)
+  - Weight at time of photo (manual entry)
+- Photos displayed in History (full timeline) and optionally as a small thumbnail on Today
+
+---
+
+## 13.11 Notifications and Alerts
+
+- No browser-level push notifications in v1
+- All alerts are in-app only: toast banners and inline warning messages
+- Toast alerts are used for cannabis rule warnings, calorie limit approach, step goal nudges
+
+---
+
+## 13.12 Backup and Export
+
+| Format | Purpose |
+|---|---|
+| JSON (full dump) | Complete app data backup; importable back into the app to restore state |
+| CSV per section | Separate files for: food logs, cannabis sessions, workouts, weight history |
+
+Both export options are accessible from Profile → Backup/Export Settings.
+
+---
+
+## 13.13 Wireframe Layouts for Inferred Views
+
+### Inventory Page
+
+```text
+┌──────────────────────────────────────────────────────────────┐
+│ Inventory                                                     │
+│ 6 products · 73.5g flower remaining · 2 high-risk products    │
+└──────────────────────────────────────────────────────────────┘
+
+┌──────────────────────────────────────────────────────────────┐
+│ [Product Card]                                               │
+│ Product name · Brand · Form · Class                          │
+│ Remaining: X / Ordered: Y   [Risk badge]                     │
+│ THC%: XX%  Effects: calm, sleepy  Munchies risk: medium      │
+│ Usage plan: ...                                              │
+│ Not-to-exceed: ...                                           │
+│ Last used: date                [Log Use] [Details]           │
+└──────────────────────────────────────────────────────────────┘
+(repeated per product)
+```
+
+### History Page
+
+```text
+┌──────────────────────────────────────────────────────────────┐
+│ History          [Week] [Month] [3-Month] [All]               │
+└──────────────────────────────────────────────────────────────┘
+
+┌──────────────────────────────────────────────────────────────┐
+│ Weight Trend chart                                            │
+└──────────────────────────────────────────────────────────────┘
+┌──────────────────────────────────────────────────────────────┐
+│ Calories & Protein Trend chart                                │
+└──────────────────────────────────────────────────────────────┘
+┌──────────────────────────────────────────────────────────────┐
+│ Cannabis Sessions / THC mg Trend chart                        │
+└──────────────────────────────────────────────────────────────┘
+┌──────────────────────────────────────────────────────────────┐
+│ Steps / Walk Duration Trend chart                             │
+└──────────────────────────────────────────────────────────────┘
+┌──────────────────────────────────────────────────────────────┐
+│ Progress Photos timeline                                      │
+│ [Front · date · weight]  [Side · date · weight]              │
+└──────────────────────────────────────────────────────────────┘
+```
+
+### Profile Page
+
+```text
+┌──────────────────────────────────────────────────────────────┐
+│ Profile                                                       │
+└──────────────────────────────────────────────────────────────┘
+
+┌──────────────────────────────────────────────────────────────┐
+│ § User Info         Name · Height · Goal weight               │
+└──────────────────────────────────────────────────────────────┘
+┌──────────────────────────────────────────────────────────────┐
+│ § Body Baseline     Renpho metrics · Edit full comp           │
+└──────────────────────────────────────────────────────────────┘
+┌──────────────────────────────────────────────────────────────┐
+│ § Medical Flags     Prediabetes · Cholesterol · Chest pain…  │
+│                     [Medical clearance toggle + date]         │
+└──────────────────────────────────────────────────────────────┘
+┌──────────────────────────────────────────────────────────────┐
+│ § Medications       Xanax · Lexapro                           │
+└──────────────────────────────────────────────────────────────┘
+┌──────────────────────────────────────────────────────────────┐
+│ § Dietary Rules     Halal · Allergies · Preferences           │
+└──────────────────────────────────────────────────────────────┘
+┌──────────────────────────────────────────────────────────────┐
+│ § Cannabis Certification                                      │
+│   NY Medical Program · Cert # · Registry ID · Expiry         │
+│   ⚠ Personal details hidden by default [Unlock]              │
+└──────────────────────────────────────────────────────────────┘
+┌──────────────────────────────────────────────────────────────┐
+│ § Integrations      MyNetDiary (placeholder) · Renpho import  │
+└──────────────────────────────────────────────────────────────┘
+┌──────────────────────────────────────────────────────────────┐
+│ § Backup / Export   [Export JSON] [Export CSV] [Import JSON]  │
+└──────────────────────────────────────────────────────────────┘
+┌──────────────────────────────────────────────────────────────┐
+│ § Privacy Settings  Local hosting toggle · Data visibility    │
+└──────────────────────────────────────────────────────────────┘
+```
