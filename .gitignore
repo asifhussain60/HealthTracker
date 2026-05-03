@@ -5,5 +5,25 @@ Thumbs.db
 __pycache__/
 *.pyc
 
+# Python virtual environments
+.venv/
+venv/
+env/
+
 # VS Code workspace files
 .vscode/
+
+# JavaScript dependencies/builds
+node_modules/
+dist/
+build/
+
+# .NET build artifacts and local keys
+bin/
+obj/
+.aspnet/
+
+# Logs and temp
+*.log
+tmp/
+temp/
