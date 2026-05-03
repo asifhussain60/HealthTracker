@@ -27,3 +27,10 @@ obj/
 *.log
 tmp/
 temp/
+
+# Local environment files
+.env
+.env.*
+
+# JetBrains IDE settings
+.idea/
