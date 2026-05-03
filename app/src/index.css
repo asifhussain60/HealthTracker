@@ -549,3 +549,137 @@ body {
 /* Demo mode button */
 .btn-demo             { opacity: 0.5; }
 .btn-demo.demo-active { opacity: 1; color: var(--teal); border-color: var(--teal); }
+
+/* ═══════════════════════════════════════════════════════════════
+   Cannabis Plan Card (cp- prefix)
+   ═══════════════════════════════════════════════════════════════ */
+
+/* ── THC summary bar ── */
+.cp-thc-bar {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  background: var(--surface2);
+  border-radius: 10px;
+  padding: 10px 14px;
+  margin-bottom: 14px;
+}
+.cp-thc-stat { display: flex; flex-direction: column; align-items: center; min-width: 60px; }
+.cp-thc-val { font-size: 20px; font-weight: 900; color: var(--teal); line-height: 1; }
+.cp-thc-val .cp-thc-unit { font-size: 11px; font-weight: 400; color: var(--text-dimmer); margin-left: 1px; }
+.cp-thc-unit { font-size: 11px; color: var(--text-dimmer); }
+.cp-thc-label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.07em; color: var(--text-dimmer); margin-top: 2px; }
+
+/* ── Section labels ── */
+.cp-section-label {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--text-dimmer);
+  margin: 12px 0 8px;
+}
+.cp-section-label--extra { color: var(--orange); }
+
+/* ── Plan session card ── */
+.cp-plan-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--teal);
+  border-radius: 10px;
+  padding: 12px 14px;
+  margin-bottom: 8px;
+  transition: background 0.15s;
+}
+.cp-plan-card--done {
+  border-left-color: var(--green);
+  opacity: 0.75;
+}
+.cp-plan-card--done .cp-plan-product { text-decoration: line-through; color: var(--text-dimmer); }
+.cp-plan-num {
+  width: 26px;
+  height: 26px;
+  min-width: 26px;
+  background: var(--teal-bg);
+  color: var(--teal);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  font-weight: 900;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+.cp-plan-card--done .cp-plan-num { background: var(--green-bg); color: var(--green); }
+.cp-plan-body { flex: 1; min-width: 0; }
+.cp-plan-slot { font-size: 11px; font-weight: 700; color: var(--text-dimmer); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 3px; }
+.cp-plan-product { font-size: 15px; font-weight: 700; color: var(--text); margin-bottom: 3px; }
+.cp-plan-dose { font-size: 13px; color: var(--teal); font-weight: 600; margin-bottom: 3px; }
+.cp-plan-window { font-size: 12px; color: var(--text-dimmer); }
+.cp-plan-logged-detail { font-size: 12px; color: var(--green); margin-top: 4px; font-weight: 600; }
+.cp-plan-btn { flex-shrink: 0; align-self: center; white-space: nowrap; }
+.cp-plan-check {
+  width: 30px;
+  height: 30px;
+  min-width: 30px;
+  background: var(--green-bg);
+  color: var(--green);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  font-weight: 900;
+  flex-shrink: 0;
+  align-self: center;
+}
+
+/* ── Extra session card ── */
+.cp-extra-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  background: var(--surface2);
+  border: 1px solid var(--orange);
+  border-radius: 10px;
+  padding: 10px 12px;
+  margin-bottom: 8px;
+  opacity: 0.85;
+}
+
+/* ── Extra button (in card header) ── */
+.cp-btn-extra {
+  color: var(--orange);
+  border-color: var(--orange);
+  opacity: 0.7;
+}
+.cp-btn-extra:hover { background: var(--orange-bg); opacity: 1; color: var(--orange); }
+
+/* ── Modal plan banner ── */
+.cp-modal-plan-banner {
+  background: var(--teal-bg);
+  border: 1px solid var(--teal);
+  border-radius: 8px;
+  padding: 10px 14px;
+  margin-bottom: 14px;
+}
+.cp-modal-plan-title { font-size: 13px; font-weight: 700; color: var(--teal); margin-bottom: 3px; }
+.cp-modal-plan-detail { font-size: 13px; color: var(--text); font-weight: 600; margin-bottom: 2px; }
+.cp-modal-plan-window { font-size: 12px; color: var(--text-dimmer); }
+
+/* ── Extra session modal warning ── */
+.cp-modal-extra-warn {
+  background: var(--red-bg);
+  border: 1px solid var(--red);
+  border-radius: 8px;
+  padding: 10px 14px;
+  font-size: 13px;
+  color: var(--red);
+  font-weight: 500;
+  margin-bottom: 14px;
+  line-height: 1.5;
+}

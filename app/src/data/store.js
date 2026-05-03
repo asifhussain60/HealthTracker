@@ -205,6 +205,102 @@ export const useStore = create(
       getTodaySessions: () =>
         get().cannabisLogs.filter((e) => e.date === today()).length,
 
+      // ── Daily Cannabis Plan ───────────────────────────────────
+      // Generates a pre-built plan from inventory for the day.
+      // Only includes products that are available (remaining > 0),
+      // not test-only, not night-only, not high-risk capsules.
+      // Sessions are matched to time slots by inventory dayNight window.
+      getDailyCannabisPlan: () => {
+        const { inventory, profile } = get();
+        const sessionCount = profile.cannabisTargets.dailySessions;
+
+        // Exclude capsules (RSO), infused pre-rolls, test-only, night-only, high-risk
+        const available = inventory.filter(
+          (p) =>
+            p.remaining > 0 &&
+            p.form === 'flower' &&
+            p.dayNight !== 'test-only' &&
+            p.dayNight !== 'night-only' &&
+            p.riskLevel !== 'high'
+        );
+
+        const TIME_SLOTS = [
+          {
+            sessionNumber: 1,
+            timeLabel: 'Afternoon',
+            plannedTime: '15:00',
+            preference: ['day-evening', 'evening'],
+            reason: 'Mood / Stress',
+          },
+          {
+            sessionNumber: 2,
+            timeLabel: 'Evening',
+            plannedTime: '19:30',
+            preference: ['evening-night', 'evening', 'night'],
+            reason: 'Pain / Relaxation',
+          },
+          {
+            sessionNumber: 3,
+            timeLabel: 'Night',
+            plannedTime: '21:30',
+            preference: ['night', 'evening-night'],
+            reason: 'Sleep',
+          },
+        ];
+
+        const plan = [];
+        const usedIds = new Set();
+
+        for (const slot of TIME_SLOTS.slice(0, sessionCount)) {
+          let product = null;
+
+          for (const pref of slot.preference) {
+            product = available.find((p) => p.dayNight === pref && !usedIds.has(p.id));
+            if (product) break;
+          }
+          if (!product) {
+            product = available.find((p) => !usedIds.has(p.id));
+          }
+          if (!product) continue;
+
+          usedIds.add(product.id);
+
+          // Parse starting dose — use the upper value of the range (e.g. "0.025g–0.05g" → 0.05)
+          const doseMatches = (product.startingDose || '0.05g').match(/([\d.]+)/g);
+          const dose =
+            doseMatches && doseMatches.length >= 2
+              ? parseFloat(doseMatches[1])
+              : doseMatches
+              ? parseFloat(doseMatches[0])
+              : 0.05;
+
+          const thcMg = product.thcPercent
+            ? parseFloat((dose * 1000 * (product.thcPercent / 100)).toFixed(1))
+            : null;
+
+          plan.push({
+            sessionNumber: slot.sessionNumber,
+            productId: product.id,
+            productName: product.name,
+            productBrand: product.brand,
+            form: product.form,
+            plannedTime: slot.plannedTime,
+            timeLabel: slot.timeLabel,
+            recommendedAmount: dose,
+            unit: product.remainingUnit,
+            estimatedThcMg: thcMg,
+            reason: slot.reason,
+            usagePlan: product.usagePlan || '',
+            useWindow: product.useWindow || '',
+            dayNight: product.dayNight,
+            riskLevel: product.riskLevel,
+            thcPercent: product.thcPercent,
+          });
+        }
+
+        return plan;
+      },
+
       // ── Export ───────────────────────────────────────────────
       exportJSON: () => {
         const state = get();

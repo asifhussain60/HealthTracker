@@ -8,8 +8,8 @@ export const DEMO_FOOD_LOGS = [
 ];
 
 export const DEMO_CANNABIS_LOGS = [
-  { id: 'demo-c1', date: '__TODAY__', time: '10:30', productId: 'inv-2', form: 'flower', sessionNumber: 1, amount: 0.05, unit: 'g', thcMg: 11.1, method: 'vaporizer', reason: 'Anxiety relief', effect: 'calm', munchiesTriggered: false, munchiesLevel: 1, productivityScore: 7, notes: 'Morning session — light dose, very effective' },
-  { id: 'demo-c2', date: '__TODAY__', time: '15:45', productId: 'inv-2', form: 'flower', sessionNumber: 2, amount: 0.075, unit: 'g', thcMg: 16.6, method: 'vaporizer', reason: 'Pain relief', effect: 'relaxed', munchiesTriggered: true, munchiesLevel: 3, productivityScore: 5, notes: 'Afternoon — knee pain, triggered munchies' },
+  { id: 'demo-c1', date: '__TODAY__', time: '15:10', productId: 'inv-6', form: 'flower', sessionNumber: 1, amount: 0.05, unit: 'g', thcMg: 10.0, method: 'Vaporizer', reason: 'Mood / Stress', effect: 'Calm', munchiesTriggered: false, munchiesLevel: 1, productivityScore: 7, notes: 'Afternoon session — Jungle Pie, light dose, focused and calm' },
+  { id: 'demo-c2', date: '__TODAY__', time: '19:45', productId: 'inv-2', form: 'flower', sessionNumber: 2, amount: 0.05, unit: 'g', thcMg: 11.1, method: 'Vaporizer', reason: 'Pain / Relaxation', effect: 'Relaxed', munchiesTriggered: true, munchiesLevel: 3, productivityScore: 5, notes: 'Evening — Double Baked Cake, knee pain, triggered munchies' },
 ];
 
 export const DEMO_WORKOUT_LOG = {

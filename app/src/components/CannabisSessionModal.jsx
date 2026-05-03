@@ -45,7 +45,7 @@ function ScoreSlider({ label, value, onChange, lowLabel = 'Low', highLabel = 'Hi
   );
 }
 
-export function CannabisSessionModal({ onClose }) {
+export function CannabisSessionModal({ onClose, planSession = null, isExtra = false }) {
   const addCannabisLog = useStore((s) => s.addCannabisLog);
   const logInventoryUse = useStore((s) => s.logInventoryUse);
   const addToast = useStore((s) => s.addToast);
@@ -66,33 +66,40 @@ export function CannabisSessionModal({ onClose }) {
   const [showChecklist, setShowChecklist] = useState(false);
   const [showAssessment, setShowAssessment] = useState(false);
 
-  const [form, setForm] = useState({
-    productId: inventory[0]?.id || '',
-    form: inventory[0]?.form || '',
-    sessionNumber: todaySessions + 1,
-    amount: '',
-    unit: inventory[0]?.remainingUnit || 'g',
-    thcMg: '',
-    method: getDefaultMethod(inventory[0]?.form || ''),
-    reason: 'Pain',
-    effect: 'Calm',
-    munchiesTriggered: false,
-    notes: '',
-    time: format(new Date(), 'HH:mm'),
-    // Pre-use state
-    preUsePain: 0,
-    preUseAnxiety: 0,
-    preUseMood: 5,
-    preUseEnergy: 5,
-    // Checklist
-    checklistConfirmed: false,
-    // Assessment
-    productivityImpacts: [],
-    productivityScore: 5,
-    munchiesLevel: 0,
-    painRelief: 0,
-    medicalBenefit: 5,
-    wouldUseAgain: 'Maybe',
+  const [form, setForm] = useState(() => {
+    // If a plan session is provided, pre-fill from it
+    const productId = planSession?.productId || inventory[0]?.id || '';
+    const product   = inventory.find((p) => p.id === productId) || inventory[0];
+    const amount    = planSession?.recommendedAmount?.toString() || '';
+    const thcMg     = planSession?.estimatedThcMg?.toString() || '';
+    return {
+      productId,
+      form: product?.form || '',
+      sessionNumber: todaySessions + 1,
+      amount,
+      unit: product?.remainingUnit || 'g',
+      thcMg,
+      method: getDefaultMethod(product?.form || ''),
+      reason: planSession?.reason || 'Pain',
+      effect: 'Calm',
+      munchiesTriggered: false,
+      notes: '',
+      time: planSession?.plannedTime || format(new Date(), 'HH:mm'),
+      // Pre-use state
+      preUsePain: 0,
+      preUseAnxiety: 0,
+      preUseMood: 5,
+      preUseEnergy: 5,
+      // Checklist
+      checklistConfirmed: false,
+      // Assessment
+      productivityImpacts: [],
+      productivityScore: 5,
+      munchiesLevel: 0,
+      painRelief: 0,
+      medicalBenefit: 5,
+      wouldUseAgain: 'Maybe',
+    };
   });
 
   const set = (k, v) => setForm((f) => ({ ...f, [k]: v }));
@@ -164,7 +171,23 @@ export function CannabisSessionModal({ onClose }) {
   }
 
   return (
-    <Modal title="Log Cannabis Session" onClose={onClose}>
+    <Modal title={planSession ? `Log Planned Session ${planSession.sessionNumber}` : 'Log Cannabis Session'} onClose={onClose}>
+      {/* Plan session banner */}
+      {planSession && (
+        <div className="cp-modal-plan-banner">
+          <div className="cp-modal-plan-title">📋 Planned Session {planSession.sessionNumber} — {planSession.timeLabel}</div>
+          <div className="cp-modal-plan-detail">
+            {planSession.productName} · {planSession.recommendedAmount}g · ~{planSession.estimatedThcMg}mg THC
+          </div>
+          <div className="cp-modal-plan-window">{planSession.useWindow}</div>
+        </div>
+      )}
+      {/* Extra session warning */}
+      {isExtra && (
+        <div className="cp-modal-extra-warn">
+          ⚠ UNPLANNED SESSION — This goes beyond your {dailyTarget}-session daily plan. Every extra session increases munchies risk, tolerance, and next-day grogginess. Proceed only if medically necessary.
+        </div>
+      )}
       {/* Time Block Warning */}
       {inMorningBlock && (
         <div className="medical-warning" style={{ marginBottom: 12 }}>
@@ -388,8 +411,12 @@ export function CannabisSessionModal({ onClose }) {
 
       <div className="modal-actions">
         <button className="btn btn-ghost" onClick={onClose}>Cancel</button>
-        <button className="btn btn-primary" onClick={handleSubmit} disabled={!form.productId || !form.amount}>
-          Log Session
+        <button
+          className={`btn ${isExtra ? 'btn-danger' : 'btn-primary'}`}
+          onClick={handleSubmit}
+          disabled={!form.productId || !form.amount}
+        >
+          {isExtra ? 'Log Extra Session' : planSession ? 'Log Planned Session' : 'Log Session'}
         </button>
       </div>
     </Modal>

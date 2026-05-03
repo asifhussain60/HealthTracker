@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useStore } from '../data/store';
 import { DEMO_FOOD_LOGS, DEMO_CANNABIS_LOGS, DEMO_WORKOUT_LOG } from '../data/seed';
 import { QuickAddModal } from '../components/QuickAddModal';
+import { CannabisSessionModal } from '../components/CannabisSessionModal';
 import { format } from 'date-fns';
 
 // ── SVG Ring / Donut Chart ─────────────────────────────────────
@@ -73,7 +74,11 @@ export function TodayView() {
   const sessions = cannabisLogs.length;
   const steps    = workoutLog?.steps || 0;
 
+  const getDailyCannabisPlan = useStore((s) => s.getDailyCannabisPlan);
+  const deleteCannabisLog = useStore((s) => s.deleteCannabisLog);
+
   const [quickAdd, setQuickAdd] = useState(null);
+  const [cannabisModal, setCannabisModal] = useState({ open: false, planSession: null, isExtra: false });
 
   const { startingWeight, currentWeight, goalWeight, nutritionTargets, cannabisTargets } = profile;
   const lostSoFar   = Math.max(0, startingWeight - currentWeight);
@@ -135,7 +140,7 @@ export function TodayView() {
           <div className="v2-tile-hint">of {calTarget}</div>
         </div>
 
-        <div className="v2-tile v2-tile--cannabis" onClick={() => setQuickAdd('cannabis')}>
+        <div className="v2-tile v2-tile--cannabis" onClick={() => setCannabisModal({ open: true, planSession: null, isExtra: false })}>
           <RingChart value={sessions} max={sessionTarget} colorClass={sessionRingClass} size={108} stroke={10}>
             <div className={sessionNumClass}>{sessions}</div>
             <div className="ring-num-unit">/ {sessionTarget}</div>
@@ -225,53 +230,131 @@ export function TodayView() {
       <div className="v2-bottom-row">
 
         {/* Cannabis Card */}
-        <div className="v2-card v2-card--cannabis v2-card--flush">
-          <div className="v2-card-header">
-            <div className="v2-card-header-left">
-              <div className="v2-card-icon v2-card-icon--cannabis">🌿</div>
-              <div>
-                <div className="v2-card-title">Cannabis Control</div>
-                <div className="v2-card-sub">{sessions}/{sessionTarget} daily sessions</div>
-              </div>
-            </div>
-            <button className="btn btn-ghost btn-sm" onClick={() => setQuickAdd('cannabis')}>+ Log</button>
-          </div>
+        {(() => {
+          const dailyPlan = getDailyCannabisPlan();
+          // cannabisLogs[i] matches dailyPlan[i] by session order
+          const planLogs   = dailyPlan.map((_, i) => cannabisLogs[i] || null);
+          const extraLogs  = cannabisLogs.slice(dailyPlan.length);
+          const totalThcMg = cannabisLogs.reduce((s, l) => s + (parseFloat(l.thcMg) || 0), 0);
 
-          <div className="v2-ring-center">
-            <RingChart value={sessions} max={sessionTarget} colorClass={sessionRingClass} size={150} stroke={14}>
-              <div className={sessionNumClass + ' ring-num-cannabis'}>{sessions}</div>
-              <div className="ring-num-sub">of {sessionTarget}</div>
-            </RingChart>
-          </div>
+          // Aggregate grams per flower product logged today
+          const gramsMap = {};
+          cannabisLogs.forEach((l) => {
+            const prod = inventory.find((p) => p.id === l.productId);
+            if (prod?.form === 'flower' && l.unit === 'g') {
+              gramsMap[prod.name] = (gramsMap[prod.name] || 0) + (parseFloat(l.amount) || 0);
+            }
+          });
+          const gramsEntries = Object.entries(gramsMap);
 
-          {overLimit && (
-            <div className="v2-limit-alert">⚠ Daily limit reached</div>
-          )}
-
-          {cannabisLogs.length === 0 ? (
-            <div className="empty-state empty-state--compact">No sessions today.</div>
-          ) : (
-            cannabisLogs.map((log, i) => {
-              const product   = inventory.find((p) => p.id === log.productId);
-              const riskClass = RISK_CLASS[product?.riskLevel] || 'risk-unknown';
-              return (
-                <div key={log.id} className="v2-session-card">
-                  <div className={`v2-session-num ${riskClass}`}>{i + 1}</div>
-                  <div className="v2-session-body">
-                    <div className="v2-session-product">{product?.name || 'Unknown product'}</div>
-                    <div className="v2-session-detail">{log.time} · {log.amount}{log.unit} · ~{log.thcMg}mg THC · {log.method}</div>
-                    <div className="v2-session-reason">{log.reason} · Effect: <span className="text-teal">{log.effect}</span></div>
-                    {log.munchiesTriggered && <span className="badge badge-munchies badge-inline">🍿 munchies triggered</span>}
-                    {log.notes && <div className="v2-session-notes">{log.notes}</div>}
+          return (
+            <div className="v2-card v2-card--cannabis v2-card--flush">
+              <div className="v2-card-header">
+                <div className="v2-card-header-left">
+                  <div className="v2-card-icon v2-card-icon--cannabis">🌿</div>
+                  <div>
+                    <div className="v2-card-title">Cannabis Control</div>
+                    <div className="v2-card-sub">{sessions}/{sessionTarget} sessions · plan: {dailyPlan.length} sessions</div>
                   </div>
-                  {product && (
-                    <div className={`v2-risk-tag ${riskClass}`}>{product.riskLevel}</div>
-                  )}
                 </div>
-              );
-            })
-          )}
-        </div>
+                <button
+                  className="btn btn-ghost btn-sm cp-btn-extra"
+                  onClick={() => setCannabisModal({ open: true, planSession: null, isExtra: true })}
+                >
+                  + Extra ⚠
+                </button>
+              </div>
+
+              {/* Daily THC summary */}
+              {(cannabisLogs.length > 0 || gramsEntries.length > 0) && (
+                <div className="cp-thc-bar">
+                  <div className="cp-thc-stat">
+                    <span className="cp-thc-val">{totalThcMg.toFixed(1)}<span className="cp-thc-unit">mg</span></span>
+                    <span className="cp-thc-label">THC today</span>
+                  </div>
+                  {gramsEntries.map(([name, grams]) => (
+                    <div className="cp-thc-stat" key={name}>
+                      <span className="cp-thc-val">{grams.toFixed(3)}<span className="cp-thc-unit">g</span></span>
+                      <span className="cp-thc-label">{name.split(' ').slice(0, 2).join(' ')}</span>
+                    </div>
+                  ))}
+                  <div className="cp-thc-stat">
+                    <span className="cp-thc-val">{sessions}<span className="cp-thc-unit">/{sessionTarget}</span></span>
+                    <span className="cp-thc-label">sessions</span>
+                  </div>
+                </div>
+              )}
+
+              {/* ── TODAY'S PLAN ── */}
+              <div className="cp-section-label">TODAY'S PLAN</div>
+
+              {dailyPlan.length === 0 ? (
+                <div className="empty-state empty-state--compact">No eligible products in inventory for today's plan.</div>
+              ) : (
+                dailyPlan.map((ps, i) => {
+                  const logged = planLogs[i];
+                  const prod   = inventory.find((p) => p.id === ps.productId);
+                  return (
+                    <div key={ps.sessionNumber} className={`cp-plan-card${logged ? ' cp-plan-card--done' : ''}`}>
+                      <div className="cp-plan-num">{ps.sessionNumber}</div>
+                      <div className="cp-plan-body">
+                        <div className="cp-plan-slot">{ps.timeLabel} · ~{ps.plannedTime}</div>
+                        <div className="cp-plan-product">{ps.productName}</div>
+                        <div className="cp-plan-dose">
+                          {ps.recommendedAmount}g · ~{ps.estimatedThcMg}mg THC
+                          {ps.thcPercent ? ` · ${ps.thcPercent}% THC flower` : ''}
+                        </div>
+                        <div className="cp-plan-window">{ps.useWindow?.split('—').slice(1).join('—').trim()}</div>
+                        {logged && (
+                          <div className="cp-plan-logged-detail">
+                            ✓ Logged {logged.time} · {logged.amount}{logged.unit} · ~{logged.thcMg}mg THC
+                            {logged.effect && <> · <span className="text-teal">{logged.effect}</span></>}
+                          </div>
+                        )}
+                      </div>
+                      {!logged ? (
+                        <button
+                          className="btn btn-primary btn-sm cp-plan-btn"
+                          disabled={demoMode}
+                          onClick={() => setCannabisModal({ open: true, planSession: ps, isExtra: false })}
+                        >
+                          Log This
+                        </button>
+                      ) : (
+                        <div className="cp-plan-check">✓</div>
+                      )}
+                    </div>
+                  );
+                })
+              )}
+
+              {/* ── EXTRA SESSIONS ── */}
+              {extraLogs.length > 0 && (
+                <>
+                  <div className="cp-section-label cp-section-label--extra">⚠ EXTRA SESSIONS (Beyond Plan)</div>
+                  {extraLogs.map((log, i) => {
+                    const prod      = inventory.find((p) => p.id === log.productId);
+                    const riskClass = RISK_CLASS[prod?.riskLevel] || 'risk-unknown';
+                    return (
+                      <div key={log.id} className="cp-extra-card">
+                        <div className={`v2-session-num ${riskClass}`}>{dailyPlan.length + i + 1}</div>
+                        <div className="v2-session-body">
+                          <div className="v2-session-product">{prod?.name || 'Unknown'}</div>
+                          <div className="v2-session-detail">{log.time} · {log.amount}{log.unit} · ~{log.thcMg}mg THC · {log.method}</div>
+                          <div className="v2-session-reason">{log.reason}{log.effect ? ` · ${log.effect}` : ''}</div>
+                          {log.munchiesTriggered && <span className="badge badge-munchies badge-inline">🍿 munchies</span>}
+                        </div>
+                        <div className={`v2-risk-tag ${riskClass}`}>{prod?.riskLevel}</div>
+                      </div>
+                    );
+                  })}
+                </>
+              )}
+
+              {overLimit && <div className="v2-limit-alert">⚠ Daily limit reached</div>}
+            </div>
+          );
+        })()}
 
         {/* Workout Card */}
         <div className="v2-card v2-card--workout v2-card--flush">
@@ -333,6 +416,13 @@ export function TodayView() {
 
       {quickAdd && (
         <QuickAddModal onClose={() => setQuickAdd(null)} defaultType={quickAdd === 'picker' ? null : quickAdd} />
+      )}
+      {cannabisModal.open && (
+        <CannabisSessionModal
+          onClose={() => setCannabisModal({ open: false, planSession: null, isExtra: false })}
+          planSession={cannabisModal.planSession}
+          isExtra={cannabisModal.isExtra}
+        />
       )}
     </div>
   );
