@@ -1,0 +1,247 @@
+---
+# UI/UX Heuristics — Synthesized
+# ============================================================================
+# Curated from publicly available principles. The challenger.agent.md cites
+# these IDs in its UI/UX lane (e.g., "[NI-007] WARN because ...").
+#
+# Sources are public:
+#   - Nielsen 10 Heuristics (Jakob Nielsen, NN/g)
+#   - WAI-ARIA Authoring Practices Guide (W3C, public)
+#   - Refactoring UI free principles (Adam Wathan & Steve Schoger, public excerpts)
+#   - Apple Human Interface Guidelines (public)
+#   - Microsoft Fluent Design (public)
+#
+# Last refresh: 2026-05-03
+# ============================================================================
+
+meta:
+  generated_at: "2026-05-03"
+  authority: framework.md
+  scope: HealthTracker is a desktop-first PWA with mobile support; mac primary, windows first-class
+
+# ============================================================================
+# Nielsen 10 Heuristics (NI-001..NI-010)
+# ============================================================================
+nielsen_heuristics:
+  - id: NI-001
+    name: Visibility of system status
+    principle: The system should always keep users informed via timely feedback
+    healthtracker_application: >
+      Loading states on async repos; "saved" toast after writes; busy indicators
+      during sync. Today's view shows last-updated time on rings.
+    check: Is feedback shown for every action that can take more than 100ms?
+
+  - id: NI-002
+    name: Match between system and the real world
+    principle: Use users' language and conventions, not system-internal jargon
+    healthtracker_application: >
+      "Cannabis Inventory" not "Strain Catalog"; "Today" not "Daily View";
+      "Log Use" not "Decrement Inventory."
+    check: Are labels written for the user, not the developer?
+
+  - id: NI-003
+    name: User control and freedom
+    principle: Provide undo, cancel, and exit for any action
+    healthtracker_application: >
+      Soft-delete (HT-CORE-008) enables undo; modals close on Esc; no irreversible
+      actions without confirmation.
+    check: Can the user undo every destructive action?
+
+  - id: NI-004
+    name: Consistency and standards
+    principle: Same patterns for same actions across the app
+    healthtracker_application: >
+      All add buttons "+", all stars 1-3, all rings same size+color tokens, all
+      modals use Modal primitive, all forms use FormField primitive.
+    check: Do similar things look and behave similarly?
+
+  - id: NI-005
+    name: Error prevention
+    principle: Eliminate error-prone conditions; confirm risky actions
+    healthtracker_application: >
+      Cannabis stacking checks block dangerous combinations; THC ceiling warns
+      before logging over budget; can() helper prevents unauthorized writes.
+    check: Are common errors made impossible, not just recoverable?
+
+  - id: NI-006
+    name: Recognition rather than recall
+    principle: Make information visible; don't make users remember
+    healthtracker_application: >
+      Recommended dose shown next to product; favorite stars visible at a glance;
+      device icon shown on each cannabis product card.
+    check: Does the user need to remember anything from the previous screen?
+
+  - id: NI-007
+    name: Flexibility and efficiency of use
+    principle: Provide accelerators for power users without burdening novices
+    healthtracker_application: >
+      Keyboard shortcuts (mod+k for command palette in future); QuickAddModal
+      from anywhere; favorites for fast re-log.
+    check: Is there a shortcut for the most common path?
+
+  - id: NI-008
+    name: Aesthetic and minimalist design
+    principle: Don't show information that competes with relevant info
+    healthtracker_application: >
+      Today shows what's needed today; History gets the analytics; Inventory
+      gets the catalog. No mixing.
+    check: Could anything on this screen be removed without loss?
+
+  - id: NI-009
+    name: Help users recognize, diagnose, and recover from errors
+    principle: Plain-language errors that propose a fix
+    healthtracker_application: >
+      "Storage adapter not initialized — try restarting the app" instead of
+      "TypeError: undefined is not a function".
+    check: Does the error message say what to do next?
+
+  - id: NI-010
+    name: Help and documentation
+    principle: Help available when needed, scoped to the task
+    healthtracker_application: >
+      Inline tooltips on cannabis fields explain THC%, dose math; docs/
+      external for deeper explanation.
+    check: Can a user find help about the current task in <2 clicks?
+
+# ============================================================================
+# WAI-ARIA Authoring Practices (AR-001..)
+# ============================================================================
+aria_practices:
+  - id: AR-001
+    name: Keyboard operability
+    principle: All interactive elements operable via keyboard
+    healthtracker_application: >
+      Replace clickable <div> sidebar nav items with <button> or role=button + tabIndex.
+      Modal close on Esc, submit on Enter where unambiguous.
+    check: Can a keyboard-only user reach and operate every interactive element?
+
+  - id: AR-002
+    name: Focus visible
+    principle: Focus indicator visible at all times when keyboard-navigating
+    healthtracker_application: >
+      :focus-visible styles on buttons/links; never outline:none without a replacement.
+    check: Does Tab show a visible focus ring on every interactive element?
+
+  - id: AR-003
+    name: Modal dialog pattern
+    principle: role=dialog + aria-modal=true + focus trap + Esc close
+    healthtracker_application: >
+      Modal primitive ensures aria-modal, focus trap, restore focus on close,
+      Esc closes, click outside closes only when safe.
+    check: Does the Modal component meet WAI-ARIA dialog APG specs?
+
+  - id: AR-004
+    name: Color contrast
+    principle: Text contrast 4.5:1 (3:1 for large text); UI 3:1 minimum
+    healthtracker_application: >
+      Verify all token pairs (text on bg, badge fg/bg) meet WCAG AA.
+    check: Has the design-system been WCAG-AA-checked?
+
+  - id: AR-005
+    name: Color is not the only signal
+    principle: Don't convey state by color alone
+    healthtracker_application: >
+      Risk badges have text + color (high/medium/low). Status icons have
+      shape + color. Patterns or icons reinforce.
+    check: Would a colorblind user understand state without color?
+
+  - id: AR-006
+    name: Form labels
+    principle: Every input has a visible label and programmatic association
+    healthtracker_application: >
+      FormField primitive auto-id; aria-describedby for helper/error.
+      No placeholder-as-label.
+    check: Is every input clearly labeled and screen-reader-readable?
+
+# ============================================================================
+# Refactoring UI principles (RU-001..)
+# ============================================================================
+refactoring_ui:
+  - id: RU-001
+    name: Establish hierarchy via size, weight, color — not by section borders alone
+    principle: Visual hierarchy is information architecture
+    healthtracker_application: >
+      Today's hero rings are the largest text; tiles use mid-weight headers;
+      meta info uses lower-weight, dimmer color.
+    check: Is the most important information also the most visually prominent?
+
+  - id: RU-002
+    name: Use color with intent — saturation conveys importance
+    principle: Bright color for primary action; muted for secondary
+    healthtracker_application: >
+      Teal CTAs and primary state; orange for warnings; grayscale for secondary
+      buttons. Don't rainbow.
+    check: Does each color have a meaning?
+
+  - id: RU-003
+    name: Don't use grey backgrounds with white cards by default — pick one elevation strategy
+    principle: Layered surfaces should be intentional
+    healthtracker_application: >
+      v2-card has a subtle border + slight shadow on hover; consistent elevation
+      across cards.
+    check: Is elevation consistent or accidental?
+
+  - id: RU-004
+    name: Spacing — design at small sizes uses small spacing; large elements deserve more breathing room
+    principle: Spacing scales with element importance
+    healthtracker_application: >
+      Hero section has generous padding; tile grid uses tighter gaps; list rows
+      tighter still.
+    check: Does whitespace match the importance of what's inside it?
+
+  - id: RU-005
+    name: Empty states deserve as much design attention as full states
+    principle: Empty states are the first impression
+    healthtracker_application: >
+      Empty Today (no logs yet) shows a CTA; empty inventory shows "+ Add product".
+      Never blank.
+    check: Is every empty state designed, not blank?
+
+# ============================================================================
+# Apple Human Interface Guidelines — desktop relevant subset (HIG-001..)
+# ============================================================================
+apple_hig:
+  - id: HIG-001
+    name: System fonts respect platform conventions
+    principle: Use SF Pro on macOS; let CSS system stack handle fallback to Segoe UI on Windows
+    healthtracker_application: >
+      Font stack: -apple-system, BlinkMacSystemFont, "Segoe UI Variable",
+      "Segoe UI", system-ui, Roboto, sans-serif.
+    check: Is the system font stack used consistently?
+
+  - id: HIG-002
+    name: Tabular figures for numeric data
+    principle: Numbers in tables/dashboards use tabular-nums to prevent jitter
+    healthtracker_application: >
+      Ring numbers, THC mg, calories, weights all use font-variant-numeric: tabular-nums.
+    check: Do dashboards use tabular figures?
+
+  - id: HIG-003
+    name: Respect reduced motion
+    principle: Honor prefers-reduced-motion in animations
+    healthtracker_application: >
+      Skeleton pulses, hover transitions, modal slides all respect prefers-reduced-motion.
+    check: Does the UI respond to the OS reduced-motion setting?
+
+# ============================================================================
+# Microsoft Fluent — windows-relevant subset (FL-001..)
+# ============================================================================
+microsoft_fluent:
+  - id: FL-001
+    name: PWA install requires wide screenshot in manifest
+    principle: For Edge/Chrome on Windows desktop install prompt
+    healthtracker_application: >
+      manifest.json includes a screenshots[] entry with form_factor: wide.
+    check: Does the PWA manifest include a wide screenshot?
+
+  - id: FL-002
+    name: Maskable icons for Windows tile
+    principle: 192x192 + 512x512 maskable icons in manifest
+    healthtracker_application: >
+      manifest.json includes both 'any' and 'maskable' icon purposes at 192/512.
+    check: Are both maskable and any icons declared?
+
+# ============================================================================
+# Conflict notes
+# ============================================================================
+conflicts: []

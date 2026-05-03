@@ -1,0 +1,194 @@
+---
+# HealthTracker CORE Rules — Non-Negotiable Governance
+# ============================================================================
+# These 10 rules are enforced across all agents and the challenger.
+# Inspired by CORTEX framework; right-sized for HealthTracker's scope.
+# Enforcement levels: BLOCKED | PRE-EXECUTION | RUNTIME | WARNING | PRINCIPLE
+# ============================================================================
+
+id: ht-core-rules
+version: "1.0"
+last_updated: "2026-05-03"
+status: active
+authority: framework.md
+
+enforcement_levels:
+  BLOCKED:
+    description: Execution halted; must resolve before proceeding.
+  PRE-EXECUTION:
+    description: Must run before any code-modifying operation.
+  RUNTIME:
+    description: Enforced continuously during execution.
+  WARNING:
+    description: Surfaced as advisory; does not block.
+  PRINCIPLE:
+    description: Guiding principle; advisory only.
+
+rules:
+
+  - id: HT-CORE-001
+    name: Architecture-First
+    enforcement: PRE-EXECUTION
+    severity: P0
+    description: >
+      Every IMPLEMENT, FIX, or REFACTOR begins with an architectural assessment.
+      The assessment names: problem, affected modules/contracts/state, current vs
+      desired behavior, backward-compat impact, risks, and whether the change is
+      additive / modifying / breaking. No code is written before this lands.
+    enforcement_check: architect.agent.md must produce an assessment before executor proceeds.
+    anti_patterns:
+      - Implementing before identifying impacted modules
+      - Treating refactors as "no-impact" without an assessment
+    references:
+      - anthropic-guidelines.yaml#agents.workflows-not-agents-when-deterministic
+      - architecture.md
+
+  - id: HT-CORE-002
+    name: Tests-First
+    enforcement: PRE-EXECUTION
+    severity: P0
+    description: >
+      Tests are written before implementation. Red → Green → Refactor.
+      The failing test must fail with the expected error message before
+      any production code is written.
+    enforcement_check: executor.agent.md must show a failing test (verified output) before any source-code write.
+    anti_patterns:
+      - "Writing implementation, then tests"
+      - "Skipping tests with --ignore or test.skip"
+      - "Mocking dependencies that should be exercised"
+    references:
+      - test-strategy.md
+      - anthropic-guidelines.yaml#evals.bake-in-from-day-one
+
+  - id: HT-CORE-003
+    name: Single Source of Truth
+    enforcement: BLOCKED
+    severity: P0
+    description: >
+      No duplicate authority. One canonical owner per data domain, per concept,
+      per workflow. If two places hold the same information, one must link to the other.
+    enforcement_check: auditor's Pass 3 (Architecture) flags duplicates; challenger blocks.
+    anti_patterns:
+      - "Same constant defined in two files"
+      - "Same business rule encoded in both view and store"
+      - "Two agents claiming ownership of the same surface"
+    references:
+      - architecture.md
+
+  - id: HT-CORE-004
+    name: Holistic Validation Gate
+    enforcement: BLOCKED
+    severity: P0
+    description: >
+      A change is not complete until a full validation sweep passes:
+      type checks, tests, regression suite, lint, accessibility checks
+      where applicable. Cannot claim completion with any failure.
+    enforcement_check: auditor or executor runs the full sweep; output must be verified.
+    anti_patterns:
+      - 'Calling work done because "the unit tests pass"'
+      - "Skipping accessibility checks for UI changes"
+    references:
+      - test-strategy.md
+
+  - id: HT-CORE-005
+    name: Sweep Completeness
+    enforcement: BLOCKED
+    severity: P0
+    description: >
+      Every FIX, REFACTOR, and AUDIT-with-fix opens a SweepCatalogue at
+      _workspace/scratch/sweep-catalogue.md. The session is BLOCKED from
+      completing until all catalogued items are resolved or explicitly
+      marked WONT-FIX with rationale.
+    enforcement_check: planner agent verifies catalogue empty or fully resolved before "complete".
+    anti_patterns:
+      - "Closing a refactor with known broken call sites"
+      - "Resolving fixed items but leaving WARN items unaddressed"
+    references:
+      - architecture.md
+
+  - id: HT-CORE-006
+    name: Convergence Loop
+    enforcement: BLOCKED
+    severity: P0
+    description: >
+      Detect → Fix → Rescan loop until zero failures. Never stop at "fixed
+      most of them." If a fix introduces a new failure, address that, rescan again.
+    enforcement_check: validation sweep must report zero P0 + zero P1 issues.
+    anti_patterns:
+      - "Stopping after 1 iteration with remaining failures"
+      - "Hand-waving residual failures as 'unrelated'"
+
+  - id: HT-CORE-007
+    name: No Fabricated Evidence
+    enforcement: BLOCKED
+    severity: P0
+    description: >
+      Never claim a test passed, a build succeeded, or a check ran without
+      verified output. If asked "did the tests pass?" the answer must be backed
+      by actual stdout from the test runner.
+    enforcement_check: any "PASSED" or "✅" claim requires a tool-result citation.
+    anti_patterns:
+      - 'Saying "tests pass" because the code "looks right"'
+      - "Claiming a build is green without running it"
+
+  - id: HT-CORE-008
+    name: Audit-Field Discipline
+    enforcement: RUNTIME
+    severity: P1
+    description: >
+      Every persisted record carries audit fields:
+        id (UUID), userId, createdAt, updatedAt, createdBy, updatedBy, deletedAt (soft-delete), schemaVersion.
+      TODOs additionally carry assigneeId and assignerId. Today this enables
+      multi-user later; tomorrow it enables "who changed what" tracing.
+    enforcement_check: data-model.md schemas; auditor Pass 4 (Brittleness) checks store mutations.
+    anti_patterns:
+      - "Hard-deleting a record (use soft-delete)"
+      - "Bypassing audit fields with direct localStorage writes"
+    references:
+      - data-model.md
+
+  - id: HT-CORE-009
+    name: Schema-Versioned Persistence
+    enforcement: RUNTIME
+    severity: P1
+    description: >
+      Every persisted blob (the localStorage root, future Supabase rows) carries
+      a schemaVersion field. A migration registry runs on app load. When schema
+      changes, bump the version and add a migration entry; never silently change shape.
+    enforcement_check: data-model.md migration registry; executor adds a migration with every schema change.
+    anti_patterns:
+      - "Renaming a field without a migration"
+      - "Adding a required field without backfilling existing data"
+    references:
+      - data-model.md
+
+  - id: HT-CORE-010
+    name: Context Hygiene
+    enforcement: PRINCIPLE
+    severity: P2
+    description: >
+      Selectors filter by current user even when the app is single-user. The
+      future-proofing has zero cost today and removes a class of bugs tomorrow.
+      AuthContext returns { id: 'me', role: 'owner' } today; future SSO swaps in.
+    enforcement_check: every selector accepts userId from useCurrentUser() or filters by it.
+    anti_patterns:
+      - "Hardcoding 'me' in a selector"
+      - "Reading from store directly inside a view (use repository layer)"
+    references:
+      - architecture.md
+      - anthropic-guidelines.yaml#context.minimize-bloat
+
+# ============================================================================
+# Mapping to CORTEX rules (for audit/governance traceability)
+# ============================================================================
+cortex_lineage:
+  HT-CORE-001: CORE-008 (TDD Mandatory) + Architecture-First (CORTEX architect)
+  HT-CORE-002: CORE-008 (Tests-First subset)
+  HT-CORE-003: CORE-035 (Single Source of Truth)
+  HT-CORE-004: CORE-048 (Holistic Validation Gate)
+  HT-CORE-005: CORE-064 (Sweep Completeness)
+  HT-CORE-006: CORE-068 (Convergence Loop)
+  HT-CORE-007: CORE-071 (No Fabricated Evidence)
+  HT-CORE-008: HealthTracker-specific
+  HT-CORE-009: HealthTracker-specific
+  HT-CORE-010: HealthTracker-specific (future-proofs SSO + multi-user)

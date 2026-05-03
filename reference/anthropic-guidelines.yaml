@@ -1,0 +1,280 @@
+---
+# Anthropic Engineering Guidelines — Synthesized
+# ============================================================================
+# Distilled from the public Anthropic Engineering blog (anthropic.com/engineering).
+# Each principle is testable / observable. The challenger.agent.md cites these
+# IDs in its verdicts (e.g., "[ANT-001] BLOCK because ...").
+# Refresh via /sync-guidelines. Last refresh: 2026-05-03.
+# ============================================================================
+
+meta:
+  generated_at: "2026-05-03"
+  refresh_command: "/sync-guidelines"
+  authority: framework.md
+  sources:
+    - id: building-effective-agents
+      url: https://www.anthropic.com/engineering/building-effective-agents
+      published: "2024-12-19"
+      summary: Workflows vs agents; simple composable patterns over frameworks
+    - id: effective-context-engineering
+      url: https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents
+      published: "2025-09-29"
+      summary: Context as finite resource; engineer the configuration of context
+    - id: writing-tools-for-agents
+      url: https://www.anthropic.com/engineering/writing-tools-for-agents
+      published: "2025-09-11"
+      summary: Tools should be namespaced, token-efficient, prompt-engineered
+    - id: agent-skills
+      url: https://www.anthropic.com/engineering/equipping-agents-for-the-real-world-with-agent-skills
+      published: "2025-10-16"
+      summary: Composable skill folders (SKILL.md + resources) loaded dynamically
+    - id: multi-agent-research
+      url: https://www.anthropic.com/engineering/multi-agent-research-system
+      published: "2025-06-13"
+      summary: Multi-agent benefits and coordination/eval challenges
+    - id: claude-think-tool
+      url: https://www.anthropic.com/engineering/claude-think-tool
+      published: "2025-03-20 (updated 2025-12-15)"
+      summary: Extended thinking has superseded the "think" tool for most cases
+    - id: demystifying-evals
+      url: https://www.anthropic.com/engineering/demystifying-evals-for-ai-agents
+      published: "2026-01-09"
+      summary: Evals first; problems compound silently without them
+    - id: effective-harnesses
+      url: https://www.anthropic.com/engineering/effective-harnesses-for-long-running-agents
+      published: "2025-11-26"
+      summary: Long-running agents need durable state across context windows
+    - id: code-execution-mcp
+      url: https://www.anthropic.com/engineering/code-execution-with-mcp
+      published: "2025-11-04"
+      summary: Code execution via MCP scales better than direct tool calls at high tool counts
+    - id: claude-code-auto-mode
+      url: https://www.anthropic.com/engineering/claude-code-auto-mode
+      published: "2026-03-25"
+      summary: Auto-mode classifiers reduce approval fatigue without bypassing safety
+    - id: managed-agents
+      url: https://www.anthropic.com/engineering/managed-agents
+      published: "2026-04-08"
+      summary: Harnesses encode model assumptions; design for stability across upgrades
+    - id: advanced-tool-use
+      url: https://www.anthropic.com/engineering/advanced-tool-use
+      published: "2025-11-24"
+      summary: Dynamic tool discovery scales beyond context-stuffing every definition
+
+# ============================================================================
+# Categories
+# ============================================================================
+categories:
+
+  agents_design:
+    - id: ANT-001
+      principle: Workflows ≠ Agents — pick the simpler one that works
+      detail: >
+        Workflows orchestrate LLM+tool calls through predefined code paths.
+        Agents direct their own processes dynamically. Most production tasks
+        are workflows. Reach for an agent only when steps cannot be predicted.
+      sources: [building-effective-agents]
+      anti_patterns:
+        - Reaching for an agent when chained prompts would do
+        - Wrapping a deterministic flow in an agentic loop "for flexibility"
+      check: "If the task has a knowable sequence, code it as a workflow."
+
+    - id: ANT-002
+      principle: Prefer simple, composable patterns over complex frameworks
+      detail: >
+        The most successful agent implementations use simple, composable
+        patterns. Frameworks add abstraction overhead without proportional
+        benefit for most use cases.
+      sources: [building-effective-agents]
+      anti_patterns:
+        - Pulling in LangChain/LlamaIndex when fetch + a prompt would do
+        - Building an agent class hierarchy before the first useful prompt works
+      check: "Can this be done with one prompt and one tool call? If yes, do that."
+
+    - id: ANT-003
+      principle: Stable interfaces survive model upgrades
+      detail: >
+        Harnesses encode assumptions about what models cannot do. Those
+        assumptions go stale as models improve. Design interfaces (prompts,
+        tools, contracts) that stay stable across model versions.
+      sources: [managed-agents]
+      anti_patterns:
+        - Hardcoding workarounds for a known weakness in a specific model version
+        - Coupling business logic to a particular thinking depth or context window
+      check: "Will this still work when the next Claude version is dropped in?"
+
+  context_engineering:
+    - id: ANT-010
+      principle: Context is finite — engineer the configuration most likely to yield desired behavior
+      detail: >
+        Building with LLMs is less about wording and more about the
+        configuration of context. Curate to the smallest sufficient set.
+      sources: [effective-context-engineering]
+      anti_patterns:
+        - Stuffing the prompt with every doc in the repo "just in case"
+        - Loading 200KB of agent files at the start of every conversation
+      check: "Does the agent need this token? If not, drop it."
+
+    - id: ANT-011
+      principle: Load specialist instructions on-demand, not by default
+      detail: >
+        The default context should be minimal. Specialists/skills are loaded
+        per intent. The CORTEX/Journal pattern of "default ~200 tokens; load
+        ~1-2k per intent" is a useful baseline.
+      sources: [effective-context-engineering, agent-skills]
+      anti_patterns:
+        - Importing every agent file unconditionally
+        - Including full reference docs when a citation would do
+      check: "Does the agent file load resources only when the intent matches?"
+
+    - id: ANT-012
+      principle: Multi-turn agents need durable state
+      detail: >
+        Long-running agents work in discrete sessions; each begins with no
+        memory of the prior. Persist state in handoff documents, commit maps,
+        append-only logs. The handoff is the canonical "what to do next."
+      sources: [effective-harnesses]
+      anti_patterns:
+        - Relying on "the agent will remember" between conversations
+        - Writing decisions into chat instead of into _workspace/ files
+      check: "Could a fresh session resume from the files alone?"
+
+  tool_use:
+    - id: ANT-020
+      principle: Tools should be namespaced and well-documented
+      detail: >
+        Clear functional boundaries reduce miscalls. Each tool's description
+        is itself a prompt — engineer it. Document inputs, outputs, side effects.
+      sources: [writing-tools-for-agents]
+      anti_patterns:
+        - Two tools with overlapping responsibilities (createUser vs registerUser)
+        - Tool descriptions that don't mention failure modes
+      check: "Could a fresh agent pick the right tool from the description alone?"
+
+    - id: ANT-021
+      principle: Tools should return meaningful context, token-efficient
+      detail: >
+        Optimize tool responses: meaningful enough to act on, terse enough
+        to not blow context. Trim noise; structure for downstream parsing.
+      sources: [writing-tools-for-agents]
+      anti_patterns:
+        - Returning entire HTML pages when a parsed text excerpt suffices
+        - Returning JSON with 90% null fields
+      check: "Is every byte in this response useful for the next decision?"
+
+    - id: ANT-022
+      principle: Code execution scales better than direct tool calls at high tool counts
+      detail: >
+        At hundreds of tools, direct tool calls consume context per definition
+        and per result. Letting the agent write code that calls tools is more
+        token-efficient. Not relevant for low-tool-count agents.
+      sources: [code-execution-mcp, advanced-tool-use]
+      anti_patterns:
+        - Loading 100+ tool definitions into context for a 5-step task
+      check: "If tool count > ~30, consider code execution as the calling pattern."
+
+  evaluations:
+    - id: ANT-030
+      principle: Evals first — bake evaluation in from day one
+      detail: >
+        Without evals you ship reactively. Define what "correct" looks like
+        before building; problems compound silently without measurement.
+      sources: [demystifying-evals]
+      anti_patterns:
+        - Shipping a feature without acceptance criteria
+        - Treating manual smoke testing as "the eval"
+      check: "What's the failing test that proves this works?"
+
+    - id: ANT-031
+      principle: Combine eval techniques to match system complexity
+      detail: >
+        Single-metric evals are brittle. Combine: unit tests for components,
+        scenario tests for flows, regression suites for stability,
+        rubric-based human review for nuance.
+      sources: [demystifying-evals]
+      check: "Does the test strategy span unit + integration + regression + UX review?"
+
+  workflows_and_orchestration:
+    - id: ANT-040
+      principle: Multi-agent — parallel for breadth, sequential for depth
+      detail: >
+        Parallel sub-agents explore wide spaces (research, scanning).
+        Sequential agents go deep on one path. Coordinator decides which
+        based on the task; never default to "fan out everything."
+      sources: [multi-agent-research]
+      anti_patterns:
+        - Fanning out to 10 parallel agents when 1 would have sufficed
+        - Sequential chain when results are independent and parallel-safe
+      check: "Are these sub-tasks genuinely independent?"
+
+    - id: ANT-041
+      principle: Coordination/eval/reliability are the hard parts of multi-agent
+      detail: >
+        Multi-agent systems introduce emergent failure modes: agents
+        contradicting each other, losing context across handoffs, repeating
+        each other's work. Design for these explicitly.
+      sources: [multi-agent-research]
+      check: "Is there a single coordinator with the canonical view of state?"
+
+  agent_skills:
+    - id: ANT-050
+      principle: Agent Skills are composable folders loaded dynamically
+      detail: >
+        A skill is a folder with SKILL.md + resources. Agents discover and
+        load them per task. Skills extend capability without bloating
+        the default agent prompt.
+      sources: [agent-skills]
+      anti_patterns:
+        - Inlining a skill's full instructions into the agent's system prompt
+        - Building one mega-agent for every domain
+      check: "Is this a skill that should live in .claude/skills/, not in the agent?"
+
+  thinking:
+    - id: ANT-060
+      principle: Use extended thinking instead of the deprecated "think" tool
+      detail: >
+        Extended thinking has superseded the "think" tool for most use cases
+        as of Dec 2025. It provides reasoning space with better integration.
+      sources: [claude-think-tool]
+      check: "If the task needs reasoning space, prefer extended thinking."
+
+  safety_and_review:
+    - id: ANT-070
+      principle: Auto-mode classifiers reduce fatigue without silently bypassing safety
+      detail: >
+        Approval fatigue (93% approval rate) leads to inattentive approvals.
+        Classifiers can auto-approve safe actions while preserving prompts
+        for risky ones. Never silently disable safety prompts.
+      sources: [claude-code-auto-mode]
+      anti_patterns:
+        - Using --dangerously-skip-permissions in production
+        - Wholesale disabling permission prompts via settings
+      check: "Are risky actions still gated, even if routine ones are auto-approved?"
+
+# ============================================================================
+# Contradictions Surfaced
+# ============================================================================
+contradictions:
+  - description: >
+      Older "think" tool guidance vs. updated extended-thinking guidance.
+    sources_in_conflict: [claude-think-tool, claude-think-tool#update-2025-12-15]
+    reconciliation: >
+      Use extended thinking. The think tool is deprecated for most cases per
+      the Dec 2025 update embedded in the same article.
+
+  - description: >
+      "Use simple patterns" (ANT-002) vs. CORTEX-style heavy governance.
+    sources_in_conflict: [building-effective-agents, "(internal) CORTEX framework"]
+    reconciliation: >
+      Heavy governance is justified when the project's blast radius warrants it.
+      For HealthTracker (single-user SPA), we adopt CORTEX patterns selectively
+      (CORE rules, gates, phase template) and skip the rest (78-phase registry,
+      multi-tier orchestrator hierarchy, MCP runtime). Documented in framework.md.
+
+# ============================================================================
+# Coverage gaps (be honest about what we don't have)
+# ============================================================================
+gaps:
+  - "No first-party Anthropic guidance for React/SPA frontend patterns specifically."
+  - "Limited published guidance on multi-tenant data isolation (Phase 2 work)."
+  - "Auto-mode classifier detail is minimal; treat as informational, not actionable."

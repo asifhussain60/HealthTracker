@@ -34,3 +34,6 @@ temp/
 
 # JetBrains IDE settings
 .idea/
+
+# HealthTracker workspace (per-developer scratch, plans, handoffs)
+_workspace/

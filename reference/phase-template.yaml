@@ -1,0 +1,165 @@
+---
+# HealthTracker Phase Template
+# ============================================================================
+# Standard template for new phase plans in _workspace/ideas/.
+# Copy this file, rename to <phase-id>-execution-plan.yaml or use the
+# markdown variant. Locked DoR before any commit; gates per phase.
+# ============================================================================
+
+phase_id: phase-NN
+title: "Phase Title (≤60 chars)"
+status: planned   # planned | active | completed | deferred | superseded
+priority: P0      # P0 | P1 | P2
+created: "YYYY-MM-DD"
+estimated_effort: "X-Y days"
+authority: framework.md
+
+# ============================================================================
+# Vision & Problem Statement (REQUIRED — feeds DoR)
+# ============================================================================
+vision: |
+  [What this phase achieves; user-visible value or technical foundation.]
+
+non_goals: |
+  - [What this phase explicitly does NOT do.]
+  - [Out-of-scope items.]
+
+problem_statement: |
+  CURRENT STATE:
+    - [What's broken/missing/suboptimal]
+  ROOT CAUSE:
+    - [Technical/architectural/process gap]
+  IMPACT IF NOT FIXED:
+    - [User impact / debt accumulation]
+
+# ============================================================================
+# Decisions (DoR — locked before execution)
+# ============================================================================
+decisions:
+  - id: D1
+    decision: "<what was decided>"
+    rationale: "<why>"
+    rejected_alternatives:
+      - "<alternative 1> — rejected because <reason>"
+      - "<alternative 2> — rejected because <reason>"
+  - id: D2
+    decision: "..."
+    rationale: "..."
+    rejected_alternatives: ["..."]
+
+# ============================================================================
+# Acceptance Criteria (each must be a verifiable predicate)
+# ============================================================================
+acceptance_criteria:
+  - id: AC1
+    criterion: "<observable condition>"
+    verification: "<test name | command | manual step>"
+  - id: AC2
+    criterion: "..."
+    verification: "..."
+
+# ============================================================================
+# Risks & Mitigations
+# ============================================================================
+risks:
+  - risk: "<what could go wrong>"
+    mitigation: "<how we prevent or recover>"
+  - risk: "..."
+    mitigation: "..."
+  - risk: "..."
+    mitigation: "..."
+
+# ============================================================================
+# Architecture Impact
+# ============================================================================
+architecture_impact:
+  affected_modules:
+    - path/to/module1
+    - path/to/module2
+  affected_contracts:
+    - "<contract or interface name>"
+  layer_boundary_respected: true | false  # if false, justify
+  backward_compat:
+    preserved: true | false
+    if_breaking: "<rationale + migration path>"
+
+# ============================================================================
+# Test Strategy (HT-CORE-002)
+# ============================================================================
+test_strategy:
+  failing_tests_to_write_first:
+    - test_name: "<name>"
+      verifies: "<criterion or behavior>"
+  regression_risks:
+    - "<existing behavior at risk>"
+  coverage_tier: smoke | unit | integration | e2e
+
+# ============================================================================
+# Enforcement Gates (PRE / STAGE / COMPLETION)
+# ============================================================================
+enforcement_gates:
+  pre_execution:
+    - gate: dor-hard-gate
+      rule: HT-CORE-001
+      blocking: true
+  stage_boundaries:
+    - gate: holistic-gate
+      rule: HT-CORE-004
+      blocking: true
+      frequency: per_commit
+  phase_completion:
+    - gate: sweep-gate
+      rule: HT-CORE-005
+      blocking: true
+
+# ============================================================================
+# Red-Green-Refactor (TDD enforcement)
+# ============================================================================
+red_green_refactor:
+  red:
+    action: Write failing test; verify it fails with expected error
+    forbidden: Implementation before test exists
+  green:
+    action: Minimal code to pass
+    forbidden: Skipping tests, mocking real dependencies without justification
+  refactor:
+    action: Clean while keeping tests green
+    forbidden: Breaking existing tests
+
+# ============================================================================
+# Commits (the work queue)
+# ============================================================================
+commits:
+  - id: A1
+    title: "<one-line summary>"
+    status: pending   # pending | in_progress | done | blocked | wont_fix
+    files_touched:
+      - path/to/file1
+    gate: "<verifiable acceptance criterion for this commit>"
+    audit_marker: "AC-{phase}-{commit_id}"
+  - id: A2
+    title: "..."
+    status: pending
+    files_touched: ["..."]
+    gate: "..."
+    audit_marker: "AC-..."
+
+# ============================================================================
+# Stop Points (human verification required)
+# ============================================================================
+stop_points:
+  - after_commit: "An (last commit of foundations)"
+    verification_checklist:
+      - "Run /audit; expect zero P0/P1 findings"
+      - "Run app smoke test; expect parity with previous commit"
+    user_action: "Reply 'proceed' to advance to sub-phase B"
+
+# ============================================================================
+# Definition of Done
+# ============================================================================
+definition_of_done:
+  - All commits in commit map are status:done OR wont_fix
+  - All enforcement_gates passed
+  - Sweep catalogue closed
+  - Regression suite green
+  - Handoff for next phase written to _workspace/handoffs/

@@ -1,0 +1,128 @@
+---
+# HealthTracker Governance Gates
+# ============================================================================
+# Pre-execution gates blocking specific intents until conditions are met.
+# Cited from intent-routing.yaml; enforced by executor / auditor / planner.
+# ============================================================================
+
+id: ht-governance-gates
+version: "1.0"
+last_updated: "2026-05-03"
+authority: framework.md
+
+gates:
+
+  dor-hard-gate:
+    name: Definition of Ready Hard Gate
+    blocks_intents: [IMPLEMENT, PLAN]
+    rule: HT-CORE-001
+    severity: BLOCKED
+    description: >
+      For an IMPLEMENT/PLAN intent, the active phase plan must score 100/100
+      on the DoR rubric. Below 100 → blocked.
+    rubric:
+      - element: Vision + non-goals stated
+        points: 20
+        check: "Plan has '## Vision' and '## Non-goals' sections; non-goals lists ≥2 items."
+      - element: Decisions table locked with rejected alternatives
+        points: 20
+        check: "Plan has decisions D1..Dn; each lists ≥1 rejected alternative with rationale."
+      - element: Acceptance criteria measurable
+        points: 15
+        check: "Each criterion has a verifiable predicate (test, command, observable state)."
+      - element: Risks + mitigations identified
+        points: 10
+        check: "≥3 risks each with a paired mitigation."
+      - element: Test strategy in place
+        points: 15
+        check: "Plan names: failing-test names, regression risks, coverage tier per change."
+      - element: Architecture impact assessed
+        points: 10
+        check: "Affected modules/contracts named; layer boundaries respected."
+      - element: Backward compatibility addressed
+        points: 10
+        check: "Either preserved with proof, or breaking change explicitly flagged + accepted."
+    required_score: 100
+    block_message: "DoR Hard Gate failed. Fix the plan to score 100/100 before proceeding."
+
+  tdd-gate:
+    name: TDD Gate
+    blocks_intents: [FIX]
+    rule: HT-CORE-002
+    severity: BLOCKED
+    description: >
+      For a FIX, a regression test reproducing the bug must exist and fail
+      before any production code is written.
+    checks:
+      - id: tdd-1
+        description: A failing test file exists in app/src/__tests__/ or per the test-strategy
+      - id: tdd-2
+        description: The test fails with the expected error message (verified output captured)
+      - id: tdd-3
+        description: The test name describes the bug and the desired correct behavior
+    block_message: "TDD Gate failed. Write a failing regression test first."
+
+  holistic-gate:
+    name: Holistic Validation Gate
+    blocks_intents: [REFACTOR]
+    rule: HT-CORE-004
+    severity: BLOCKED
+    description: >
+      For a REFACTOR, a baseline of passing tests + lint must be captured before
+      changes; same suite must pass after; no behavior change permitted.
+    checks:
+      - id: holistic-1
+        description: Pre-refactor baseline captured (test count, pass count, lint clean)
+      - id: holistic-2
+        description: Post-refactor sweep passes; counts ≥ baseline
+      - id: holistic-3
+        description: No new TODO/FIXME/XXX added without owner + ticket
+      - id: holistic-4
+        description: A11y checks pass for any UI-touching refactor
+    block_message: "Holistic Gate failed. Restore baseline parity before claiming complete."
+
+  sweep-gate:
+    name: Sweep Completeness Gate
+    blocks_intents: [AUDIT, FIX, REFACTOR]
+    rule: HT-CORE-005
+    severity: BLOCKED
+    description: >
+      _workspace/scratch/sweep-catalogue.md is opened on FIX/REFACTOR/AUDIT-with-fix.
+      Every catalogued item must be resolved or explicitly WONT-FIX.
+    checks:
+      - id: sweep-1
+        description: Catalogue file exists and has at least one entry per detected issue
+      - id: sweep-2
+        description: Every entry has status DONE | WONT-FIX | DEFER (with rationale)
+      - id: sweep-3
+        description: Catalogue is closed at end of session (no OPEN entries)
+    block_message: "Sweep catalogue has open items. Resolve or mark WONT-FIX with rationale."
+
+  governance-gate:
+    name: Governance Gate
+    blocks_intents: [REVIEW]
+    rule: HT-CORE-003
+    severity: WARNING
+    description: >
+      For a REVIEW, the challenger executes against the three YAMLs
+      (ht-core-rules, anthropic-guidelines, uiux-heuristics) and produces a
+      verdict citing principle IDs.
+    checks:
+      - id: gov-1
+        description: Verdict cites at least one finding per non-trivial change OR explicitly states clean
+      - id: gov-2
+        description: Findings are categorized P0 / P1 / P2 with rationale
+      - id: gov-3
+        description: Conflicts between the three YAMLs are surfaced explicitly, not silently chosen
+    block_message: "(WARNING) Challenger run incomplete. Re-run with full citations."
+
+# ============================================================================
+# Conflict resolution (when YAML guidelines disagree)
+# ============================================================================
+conflict_resolution_priority:
+  1: HT-CORE rules (highest authority — project-specific)
+  2: Anthropic guidelines (engineering best practices)
+  3: UI/UX heuristics (informative; lowest priority when in conflict)
+note: >
+  When in doubt, the challenger SURFACES the conflict in its verdict rather
+  than silently choosing a winner. The user makes the call.

@@ -1,0 +1,145 @@
+---
+# HealthTracker Intent Routing Matrix
+# ============================================================================
+# Maps user intent to handler agent + pre-execution gate.
+# The healthtracker.agent.md classifies intent and dispatches per this matrix.
+# ============================================================================
+
+id: ht-intent-routing
+version: "1.0"
+last_updated: "2026-05-03"
+authority: framework.md
+ssot: true
+
+intents:
+
+  IMPLEMENT:
+    handler: core/executor.agent.md
+    pre_gate: dor-hard-gate
+    governing_rules: [HT-CORE-001, HT-CORE-002, HT-CORE-007]
+    severity: BLOCKED
+    description: Create new functionality; TDD required.
+    triggers:
+      - implement
+      - build
+      - add feature
+      - create new
+    fallback: core/architect.agent.md
+
+  FIX:
+    handler: core/executor.agent.md
+    pre_gate: tdd-gate
+    governing_rules: [HT-CORE-002, HT-CORE-005, HT-CORE-007]
+    severity: BLOCKED
+    description: Resolve bugs; regression test required first.
+    triggers:
+      - fix
+      - bug
+      - resolve
+      - patch
+    fallback: core/auditor.agent.md
+
+  REFACTOR:
+    handler: core/executor.agent.md
+    pre_gate: holistic-gate
+    governing_rules: [HT-CORE-003, HT-CORE-004, HT-CORE-005]
+    severity: BLOCKED
+    description: Improve code without behavior change; full sweep required.
+    triggers:
+      - refactor
+      - clean up
+      - restructure
+      - extract
+    fallback: core/architect.agent.md
+
+  AUDIT:
+    handler: core/auditor.agent.md
+    pre_gate: sweep-gate
+    governing_rules: [HT-CORE-003, HT-CORE-004, HT-CORE-005]
+    severity: BLOCKED
+    description: Run 4-pass holistic audit (Structure → Code → Architecture → Brittleness).
+    triggers:
+      - audit
+      - review the repo
+      - architectural audit
+      - cleanup sweep
+      - find regressions
+    fallback: core/challenger.agent.md
+
+  PLAN:
+    handler: core/planner.agent.md
+    pre_gate: dor-hard-gate
+    governing_rules: [HT-CORE-001]
+    severity: BLOCKED
+    description: Create or update phase plan; locked DoR required.
+    triggers:
+      - plan
+      - phase
+      - roadmap
+      - dor
+    fallback: core/architect.agent.md
+
+  REVIEW:
+    handler: core/challenger.agent.md
+    pre_gate: governance-gate
+    governing_rules: [HT-CORE-003]
+    severity: WARNING
+    description: YAML-backed enforcement against Anthropic + HT-CORE + UI/UX.
+    triggers:
+      - challenge
+      - review the plan
+      - guideline check
+    fallback: support/ui-reviewer.agent.md
+
+  DEBUG:
+    handler: core/auditor.agent.md
+    pre_gate: null
+    governing_rules: [HT-CORE-007]
+    severity: NONE
+    description: Investigate failures; no gate required for read-only debug.
+    triggers:
+      - debug
+      - why is
+      - investigate
+      - root cause
+    fallback: core/architect.agent.md
+
+  QUERY:
+    handler: healthtracker.agent.md
+    pre_gate: null
+    governing_rules: []
+    severity: NONE
+    description: Information retrieval and Q&A; read-only.
+    triggers:
+      - what is
+      - how does
+      - where
+      - explain
+      - status
+    fallback: null
+
+# ============================================================================
+# Routing decision order (when intent is ambiguous)
+# ============================================================================
+decision_order:
+  1: Is it deterministic / pure information retrieval? → QUERY
+  2: Does the user explicitly name a slash command? → respect it
+  3: Does an intent trigger phrase match? → that intent
+  4: Is the request "make this work" / "ship X"? → IMPLEMENT
+  5: Is the request "fix Y is broken"? → FIX
+  6: Is the request "review / audit / clean up"? → AUDIT
+  7: Ambiguous → ask one clarifying question, default to QUERY if still unclear
+
+# ============================================================================
+# Confidence thresholds
+# ============================================================================
+# If classification confidence < threshold, ask the user to confirm intent.
+confidence:
+  IMPLEMENT: 0.75
+  FIX: 0.70
+  REFACTOR: 0.70
+  AUDIT: 0.65
+  PLAN: 0.68
+  REVIEW: 0.68
+  DEBUG: 0.72
+  QUERY: 0.60
