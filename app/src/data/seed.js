@@ -1,5 +1,21 @@
 // Pre-seeded data based on wireframe.txt requirements
 
+export const DEMO_FOOD_LOGS = [
+  { id: 'demo-f1', date: '__TODAY__', label: 'Breakfast', name: 'Chicken & Egg Wrap (Home-cooked)', time: '09:15', calories: 520, protein: 42, carbs: 38, fat: 16, cannabisTriggered: false, munchiesRelated: false, source: 'Manual', notes: 'Good macro balance' },
+  { id: 'demo-f2', date: '__TODAY__', label: 'Snack', name: 'Greek Yogurt + Almonds', time: '12:00', calories: 210, protein: 18, carbs: 12, fat: 9, cannabisTriggered: false, munchiesRelated: false, source: 'Manual', notes: '' },
+  { id: 'demo-f3', date: '__TODAY__', label: 'Munchies', name: 'Pita Chips + Hummus', time: '14:30', calories: 340, protein: 8, carbs: 44, fat: 14, cannabisTriggered: true, munchiesRelated: true, source: 'Manual', notes: 'Post-session snack' },
+  { id: 'demo-f4', date: '__TODAY__', label: 'Dinner', name: 'Grilled Chicken Rice Bowl', time: '19:00', calories: 650, protein: 55, carbs: 60, fat: 12, cannabisTriggered: false, munchiesRelated: false, source: 'Template', notes: '' },
+];
+
+export const DEMO_CANNABIS_LOGS = [
+  { id: 'demo-c1', date: '__TODAY__', time: '10:30', productId: 'inv-2', form: 'flower', sessionNumber: 1, amount: 0.05, unit: 'g', thcMg: 11.1, method: 'vaporizer', reason: 'Anxiety relief', effect: 'calm', munchiesTriggered: false, munchiesLevel: 1, productivityScore: 7, notes: 'Morning session — light dose, very effective' },
+  { id: 'demo-c2', date: '__TODAY__', time: '15:45', productId: 'inv-2', form: 'flower', sessionNumber: 2, amount: 0.075, unit: 'g', thcMg: 16.6, method: 'vaporizer', reason: 'Pain relief', effect: 'relaxed', munchiesTriggered: true, munchiesLevel: 3, productivityScore: 5, notes: 'Afternoon — knee pain, triggered munchies' },
+];
+
+export const DEMO_WORKOUT_LOG = {
+  id: 'demo-w1', date: '__TODAY__', steps: 4200, walkDuration: 38, type: 'Evening Walk', completed: true, intensity: 'light', chestPain: false, sob: false, notes: 'Neighborhood loop, felt good',
+};
+
 export const SEED_PROFILE = {
   name: 'Asif',
   height: { ft: 5, in: 10 },
@@ -86,10 +102,14 @@ export const SEED_INVENTORY = [
     sedationRisk: 'high',
     effects: ['calm', 'sleepy', 'relaxed'],
     qualities: ['full spectrum', 'high potency'],
-    usagePlan: 'Evening only — no stacking with infused pre-rolls',
+    dayNight: 'night-only',
+    useWindow: 'Night only — no early obligations the next day',
+    startingDose: 'Avoid full capsule unless already tolerated',
+    maxTestDose: '50mg (very strong — expect long duration)',
+    usagePlan: 'High-potency night-only. Serious sleep/pain recovery.',
     notToExceed: 'Never stack with infused pre-rolls. 1 capsule max per session.',
     lastUsed: null,
-    notes: '',
+    notes: 'Oral THC lasts long and can carry into the next day. Track next-day grogginess.',
   },
   {
     id: 'inv-2',
@@ -110,10 +130,14 @@ export const SEED_INVENTORY = [
     sedationRisk: 'medium',
     effects: ['relaxed', 'calm', 'hungry'],
     qualities: ['hybrid', 'indica-leaning'],
-    usagePlan: 'Controlled low sessions',
-    notToExceed: 'Small sessions only. Monitor munchies response.',
+    dayNight: 'evening-night',
+    useWindow: 'Evening / night — after work, not during peak productivity',
+    startingDose: '0.025g–0.05g',
+    maxTestDose: '0.10g',
+    usagePlan: 'Evening hybrid / night candidate. Decompression, mood, pain, relaxation.',
+    notToExceed: 'Small sessions only. Monitor munchies — dessert-strain genetics.',
     lastUsed: null,
-    notes: '',
+    notes: 'Likely relaxing. Better after work is fully done.',
   },
   {
     id: 'inv-3',
@@ -134,10 +158,14 @@ export const SEED_INVENTORY = [
     sedationRisk: 'high',
     effects: ['sleepy', 'relaxed', 'calm'],
     qualities: ['strong flower', 'indica-dominant'],
-    usagePlan: 'Small sessions — this is strong flower',
-    notToExceed: 'Very small bowls only. High THC — easy to overconsume.',
+    dayNight: 'night',
+    useWindow: 'Evening / night — body relaxation, sleep, pain, stress shutdown',
+    startingDose: '0.025g–0.05g',
+    maxTestDose: '0.10g',
+    usagePlan: 'Night indica. Best for sleep, body relaxation, pain, and decompression.',
+    notToExceed: 'Very small bowls only. 33% THC — easy to overconsume. Watch couch lock and munchies.',
     lastUsed: null,
-    notes: '',
+    notes: 'Primary default night candidate in the Best Default Routine.',
   },
   {
     id: 'inv-4',
@@ -157,18 +185,22 @@ export const SEED_INVENTORY = [
     munchiesRisk: 'high',
     sedationRisk: 'high',
     effects: ['sleepy', 'relaxed'],
-    qualities: ['indica-hybrid', 'wind-down'],
-    usagePlan: 'Wind-down only — evenings near bedtime',
-    notToExceed: 'Evening/wind-down use only. No daytime use.',
+    qualities: ['indica-hybrid', 'unclassified'],
+    dayNight: 'test-only',
+    useWindow: 'Test on a low-stakes day only — classify before routine use',
+    startingDose: '0.025g (first test only)',
+    maxTestDose: '0.05g',
+    usagePlan: 'Unknown classification — must be tested and classified by your own log.',
+    notToExceed: 'No daytime use until tested. Treat as unclassified until 3 sessions logged.',
     lastUsed: null,
-    notes: '',
+    notes: 'Determine if it behaves like a daytime hybrid or night indica through testing.',
   },
   {
     id: 'inv-5',
     name: 'Cereal Milk #1 Infused Pre-Roll',
     brand: 'Dogwalkers',
     form: 'infused-preroll',
-    type: 'Unknown — confirm label',
+    type: 'Hybrid / Indica-leaning hybrid',
     orderedAmount: 12,
     orderedUnit: 'pre-roll',
     orderedLabel: '0.45g × 12',
@@ -182,17 +214,21 @@ export const SEED_INVENTORY = [
     sedationRisk: 'high',
     effects: ['hungry', 'sleepy'],
     qualities: ['infused', 'high potency'],
-    usagePlan: 'Avoid during cannabis reduction phase',
-    notToExceed: 'NEVER stack with RSO capsules. Avoid during reduction phase.',
+    dayNight: 'evening',
+    useWindow: 'Evening / night — not true daytime unless very controlled',
+    startingDose: '1 small puff — then put it out',
+    maxTestDose: '2–3 puffs (do not smoke like a normal joint)',
+    usagePlan: 'Strong decompression, pain, stress relief. Evening low-demand blocks only.',
+    notToExceed: 'NEVER stack with RSO capsules. Infused = stronger than normal flower.',
     lastUsed: null,
-    notes: 'Needs package label confirmation for strain/type',
+    notes: 'Wait 15–20 min after 1 puff before any redose. Do not smoke like a normal joint.',
   },
   {
     id: 'inv-6',
     name: 'Jungle Pie',
     brand: 'Binske',
     form: 'flower',
-    type: 'Hybrid',
+    type: 'Balanced Hybrid',
     orderedAmount: 3.5,
     orderedUnit: 'g',
     orderedLabel: '1/8 oz',
@@ -205,11 +241,15 @@ export const SEED_INVENTORY = [
     munchiesRisk: 'low',
     sedationRisk: 'low',
     effects: ['focused', 'calm', 'relaxed'],
-    qualities: ['hybrid', 'controlled-use candidate'],
-    usagePlan: 'Best controlled-use candidate — use for planned sessions',
-    notToExceed: 'Best option for daytime controlled sessions.',
+    qualities: ['balanced hybrid', 'functional test candidate'],
+    dayNight: 'day-evening',
+    useWindow: 'Afternoon / early evening — best functional daytime candidate',
+    startingDose: '0.025g–0.05g',
+    maxTestDose: '0.10g',
+    usagePlan: 'Primary afternoon test product. Calm focus, mood support, creative decompression.',
+    notToExceed: 'Best option for controlled sessions. Use for mood, light stress, creative work.',
     lastUsed: null,
-    notes: 'Best candidate for the 2-session daily plan',
+    notes: 'Reported as happy, relaxed, energetic. Avoid for coding/financial decisions.',
   },
 ];
 
@@ -230,22 +270,56 @@ export const MEAL_LABEL_SUGGESTIONS = [
 ];
 
 export const CANNABIS_INTENDED_REASONS = [
+  'Pain',
   'Anxiety',
   'Sleep',
-  'Pain',
+  'Stress',
+  'Mood',
+  'Appetite',
+  'Workout Recovery',
   'Recreation',
-  'Craving',
   'Other',
 ];
 
 export const CANNABIS_EFFECTS = [
   'Calm',
-  'Sleepy',
-  'Anxious',
-  'Hungry',
   'Relaxed',
   'Focused',
+  'Creative',
+  'Sleepy',
+  'Lazy',
+  'Anxious',
+  'Hungry',
+  'Social',
 ];
+
+export const CANNABIS_PRODUCTIVITY_IMPACTS = [
+  'Improved focus',
+  'No change',
+  'Reduced focus',
+  'Made me lazy',
+  'Made me creative',
+  'Made me social',
+  'Made me anxious',
+  'Made me sleepy',
+];
+
+export const PRE_CANNABIS_CHECKLIST = [
+  'Protein target planned',
+  'Dinner planned or already eaten',
+  'Snacks pre-portioned',
+  'Water nearby',
+  'No food delivery apps opened',
+];
+
+export const DAY_NIGHT_LABELS = {
+  'day-evening': { label: 'Day / Evening', color: 'var(--teal)' },
+  'evening': { label: 'Evening', color: 'var(--yellow)' },
+  'evening-night': { label: 'Evening / Night', color: 'var(--orange)' },
+  'night': { label: 'Night', color: 'var(--orange)' },
+  'night-only': { label: 'Night Only', color: 'var(--red)' },
+  'test-only': { label: 'Test First', color: 'var(--text-dim)' },
+};
 
 export const WORKOUT_TYPES = {
   allowed: ['Easy Walk', 'Mobility', 'Stretching', 'Light Movement'],

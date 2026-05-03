@@ -5,15 +5,17 @@ import {
   SEED_PROFILE,
   SEED_INVENTORY,
   SEED_WEIGHT_HISTORY,
+  DEMO_FOOD_LOGS,
 } from './seed';
 
 const today = () => format(new Date(), 'yyyy-MM-dd');
 
 const initialState = {
+  demoMode: false,
   profile: SEED_PROFILE,
   inventory: SEED_INVENTORY,
   foodLogs: [],       // [{ id, date, label, name, time, calories, protein, carbs, fat, notes, cannabisTriggered, munchiesRelated, source }]
-  cannabisLogs: [],   // [{ id, date, time, productId, form, sessionNumber, amount, unit, thcMg, reason, effect, munchiesTriggered, notes }]
+  cannabisLogs: [],   // [{ id, date, time, productId, form, sessionNumber, amount, unit, thcMg, method, reason, effect, munchiesTriggered, munchiesLevel, productivityScore, productivityImpacts, painRelief, medicalBenefit, wouldUseAgain, preUsePain, preUseAnxiety, preUseMood, preUseEnergy, checklistConfirmed, notes }]
   workoutLogs: [],    // [{ id, date, steps, walkDuration, type, completed, intensity, chestPain, sob, notes }]
   weightHistory: SEED_WEIGHT_HISTORY,
   mealTemplates: [],  // [{ id, name, label, calories, protein, carbs, fat, notes }]
@@ -27,6 +29,9 @@ export const useStore = create(
   persist(
     (set, get) => ({
       ...initialState,
+
+      // ── Demo Mode ─────────────────────────────────────────────
+      toggleDemoMode: () => set((s) => ({ demoMode: !s.demoMode })),
 
       // ── Profile ──────────────────────────────────────────────
       updateProfile: (updates) =>
@@ -242,13 +247,17 @@ export const useStore = create(
         } else if (section === 'cannabis') {
           filename = `cannabis-log-${today()}.csv`;
           rows = [
-            ['date', 'time', 'product', 'form', 'sessionNumber', 'amount', 'unit', 'thcMg', 'reason', 'effect', 'munchiesTriggered', 'notes'],
+            ['date', 'time', 'product', 'form', 'sessionNumber', 'amount', 'unit', 'thcMg', 'method', 'reason', 'effect', 'munchiesTriggered', 'munchiesLevel', 'productivityScore', 'painRelief', 'medicalBenefit', 'wouldUseAgain', 'preUsePain', 'preUseAnxiety', 'preUseMood', 'preUseEnergy', 'notes'],
             ...state.cannabisLogs.map((e) => {
               const prod = state.inventory.find((p) => p.id === e.productId);
               return [
                 e.date, e.time, prod?.name || e.productId, e.form,
                 e.sessionNumber, e.amount, e.unit, e.thcMg || '',
-                e.reason, e.effect, e.munchiesTriggered ? 1 : 0, e.notes || '',
+                e.method || '', e.reason, e.effect, e.munchiesTriggered ? 1 : 0,
+                e.munchiesLevel ?? '', e.productivityScore ?? '', e.painRelief ?? '',
+                e.medicalBenefit ?? '', e.wouldUseAgain || '',
+                e.preUsePain ?? '', e.preUseAnxiety ?? '', e.preUseMood ?? '', e.preUseEnergy ?? '',
+                e.notes || '',
               ];
             }),
           ];
@@ -301,6 +310,7 @@ export const useStore = create(
     {
       name: 'healthtracker-store',
       partialize: (state) => ({
+        demoMode: state.demoMode,
         profile: state.profile,
         inventory: state.inventory,
         foodLogs: state.foodLogs,

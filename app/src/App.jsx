@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { format } from 'date-fns';
+import { useStore } from './data/store';
 import { TodayView } from './views/TodayView';
 import { InventoryView } from './views/InventoryView';
 import { HistoryView } from './views/HistoryView';
@@ -31,6 +32,8 @@ export default function App() {
   const [activeView, setActiveView] = useState('today');
   const [showQuickAdd, setShowQuickAdd] = useState(false);
   const dateLabel = format(new Date(), 'EEEE, MMMM d');
+  const demoMode = useStore((s) => s.demoMode);
+  const toggleDemoMode = useStore((s) => s.toggleDemoMode);
   const viewTitles = { today: 'Today', inventory: 'Cannabis Inventory', history: 'History', profile: 'Profile' };
 
   return (
@@ -57,6 +60,13 @@ export default function App() {
             {activeView === 'today' && (
               <>
                 <button className="btn btn-ghost btn-sm" disabled style={{ opacity: 0.4 }}>Import</button>
+                <button
+                  className="btn btn-ghost btn-sm"
+                  onClick={toggleDemoMode}
+                  style={{ opacity: demoMode ? 1 : 0.5, color: demoMode ? 'var(--teal)' : undefined, border: demoMode ? '1px solid var(--teal)' : undefined }}
+                >
+                  {demoMode ? 'Demo ON' : 'Demo'}
+                </button>
                 <button className="btn btn-primary btn-sm" onClick={() => setShowQuickAdd(true)}>+ Quick Add</button>
               </>
             )}

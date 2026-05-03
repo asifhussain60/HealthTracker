@@ -1,7 +1,12 @@
 import { useState } from 'react';
 import { Modal, ConfirmModal } from './Modal';
 import { useStore } from '../data/store';
-import { CANNABIS_INTENDED_REASONS, CANNABIS_EFFECTS } from '../data/seed';
+import {
+  CANNABIS_INTENDED_REASONS,
+  CANNABIS_EFFECTS,
+  CANNABIS_PRODUCTIVITY_IMPACTS,
+  PRE_CANNABIS_CHECKLIST,
+} from '../data/seed';
 import { format } from 'date-fns';
 
 const INFUSED_PREROLL_IDS = ['inv-5'];
@@ -13,6 +18,31 @@ function isStacking(productId, existingLogs) {
   if (RSO_IDS.includes(productId) && hasInfused) return true;
   if (INFUSED_PREROLL_IDS.includes(productId) && hasRSO) return true;
   return false;
+}
+
+function getDefaultMethod(form) {
+  if (form === 'capsule') return 'Oral';
+  if (form === 'infused-preroll' || form === 'flower') return 'Smoked';
+  return 'Vaped';
+}
+
+function ScoreSlider({ label, value, onChange, lowLabel = 'Low', highLabel = 'High', color = 'var(--teal)' }) {
+  return (
+    <div style={{ marginBottom: 10 }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 3 }}>
+        <span className="form-label" style={{ marginBottom: 0 }}>{label}</span>
+        <span style={{ fontSize: 13, fontWeight: 700, color }}>{value}</span>
+      </div>
+      <input
+        type="range" min={0} max={10} step={1} value={value}
+        onChange={(e) => onChange(Number(e.target.value))}
+        style={{ width: '100%', accentColor: color }}
+      />
+      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 10, color: 'var(--text-dimmer)' }}>
+        <span>{lowLabel}</span><span>{highLabel}</span>
+      </div>
+    </div>
+  );
 }
 
 export function CannabisSessionModal({ onClose }) {
@@ -27,9 +57,14 @@ export function CannabisSessionModal({ onClose }) {
   const todayLogs = getTodayCannabisLogs();
   const todaySessions = getTodaySessions();
   const dailyTarget = profile.cannabisTargets.dailySessions;
+  const currentHour = new Date().getHours();
+  const inMorningBlock = currentHour < 12;
 
   const [showStackConfirm, setShowStackConfirm] = useState(false);
   const [pendingForm, setPendingForm] = useState(null);
+  const [showPreUse, setShowPreUse] = useState(false);
+  const [showChecklist, setShowChecklist] = useState(false);
+  const [showAssessment, setShowAssessment] = useState(false);
 
   const [form, setForm] = useState({
     productId: inventory[0]?.id || '',
@@ -38,29 +73,55 @@ export function CannabisSessionModal({ onClose }) {
     amount: '',
     unit: inventory[0]?.remainingUnit || 'g',
     thcMg: '',
-    reason: 'Anxiety',
+    method: getDefaultMethod(inventory[0]?.form || ''),
+    reason: 'Pain',
     effect: 'Calm',
     munchiesTriggered: false,
     notes: '',
     time: format(new Date(), 'HH:mm'),
+    // Pre-use state
+    preUsePain: 0,
+    preUseAnxiety: 0,
+    preUseMood: 5,
+    preUseEnergy: 5,
+    // Checklist
+    checklistConfirmed: false,
+    // Assessment
+    productivityImpacts: [],
+    productivityScore: 5,
+    munchiesLevel: 0,
+    painRelief: 0,
+    medicalBenefit: 5,
+    wouldUseAgain: 'Maybe',
   });
 
   const set = (k, v) => setForm((f) => ({ ...f, [k]: v }));
 
   const selectedProduct = inventory.find((p) => p.id === form.productId);
 
+  const autoThcMg = selectedProduct?.thcPercent && form.amount
+    ? (parseFloat(form.amount) * 1000 * (selectedProduct.thcPercent / 100)).toFixed(1)
+    : null;
+
   const handleProductChange = (id) => {
     const p = inventory.find((pr) => pr.id === id);
-    set('productId', id);
     if (p) {
-      setForm((f) => ({ ...f, productId: id, form: p.form, unit: p.remainingUnit }));
+      setForm((f) => ({ ...f, productId: id, form: p.form, unit: p.remainingUnit, method: getDefaultMethod(p.form) }));
     }
+  };
+
+  const toggleImpact = (impact) => {
+    setForm((f) => ({
+      ...f,
+      productivityImpacts: f.productivityImpacts.includes(impact)
+        ? f.productivityImpacts.filter((i) => i !== impact)
+        : [...f.productivityImpacts, impact],
+    }));
   };
 
   const handleSubmit = () => {
     if (!form.productId || !form.amount) return;
 
-    // Cannabis hard rules — warnings (toasts)
     const firstMealLogged = useStore.getState().getTodayFoodLogs().length > 0;
     if (!firstMealLogged) {
       addToast('⚠ Hard rule: No cannabis before your first meal of the day.', 'warning');
@@ -69,7 +130,6 @@ export function CannabisSessionModal({ onClose }) {
       addToast(`⚠ You've reached your daily target of ${dailyTarget} sessions.`, 'warning');
     }
 
-    // Stacking hard block
     if (isStacking(form.productId, todayLogs)) {
       setPendingForm({ ...form });
       setShowStackConfirm(true);
@@ -80,7 +140,7 @@ export function CannabisSessionModal({ onClose }) {
   };
 
   const submitLog = (f) => {
-    addCannabisLog(f);
+    addCannabisLog({ ...f, thcMg: f.thcMg || autoThcMg || '' });
     logInventoryUse(f.productId, Number(f.amount) || 0);
     onClose();
   };
@@ -105,12 +165,19 @@ export function CannabisSessionModal({ onClose }) {
 
   return (
     <Modal title="Log Cannabis Session" onClose={onClose}>
+      {/* Time Block Warning */}
+      {inMorningBlock && (
+        <div className="medical-warning" style={{ marginBottom: 12 }}>
+          ⛔ Morning block active — no cannabis before your most important work is done.
+        </div>
+      )}
       {todaySessions >= dailyTarget && (
         <div className="medical-warning" style={{ marginBottom: 12 }}>
           ⚠ Daily target of {dailyTarget} sessions reached. Proceeding will exceed your plan.
         </div>
       )}
 
+      {/* Product & Time */}
       <div className="form-row">
         <div className="form-group" style={{ flex: 2 }}>
           <label className="form-label">Product</label>
@@ -129,27 +196,42 @@ export function CannabisSessionModal({ onClose }) {
       </div>
 
       {selectedProduct && (
-        <div style={{ marginBottom: 12 }}>
+        <div style={{ marginBottom: 12, display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
           <span className={`risk-badge risk-${selectedProduct.riskLevel.replace(/-/g, '')}`}>
             {selectedProduct.riskLevel} risk
           </span>
+          {selectedProduct.dayNight && (
+            <span className="risk-badge" style={{
+              background: 'var(--surface3)',
+              color: 'var(--text-dim)',
+            }}>
+              {selectedProduct.useWindow?.split('—')[0].trim()}
+            </span>
+          )}
           {(RSO_IDS.includes(form.productId) || INFUSED_PREROLL_IDS.includes(form.productId)) && (
-            <span style={{ fontSize: 11, color: 'var(--red)', marginLeft: 8 }}>
+            <span style={{ fontSize: 11, color: 'var(--red)' }}>
               ⚠ Stacking with RSO + infused pre-roll is blocked
             </span>
           )}
           {selectedProduct.notToExceed && (
-            <div className="product-nte" style={{ marginTop: 8 }}>
+            <div className="product-nte" style={{ width: '100%', marginTop: 4 }}>
               ⚠ {selectedProduct.notToExceed}
+            </div>
+          )}
+          {selectedProduct.startingDose && (
+            <div style={{ width: '100%', fontSize: 11, color: 'var(--text-dim)' }}>
+              Starting dose: <strong>{selectedProduct.startingDose}</strong>
+              {selectedProduct.maxTestDose && <> &nbsp;|&nbsp; Max test: <strong>{selectedProduct.maxTestDose}</strong></>}
             </div>
           )}
         </div>
       )}
 
+      {/* Dose, Method & THC */}
       <div className="form-row">
         <div className="form-group">
           <label className="form-label">Amount</label>
-          <input className="form-input" type="number" step="0.1" placeholder="0" value={form.amount} onChange={(e) => set('amount', e.target.value)} />
+          <input className="form-input" type="number" step="0.025" placeholder="0" value={form.amount} onChange={(e) => set('amount', e.target.value)} />
         </div>
         <div className="form-group">
           <label className="form-label">Unit</label>
@@ -157,40 +239,151 @@ export function CannabisSessionModal({ onClose }) {
             <option value="g">g</option>
             <option value="capsule">capsule</option>
             <option value="pre-roll">pre-roll</option>
+            <option value="puff">puff</option>
             <option value="mg THC">mg THC</option>
           </select>
         </div>
         <div className="form-group">
-          <label className="form-label">Est. THC mg</label>
-          <input className="form-input" type="number" placeholder="optional" value={form.thcMg} onChange={(e) => set('thcMg', e.target.value)} />
+          <label className="form-label">Method</label>
+          <select className="form-select" value={form.method} onChange={(e) => set('method', e.target.value)}>
+            <option>Smoked</option>
+            <option>Vaped</option>
+            <option>Oral</option>
+          </select>
         </div>
       </div>
 
+      <div className="form-group">
+        <label className="form-label">Est. THC mg</label>
+        <input className="form-input" type="number" placeholder={autoThcMg ? `Auto: ~${autoThcMg}mg` : 'optional'} value={form.thcMg} onChange={(e) => set('thcMg', e.target.value)} />
+        {autoThcMg && !form.thcMg && (
+          <div className="form-hint">
+            Auto-calculated: {form.amount}g × {selectedProduct.thcPercent}% THC ≈ <strong>{autoThcMg}mg THC</strong>
+          </div>
+        )}
+      </div>
+
+      {/* Reason */}
       <div className="form-row">
-        <div className="form-group">
-          <label className="form-label">Reason</label>
+        <div className="form-group" style={{ flex: 1 }}>
+          <label className="form-label">Reason for Use</label>
           <select className="form-select" value={form.reason} onChange={(e) => set('reason', e.target.value)}>
             {CANNABIS_INTENDED_REASONS.map((r) => <option key={r}>{r}</option>)}
           </select>
         </div>
-        <div className="form-group">
-          <label className="form-label">Effect</label>
-          <select className="form-select" value={form.effect} onChange={(e) => set('effect', e.target.value)}>
-            {CANNABIS_EFFECTS.map((e) => <option key={e}>{e}</option>)}
-          </select>
-        </div>
       </div>
 
-      <div className="form-group">
-        <label className="form-checkbox">
-          <input type="checkbox" checked={form.munchiesTriggered} onChange={(e) => set('munchiesTriggered', e.target.checked)} />
-          Munchies triggered?
-        </label>
+      {/* Pre-Cannabis Checklist */}
+      <div style={{ marginBottom: 12 }}>
+        <button
+          type="button"
+          className="btn btn-ghost btn-sm"
+          style={{ width: '100%', justifyContent: 'space-between', marginBottom: showChecklist ? 8 : 0 }}
+          onClick={() => setShowChecklist((v) => !v)}
+        >
+          <span>Pre-Cannabis Checklist</span>
+          <span style={{ fontSize: 10, color: form.checklistConfirmed ? 'var(--green)' : 'var(--text-dimmer)' }}>
+            {form.checklistConfirmed ? '✓ confirmed' : showChecklist ? '▲' : '▼'}
+          </span>
+        </button>
+        {showChecklist && (
+          <div style={{ background: 'var(--surface2)', border: '1px solid var(--border)', borderRadius: 6, padding: '10px 14px' }}>
+            {PRE_CANNABIS_CHECKLIST.map((item) => (
+              <div key={item} style={{ fontSize: 12, color: 'var(--text-dim)', padding: '3px 0' }}>☐ {item}</div>
+            ))}
+            <label className="form-checkbox" style={{ marginTop: 8 }}>
+              <input type="checkbox" checked={form.checklistConfirmed} onChange={(e) => set('checklistConfirmed', e.target.checked)} />
+              <span style={{ fontSize: 12 }}>I've reviewed the checklist</span>
+            </label>
+          </div>
+        )}
+      </div>
+
+      {/* Pre-Use State */}
+      <div style={{ marginBottom: 12 }}>
+        <button
+          type="button"
+          className="btn btn-ghost btn-sm"
+          style={{ width: '100%', justifyContent: 'space-between', marginBottom: showPreUse ? 8 : 0 }}
+          onClick={() => setShowPreUse((v) => !v)}
+        >
+          <span>Pre-Use State (optional)</span>
+          <span style={{ fontSize: 10, color: 'var(--text-dimmer)' }}>{showPreUse ? '▲' : '▼'}</span>
+        </button>
+        {showPreUse && (
+          <div style={{ background: 'var(--surface2)', border: '1px solid var(--border)', borderRadius: 6, padding: '12px 14px' }}>
+            <ScoreSlider label="Pain level" value={form.preUsePain} onChange={(v) => set('preUsePain', v)} lowLabel="None" highLabel="Severe" color="var(--red)" />
+            <ScoreSlider label="Anxiety level" value={form.preUseAnxiety} onChange={(v) => set('preUseAnxiety', v)} lowLabel="None" highLabel="Severe" color="var(--orange)" />
+            <ScoreSlider label="Mood" value={form.preUseMood} onChange={(v) => set('preUseMood', v)} lowLabel="Low" highLabel="Great" color="var(--teal)" />
+            <ScoreSlider label="Energy" value={form.preUseEnergy} onChange={(v) => set('preUseEnergy', v)} lowLabel="Drained" highLabel="High" color="var(--green)" />
+          </div>
+        )}
+      </div>
+
+      {/* Session Assessment */}
+      <div style={{ marginBottom: 12 }}>
+        <button
+          type="button"
+          className="btn btn-ghost btn-sm"
+          style={{ width: '100%', justifyContent: 'space-between', marginBottom: showAssessment ? 8 : 0 }}
+          onClick={() => setShowAssessment((v) => !v)}
+        >
+          <span>Session Assessment (fill after use)</span>
+          <span style={{ fontSize: 10, color: 'var(--text-dimmer)' }}>{showAssessment ? '▲' : '▼'}</span>
+        </button>
+        {showAssessment && (
+          <div style={{ background: 'var(--surface2)', border: '1px solid var(--border)', borderRadius: 6, padding: '12px 14px' }}>
+            <div className="form-row">
+              <div className="form-group">
+                <label className="form-label">Primary Effect</label>
+                <select className="form-select" value={form.effect} onChange={(e) => set('effect', e.target.value)}>
+                  {CANNABIS_EFFECTS.map((e) => <option key={e}>{e}</option>)}
+                </select>
+              </div>
+              <div className="form-group">
+                <label className="form-label">Would Use Again</label>
+                <select className="form-select" value={form.wouldUseAgain} onChange={(e) => set('wouldUseAgain', e.target.value)}>
+                  <option>Yes</option>
+                  <option>No</option>
+                  <option>Maybe</option>
+                </select>
+              </div>
+            </div>
+
+            <ScoreSlider label="Munchies level" value={form.munchiesLevel} onChange={(v) => set('munchiesLevel', v)} lowLabel="None" highLabel="Severe" color="var(--yellow)" />
+            <ScoreSlider label="Productivity score after use" value={form.productivityScore} onChange={(v) => set('productivityScore', v)} lowLabel="Crashed" highLabel="Peak" color="var(--teal)" />
+            <ScoreSlider label="Pain relief" value={form.painRelief} onChange={(v) => set('painRelief', v)} lowLabel="None" highLabel="Full relief" color="var(--green)" />
+            <ScoreSlider label="Medical benefit" value={form.medicalBenefit} onChange={(v) => set('medicalBenefit', v)} lowLabel="None" highLabel="High" color="var(--teal)" />
+
+            <div className="form-group" style={{ marginBottom: 4 }}>
+              <label className="form-label">Productivity Impact</label>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                {CANNABIS_PRODUCTIVITY_IMPACTS.map((impact) => (
+                  <label key={impact} style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 12, cursor: 'pointer' }}>
+                    <input
+                      type="checkbox"
+                      checked={form.productivityImpacts.includes(impact)}
+                      onChange={() => toggleImpact(impact)}
+                    />
+                    {impact}
+                  </label>
+                ))}
+              </div>
+            </div>
+
+            <div className="form-group" style={{ marginBottom: 0 }}>
+              <label className="form-checkbox">
+                <input type="checkbox" checked={form.munchiesTriggered} onChange={(e) => set('munchiesTriggered', e.target.checked)} />
+                Munchies triggered (unplanned eating)
+              </label>
+            </div>
+          </div>
+        )}
       </div>
 
       <div className="form-group">
         <label className="form-label">Notes</label>
-        <textarea className="form-textarea" rows={2} value={form.notes} onChange={(e) => set('notes', e.target.value)} />
+        <textarea className="form-textarea" rows={2} placeholder="What worked? What didn't? Did it help or steal time?" value={form.notes} onChange={(e) => set('notes', e.target.value)} />
       </div>
 
       <div className="modal-actions">
