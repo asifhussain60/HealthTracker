@@ -52,18 +52,17 @@ export default function App() {
 
       <div className="main-content">
         <div className="top-header">
-          <div style={{ display: 'flex', alignItems: 'baseline' }}>
+          <div className="header-title-group">
             <h1>{viewTitles[activeView]}</h1>
             {activeView === 'today' && <span className="date-label">· {dateLabel}</span>}
           </div>
           <div className="header-actions">
             {activeView === 'today' && (
               <>
-                <button className="btn btn-ghost btn-sm" disabled style={{ opacity: 0.4 }}>Import</button>
+                <button className="btn btn-ghost btn-sm" disabled>Import</button>
                 <button
-                  className="btn btn-ghost btn-sm"
+                  className={`btn btn-ghost btn-sm btn-demo${demoMode ? ' demo-active' : ''}`}
                   onClick={toggleDemoMode}
-                  style={{ opacity: demoMode ? 1 : 0.5, color: demoMode ? 'var(--teal)' : undefined, border: demoMode ? '1px solid var(--teal)' : undefined }}
                 >
                   {demoMode ? 'Demo ON' : 'Demo'}
                 </button>
