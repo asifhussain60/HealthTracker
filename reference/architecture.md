@@ -46,13 +46,14 @@ A solo-user React SPA today; a multi-user authenticated PWA tomorrow. The archit
 
 | Slice | Domain | Repositories that read it |
 |---|---|---|
-| `foodSlice` | foodLogs | useFoodRepo |
 | `cannabisSlice` | products, devices, sessions | useCannabisRepo |
-| `mealSlice` | meal inventory, weekly plan | useMealsRepo |
+| `mealSlice` | meal inventory, weekly plan, plan history | useMealsRepo |
 | `todoSlice` | TODOs (personal + professional) | useTodosRepo |
-| `workoutSlice` | workout logs, weight history | useWorkoutRepo |
-| `profileSlice` | profile, targets, certifications | useProfileRepo |
+| `workoutSlice` | workout logs (incl. post-meal walks), weight history | useWorkoutRepo |
+| `profileSlice` | profile, fasting protocol, plate defaults, walk defaults, cannabis targets | useProfileRepo |
 | `uiSlice` | demo mode, toasts, feature flags, active view | (used by views directly via hook) |
+
+> **`foodSlice` removed in Phase 0 scope change (2026-05-03).** Daily nutrition tracking is out of scope; MyNetDiary is the system of record. Consumption is captured on `MealPlanSlot` via check-off.
 
 ## Dependency rules
 
@@ -65,6 +66,17 @@ A solo-user React SPA today; a multi-user authenticated PWA tomorrow. The archit
 | `data/calculators/*` | (nothing — pure functions) | everything except other calculators |
 | `data/store/slices/*` | `data/migrations/*` | `views/*`, `components/*`, `data/repositories/*` |
 | `data/adapters/*` | (nothing) | `data/store/*`, `views/*`, `components/*` |
+
+### Calculators (pure functions — 100% test coverage required)
+
+| Calculator | Purpose | Phase |
+|---|---|---|
+| `data/calculators/thcMath.js` | THC mg per dose; daily/weekly totals; ceiling status | 0 (extracted from existing) |
+| `data/calculators/macroMath.js` | `foodWeightFromTotal()`; `scaledMacros()`; `consumedMacrosForSlot()` | 0 (plate-weight scaling) |
+| `data/calculators/fastingMath.js` | `currentState()` (FASTING/FEEDING); `hoursSinceMeal()`; `timeUntilFastBreak()`; `windowAdherence()` | 0 (new) |
+| `data/calculators/cannabisPlanner.js` | Daily session plan from inventory + targets + ceilings | 0 (extracted) |
+| `data/calculators/mealPlanner.js` | Weekly grid generator: variety + favorites + category + repeat-gap | 1 |
+| `data/calculators/shoppingList.js` | Aggregate ingredients across week × category plate weight | 1 |
 
 ## Adapter contract
 

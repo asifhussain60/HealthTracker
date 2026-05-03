@@ -38,6 +38,7 @@ type PersistedRoot = {
     meals: {
       inventory: MealInventoryItem[];
       weeklyPlan: MealPlan | null;
+      weeklyPlanHistory: MealPlan[];
     };
     todos: { items: Todo[] };
     workout: { logs: WorkoutLog[]; weightHistory: WeightEntry[] };
@@ -47,27 +48,17 @@ type PersistedRoot = {
 };
 ```
 
+> **Phase 0 scope change (2026-05-03):** `foodSlice` is removed. Daily nutrition is no longer tracked in HealthTracker — MyNetDiary is the system of record. The meal planner stores reference macros (per MyNetDiary) and computes scaled macros at consumption time via `totalWeightWithPlate − emptyPlateWeight` for the user's consistent-plate workflow. See [`feature-roadmap.md`](feature-roadmap.md) §Phase 1 for the planner UX.
+
 ## Slice schemas (current target — Phase 0 lands these)
 
-### foodSlice.logs[] : FoodLog
+### ~~foodSlice.logs[]~~ — REMOVED in Phase 0 (2026-05-03)
 
-```ts
-type FoodLog = AuditFields & {
-  date: string;          // ISO date (yyyy-MM-dd)
-  label: 'Breakfast' | 'Lunch' | 'Dinner' | 'Snack' | 'Munchies';
-  name: string;
-  time: string | null;   // ISO time HH:mm
-  calories: number;
-  protein: number;
-  carbs: number;
-  fat: number;
-  notes: string;
-  cannabisTriggered: boolean;
-  munchiesRelated: boolean;
-  source: 'manual' | 'meal-template' | 'mynetdiary-import';
-  mealInventoryId: string | null;  // optional link
-};
-```
+The food log table is being retired. Existing user data is exported to JSON via Profile → "Export legacy food logs" (Phase 0 commit B-legacy), then the table is dropped via migration v1→v2.
+
+**Replacement model:** consumption is captured on `MealPlanSlot` (see below) — `eaten: boolean`, `eatenAt: string | null`, `totalWeightWithPlate: number | null`. Macros are computed on demand via `data/calculators/macroMath.js`.
+
+Munchies tracking stays on `cannabisSlice.sessions[].munchiesTriggered` + `munchiesLevel` (self-contained; no food-log cross-reference).
 
 ### cannabisSlice.products[] : CannabisProduct
 
@@ -152,42 +143,65 @@ type CannabisSession = AuditFields & {
 ```ts
 type MealInventoryItem = AuditFields & {
   name: string;
-  category: 'breakfast' | 'lunch' | 'dinner' | 'snack';
-  servingSize: string;
-  calories: number;
-  protein: number;
-  carbs: number;
-  fat: number;
-  fiber: number | null;
-  sodium: number | null;
-  ingredients: string;             // free-text
-  notes: string;
+  category: 'breakfast' | 'lunch' | 'dinner' | 'snack' | 'shake';
+  tags: string[];                       // e.g., ['halal', 'high-protein', 'pre-workout']
+  ingredients: string;                  // free-text
+  prepNotes: string;
+  mynetdiaryUrl: string | null;         // deep-link to MyNetDiary food page
   favoriteStars: 0 | 1 | 2 | 3;
-  source: 'manual' | 'mynetdiary-import' | 'csv-import';
+  source: 'manual' | 'mynetdiary' | 'csv-import';
+  // Reference macros from MyNetDiary (set once, never change for a given recipe):
+  referenceWeight: number;              // grams; e.g., 100
+  referenceUnit: 'g' | 'oz';            // unit of referenceWeight
+  refCalories: number;
+  refProtein: number;                   // grams
+  refCarbs: number;                     // grams
+  refFat: number;                       // grams
+  // Optional micronutrients (no plans to scale further; user adds if known):
+  refFiber: number | null;
+  refSodium: number | null;
 };
 ```
+
+> **Plate-weight scaling math** (in `data/calculators/macroMath.js`):
+> ```
+> food_weight = max(0, totalWeightWithPlate − profile.plateDefaults[category])
+> scaled.calories = refCalories × (food_weight / referenceWeight)
+> // … same ratio for protein/carbs/fat
+> ```
 
 ### mealSlice.weeklyPlan : MealPlan
 
 ```ts
 type MealPlan = AuditFields & {
-  startDate: string;               // ISO date (Mon)
+  startDate: string;                    // ISO date (Mon)
   days: {
     [date: string]: {
-      breakfast: string | null;     // mealInventoryId
-      lunch: string | null;
-      dinner: string | null;
-      snack: string | null;
-      locked: boolean;              // user-locked from regen
+      breakfast: MealPlanSlot;
+      lunch: MealPlanSlot;
+      dinner: MealPlanSlot;
+      snack: MealPlanSlot;
+      shakes: MealPlanSlot[];           // 0..N shakes per day, flex-add
+      locked: boolean;                  // user-locked from regen
     };
   };
   algorithmConfig: {
-    macroTargets: { calories, protein, carbs, fat };
-    favoriteWeight: number;         // 1.0..3.0
-    repeatGapDays: number;          // default 3
+    favoriteWeight: number;             // 1.0..3.0; favorites preferred in rotation
+    repeatGapDays: number;              // default 3; no meal repeats within N days
+    categoryConstraint: boolean;        // default true; respect category per slot
   };
 };
+
+type MealPlanSlot = {
+  mealInventoryId: string | null;       // null = no meal planned
+  eaten: boolean;
+  eatenAt: string | null;               // ISO timestamp; used for fasting-window adherence
+  totalWeightWithPlate: number | null;  // grams; user enters at check-off
+  notes: string;
+};
 ```
+
+> Shopping-list builder (Phase 1) is on-demand — a button on the Weekly Plan view. Aggregates each meal's `ingredients` across the week, scaled by category plate weight × number of plates.
 
 ### todoSlice.items[] : Todo (Phase 3 schema, scaffolded Phase 0)
 
@@ -215,13 +229,15 @@ type Todo = AuditFields & {
 type WorkoutLog = AuditFields & {
   date: string;
   steps: number;
-  walkDuration: number;
-  type: string;
+  walkDuration: number;                 // minutes
+  type: 'walk' | 'post-meal-walk' | 'cardio' | 'strength' | 'mobility' | 'other';
   completed: boolean;
   intensity: 'low' | 'moderate' | 'high' | '';
   chestPain: boolean;
   sob: boolean;
   notes: string;
+  // Phase 0 addition (post-meal walk linkage):
+  precedingMealSlotId: string | null;   // links a 'post-meal-walk' to the slot whose check-off triggered it
 };
 ```
 
@@ -246,15 +262,34 @@ type ProfileFields = AuditFields & {
   bodyMetrics: { ... };
   medicalFlags: string[];
   dietaryRules: string[];
-  nutritionTargets: { calories, protein, carbs, fat };
   cannabisTargets: {
     dailyThcMgCeiling: number;          // default 50
     inhalationBioavailability: number;  // default 0.30
     oralBioavailability: number;        // default 0.20
   };
   certification: { issueDate, expirationDate, ... };
+  // Phase 0 additions (scope change 2026-05-03):
+  fastingProtocol: {
+    enabled: boolean;                   // default true
+    windowStart: string;                // 'HH:mm'; default '14:00'
+    windowEnd: string;                  // 'HH:mm'; default '18:00'
+    timezone: string;                   // IANA tz; default Intl.DateTimeFormat().resolvedOptions().timeZone
+  };
+  plateDefaults: {
+    breakfast: number;                  // grams; default 250
+    lunch: number;                      // grams; default 350
+    dinner: number;                     // grams; default 460
+    snack: number;                      // grams; default 150
+    shake: number;                      // grams; default 0 (no plate; user enters total liquid weight directly)
+  };
+  walkDefaults: {
+    postMealTargetMinutes: number;      // default 10
+    reminderEnabled: boolean;           // default true
+  };
 };
 ```
+
+> **Note:** `nutritionTargets` (was: calories/protein/carbs/fat) is REMOVED in Phase 0 migration v1→v2. MyNetDiary is the system of record for daily macro targets; HT computes derived totals only as a Today gut-check.
 
 ### uiSlice : UiState
 
@@ -283,6 +318,21 @@ type UiState = {
 // data/migrations/index.js
 export const migrations = [
   { from: 0, to: 1, migrate: (state) => { /* add audit fields, schemaVersion */ } },
+  { from: 1, to: 2, migrate: (state) => {
+      // Phase 0 scope change (2026-05-03):
+      //   1. Export legacy foodSlice.logs[] to localStorage 'ht-legacy-foodlogs-export-<timestamp>' for user retrieval.
+      //   2. Drop foodSlice entirely.
+      //   3. Drop profileSlice.profile.nutritionTargets.
+      //   4. Add profileSlice.profile.fastingProtocol with defaults.
+      //   5. Add profileSlice.profile.plateDefaults with defaults.
+      //   6. Add profileSlice.profile.walkDefaults with defaults.
+      //   7. Add mealSlice.weeklyPlanHistory = [].
+      //   8. MealInventoryItem: drop {servingSize, calories, protein, carbs, fat, fiber, sodium}; require {referenceWeight, referenceUnit, refCalories, refProtein, refCarbs, refFat}; add {tags, prepNotes, mynetdiaryUrl}.
+      //   9. Coerce existing MealInventoryItem entries: missing reference fields → set to 100g + previously-stored macros (lossless if old fields present).
+      //  10. Convert MealPlan.days[date].{breakfast,lunch,dinner,snack} from string|null to MealPlanSlot{mealInventoryId, eaten:false, eatenAt:null, totalWeightWithPlate:null, notes:''}.
+      //  11. Initialize MealPlan.days[date].shakes = [].
+      //  12. Drop MealPlan.algorithmConfig.macroTargets; keep favoriteWeight + repeatGapDays; add categoryConstraint:true.
+    } },
   // appended as schema evolves
 ];
 ```

@@ -28,7 +28,7 @@ Definition of Done:
 - App still passes a smoke test (Today renders, Cannabis renders, History renders, Profile renders)
 - No behavior change end-user-visible
 
-## Phase 1 — Cannabis Redesign + Meals
+## Phase 1 — Cannabis Redesign + Meal Planner + Intermittent Fasting + Post-meal Walks
 
 Cannabis:
 - Rename "Inventory" → "Cannabis" in sidebar
@@ -41,17 +41,37 @@ Devices (light touch):
 - Two seeded devices (Vessel Element, Session Goods Bong)
 - Recommended-device computed by product `form`; rendered as small chip on product cards
 
-Meals:
+Meals (planner-only — no daily nutrition tracking):
 - New `Meals` sidebar entry between Today and History
-- Two tabs: Inventory, Weekly Plan
-- Inventory: meal cards with 3 macro rings, favorites, "+ Add Meal", CSV/JSON import drop-zone
-- Weekly Plan: 7×4 grid (Mon–Sun × Breakfast/Lunch/Dinner/Snack); auto-generator targeting daily macros ±10%, no repeats within 3 days, favorites weighted; "Regenerate" + per-day "Lock"
-- "Log this meal" creates a foodLog with macros and `mealInventoryId` link
+- Two tabs: **Inventory**, **Weekly Plan**
+- Inventory: meal cards with category badge, favorites, MyNetDiary deep-link, ingredients/prep, reference macros (informational), "+ Add Meal", CSV/JSON import drop-zone for MyNetDiary export. Includes a `'shake'` category for protein shakes.
+- Weekly Plan: **7×4 grid** (Mon–Sun × Breakfast/Lunch/Dinner/Snack) with a flex `shakes[]` row per day. Auto-generator: variety + favorites + category constraint; no repeats within 3 days; favorites weighted; "Regenerate" + per-day "Lock". On-demand **"Build shopping list"** button aggregates ingredients across the week scaled by category plate weight.
+- Each slot is **check-off-able** (mark eaten; capture `totalWeightWithPlate`) AND **drag-and-droppable** across days.
+- MyNetDiary is the system of record for nutrition. HT stores reference macros per recipe (from MyNetDiary) + plate weights (from profile) and computes scaled macros at consumption time as a gut-check only.
+
+Intermittent Fasting (Phase 1):
+- Profile: `fastingProtocol.enabled` (default true), `windowStart` 14:00, `windowEnd` 18:00.
+- Today gets a **Fasting card** showing live state ("FASTING" / "FEEDING"), window timer, hours since last meal, countdown to fast-break.
+- Soft warning on Today when a meal is check-offed outside the feeding window. Data is recorded normally; window adherence shown as a metric.
+
+Post-meal walks (Phase 1):
+- `WorkoutLog.type` extends to include `'post-meal-walk'`; `precedingMealSlotId` links to the slot whose check-off triggered it.
+- On meal check-off: passive "🚶 Walk recommended in 5 min" badge appears on Today's walks card. No PWA push (Phase 2).
+- Today shows walks-today / meals-today count; default target 10 minutes, configurable in Profile.
+
+Today view composition (post-Phase-1):
+- Cannabis sessions ring + THC mg ring
+- Workout / steps card
+- Weight card
+- **Planned-meals card** (4 slots + shakes row) with check-off and macro totals (collapsible)
+- **Fasting card** (live state + timer)
+- **Walks card** (post-meal walk reminders + count)
+- TODOs card (placeholder Phase 0; UX in Phase 3)
 
 Definition of Done:
 - All Phase 1 commits done
 - /audit clean
-- User verifies redesigned cannabis flow and weekly plan generator hands-on
+- User verifies redesigned cannabis flow, weekly plan generator + check-off + plate-weight scaling, fasting card, post-meal walk flow hands-on
 
 ## Phase 2 — Backend + Multi-User
 
