@@ -37,3 +37,6 @@ temp/
 
 # HealthTracker workspace (per-developer scratch, plans, handoffs)
 _workspace/
+
+# Claude Code per-developer permissions
+.claude/settings.local.json
