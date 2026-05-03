@@ -180,11 +180,31 @@ export function TodayView() {
             <div className="ring-num-sub">/ {calTarget}</div>
             <div className="ring-num-sub-sm">kcal</div>
           </RingChart>
-          <div className="v2-macro-bars">
-            <div className="v2-macros-title">Macros</div>
-            <MacroBar label="Protein" value={protein} max={proteinTarget} colorClass="bar-teal" />
-            <MacroBar label="Carbs"   value={carbs}   max={carbTarget}    colorClass="bar-yellow" />
-            <MacroBar label="Fat"     value={fat}     max={fatTarget}     colorClass="bar-orange" />
+          <div className="v2-macro-rings">
+            <div className="v2-macro-ring-card">
+              <RingChart value={protein} max={proteinTarget} colorClass="ring-teal" size={88} stroke={9}>
+                <div className="v2-macro-ring-val macro-protein">{protein}</div>
+                <div className="v2-macro-ring-unit">g</div>
+              </RingChart>
+              <div className="v2-macro-ring-label">Protein</div>
+              <div className="v2-macro-ring-target">/ {proteinTarget}g</div>
+            </div>
+            <div className="v2-macro-ring-card">
+              <RingChart value={carbs} max={carbTarget} colorClass="ring-yellow" size={88} stroke={9}>
+                <div className="v2-macro-ring-val macro-carbs">{carbs}</div>
+                <div className="v2-macro-ring-unit">g</div>
+              </RingChart>
+              <div className="v2-macro-ring-label">Carbs</div>
+              <div className="v2-macro-ring-target">/ {carbTarget}g</div>
+            </div>
+            <div className="v2-macro-ring-card">
+              <RingChart value={fat} max={fatTarget} colorClass="ring-orange-dim" size={88} stroke={9}>
+                <div className="v2-macro-ring-val macro-fat">{fat}</div>
+                <div className="v2-macro-ring-unit">g</div>
+              </RingChart>
+              <div className="v2-macro-ring-label">Fat</div>
+              <div className="v2-macro-ring-target">/ {fatTarget}g</div>
+            </div>
           </div>
         </div>
 

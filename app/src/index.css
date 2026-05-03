@@ -341,13 +341,32 @@ body {
 .v2-food-charts {
   display: flex;
   align-items: center;
-  gap: 28px;
+  gap: 20px;
   background: var(--surface2);
   border-radius: 12px;
   padding: 18px 20px;
   margin-bottom: 16px;
 }
-.v2-macro-bars { flex: 1; min-width: 0; }
+.v2-macro-rings {
+  flex: 1;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+.v2-macro-ring-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 14px 8px 12px;
+}
+.v2-macro-ring-val { font-size: 20px; font-weight: 900; line-height: 1; }
+.v2-macro-ring-unit { font-size: 10px; color: var(--text-dimmer); }
+.v2-macro-ring-label { font-size: 12px; font-weight: 700; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.06em; }
+.v2-macro-ring-target { font-size: 11px; color: var(--text-dimmer); margin-top: -3px; }
 .v2-meals-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -431,6 +450,7 @@ body {
   .v2-hero-left { min-width: 0; }
   .v2-tiles { grid-template-columns: repeat(2, 1fr); gap: 10px; }
   .v2-food-charts { flex-direction: column; }
+  .v2-macro-rings { width: 100%; }
   .v2-meals-grid { grid-template-columns: 1fr; }
   .v2-bottom-row { grid-template-columns: 1fr; }
 }
@@ -448,6 +468,8 @@ body {
 /* Color variants */
 .ring-green  .ring-fill { stroke: var(--green); }
 .ring-orange .ring-fill { stroke: var(--orange); }
+.ring-orange-dim .ring-fill { stroke: var(--orange); opacity: 0.7; }
+.ring-yellow .ring-fill { stroke: var(--yellow); }
 .ring-red    .ring-fill { stroke: var(--red); }
 /* ring-teal is the default */
 
