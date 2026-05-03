@@ -1,7 +1,7 @@
 #!/bin/bash
 # pre-commit.sh — Lightweight pre-commit checks for HealthTracker.
 #
-# Install: cp .github/hooks/pre-commit.sh .git/hooks/pre-commit && chmod +x .git/hooks/pre-commit
+# Install: cp .claude/hooks/pre-commit.sh .git/hooks/pre-commit && chmod +x .git/hooks/pre-commit
 #
 # Behavior:
 #   - Refuses commit if .DS_Store is staged.
@@ -13,8 +13,8 @@
 set -u
 
 # Allowed root files (in addition to allowed root directories)
-ALLOWED_ROOT_FILES_REGEX='^(framework\.md|CLAUDE\.md|README\.md|package\.json|vite\.config\.js|eslint\.config\.js|index\.html|\.gitignore|\.gitattributes|LICENSE)$'
-ALLOWED_ROOT_DIRS_REGEX='^(app|_workspace|reference|photos|\.github|\.claude|\.vscode)$'
+ALLOWED_ROOT_FILES_REGEX='^(framework\.md|CLAUDE\.md|DESIGN-REQUIREMENTS\.md|README\.md|package\.json|vite\.config\.js|eslint\.config\.js|index\.html|\.gitignore|\.gitattributes|LICENSE)$'
+ALLOWED_ROOT_DIRS_REGEX='^(app|_workspace|reference|\.claude|\.vscode)$'
 
 EXIT=0
 
@@ -51,7 +51,7 @@ if git diff --cached --diff-filter=AM -- 'app/src/*.js' 'app/src/*.jsx' 2>/dev/n
 fi
 
 # Reminder
-if git diff --cached --name-only | grep -qE '^(app/src/|reference/|framework\.md|CLAUDE\.md|\.github/agents/)'; then
+if git diff --cached --name-only | grep -qE '^(app/src/|reference/|framework\.md|CLAUDE\.md|DESIGN-REQUIREMENTS\.md|\.claude/agents/)'; then
   echo "ℹ️ pre-commit: governed paths changed. Consider running /challenge before pushing."
 fi
 
