@@ -1,67 +1,204 @@
 /* ═══════════════════════════════════════════════════════════════
-   tokens.css — Design tokens (CSS custom properties)
-   AC-P0-C5
+   tokens.css — Material Design 3 design tokens (CSS custom properties)
+   AC-P1B-TOKENS · dark-first · blue primary · flat shell
+
+   ⚠️  Glass restricted to modal backdrop + profile banner only.
+       Never apply backdrop-filter to cards, sidebars, lists, or tabs.
    ═══════════════════════════════════════════════════════════════ */
 
-/* ── System font stack (platform-native) ── */
+/* ── System font stacks (platform-native, zero web-font load) ── */
 :root {
-  /* Prefer platform system fonts; final fallback is generic sans-serif. */
   --font-sans:
     -apple-system,
     BlinkMacSystemFont,
-    'Segoe UI',
+    "Segoe UI Variable",
+    "Segoe UI",
+    system-ui,
     Roboto,
-    'Helvetica Neue',
+    "Helvetica Neue",
     Arial,
     sans-serif;
 
-  /* Monospace stack for numeric displays */
   --font-mono:
-    'SF Mono',
-    'Fira Code',
-    'Consolas',
-    'Courier New',
+    "SF Mono",
+    "Fira Code",
+    "Consolas",
+    "Courier New",
     monospace;
 
-  /* Tabular numerals utility — apply to numeric counters for fixed-width digits */
-  --font-tabular: var(--font-sans);
-  --font-feature-tabular: 'tnum' on;
+  /* Tabular numerals — apply on metric displays */
+  --font-feature-tabular: "tnum" on;
 }
 
-/* ── Colour palette ── */
+/* ── MD3-aligned color tokens — dark-first ── */
 :root {
-  --bg:        #0f1117;
-  --surface:   #1a1d27;
-  --surface2:  #222636;
-  --surface3:  #2a2f45;
-  --border:    #2e3348;
+  /* Primary (blue — Decision #14, oklch survey winner) */
+  --primary:                  oklch(55% 0.15 262);   /* ≈ #1E88E5 */
+  --primary-container:        oklch(30% 0.10 262);   /* dim container */
+  --on-primary:               #ffffff;
+  --on-primary-container:     oklch(90% 0.08 262);
 
-  --teal:      #14b8a6;
-  --teal-dim:  #0f8a7c;
-  --teal-bg:   rgba(20, 184, 166, 0.12);
+  /* Secondary (cyan-teal) */
+  --secondary:                oklch(67% 0.14 210);   /* ≈ #00BCD4 */
+  --secondary-container:      oklch(35% 0.09 210);
+  --on-secondary:             #ffffff;
 
-  --green:     #22c55e;
-  --green-bg:  rgba(34, 197, 94, 0.12);
+  /* Tertiary (rare decorative accent) */
+  --tertiary:                 oklch(72% 0.13 290);
 
-  --yellow:    #eab308;
-  --yellow-bg: rgba(234, 179, 8, 0.12);
+  /* Semantic role colors */
+  --success:                  oklch(60% 0.12 142);   /* ≈ #4CAF50 */
+  --warning:                  oklch(68% 0.12  48);   /* ≈ #FFA726 */
+  --error:                    oklch(59% 0.16  14);   /* ≈ #EF5350 */
+  --error-container:          oklch(30% 0.10  14);
+  --on-error:                 #ffffff;
 
-  --orange:    #f97316;
-  --orange-bg: rgba(249, 115, 22, 0.12);
+  /* Surface tokens (flat shell — Decision #15) */
+  --background:               #0f1117;
+  --on-background:            rgba(255, 255, 255, 0.87);
+  --surface:                  #121212;
+  --surface-variant:          #1E1E1E;
+  --surface-container-low:    #181818;
+  --surface-container:        #222222;
+  --surface-container-high:   #2a2a2a;
+  --on-surface:               rgba(255, 255, 255, 0.87);
+  --on-surface-dim:           rgba(255, 255, 255, 0.60);
+  --on-surface-faint:         rgba(255, 255, 255, 0.38);
 
-  --red:       #ef4444;
-  --red-bg:    rgba(239, 68, 68, 0.12);
-
-  --text:      #e2e8f0;
-  --text-dim:  #94a3b8;
-  --text-dimmer: #64748b;
+  /* Outline / border */
+  --border:                   rgba(255, 255, 255, 0.10);
+  --outline:                  rgba(255, 255, 255, 0.14);
+  --outline-variant:          rgba(255, 255, 255, 0.08);
 }
 
-/* ── Spacing & shape tokens ── */
+/* ── Light theme sibling token map ── */
+[data-theme="light"] {
+  --primary:                  oklch(45% 0.18 262);   /* ≈ #1565C0 */
+  --primary-container:        oklch(85% 0.08 262);
+  --on-primary:               #ffffff;
+  --on-primary-container:     oklch(20% 0.10 262);
+
+  --secondary:                oklch(50% 0.18 210);
+  --secondary-container:      oklch(82% 0.09 210);
+  --on-secondary:             #ffffff;
+
+  --tertiary:                 oklch(55% 0.14 290);
+
+  --success:                  oklch(48% 0.14 142);
+  --warning:                  oklch(56% 0.15  48);
+  --error:                    oklch(45% 0.19  14);
+  --error-container:          oklch(88% 0.07  14);
+  --on-error:                 #ffffff;
+
+  --background:               #f8f9fa;
+  --on-background:            rgba(33, 33, 33, 0.87);
+  --surface:                  #ffffff;
+  --surface-variant:          #f5f5f5;
+  --surface-container-low:    #f9f9f9;
+  --surface-container:        #f0f0f0;
+  --surface-container-high:   #e8e8e8;
+  --on-surface:               rgba(33, 33, 33, 0.87);
+  --on-surface-dim:           rgba(33, 33, 33, 0.60);
+  --on-surface-faint:         rgba(33, 33, 33, 0.38);
+
+  --border:                   rgba(0, 0, 0, 0.10);
+  --outline:                  rgba(0, 0, 0, 0.14);
+  --outline-variant:          rgba(0, 0, 0, 0.06);
+}
+
+/* ── State overlay tokens (MD3 opacity system) ── */
 :root {
-  --sidebar-w:  200px;
-  --radius:     8px;
-  --radius-sm:  5px;
+  /* These are opacity values used as rgba overlays on the primary color */
+  --state-hover:    0.08;   /* 8% */
+  --state-pressed:  0.12;   /* 12% */
+  --state-focus:    0.12;   /* 12% */
+  --state-dragged:  0.16;   /* 16% */
+}
+
+/* ── Elevation tokens (flat shell — 0 is the default) ── */
+:root {
+  --elev-0:  none;
+  --elev-1:  0 2px 4px rgba(0, 0, 0, 0.12);
+  --elev-2:  0 5px 5px -3px rgba(0, 0, 0, 0.15);
+  --elev-3:  0 12px 16px -4px rgba(0, 0, 0, 0.25);
+}
+
+[data-theme="light"] {
+  --elev-0:  none;
+  --elev-1:  0 2px 4px rgba(0, 0, 0, 0.06);
+  --elev-2:  0 5px 5px -3px rgba(0, 0, 0, 0.10);
+  --elev-3:  0 12px 16px -4px rgba(0, 0, 0, 0.16);
+}
+
+/* ── Type ramp (6-scale MD3, system stack, no web fonts) ── */
+:root {
+  /* Sizes */
+  --text-display-lg:  3.5rem;    /* 56px — hero / large metric */
+  --text-display-sm:  2.5rem;    /* 40px — secondary display */
+  --text-headline:    2rem;      /* 32px — section headers */
+  --text-title-lg:    1.5rem;    /* 24px — card titles */
+  --text-title-sm:    1.25rem;   /* 20px — sub-titles */
+  --text-body-lg:     1rem;      /* 16px — primary body */
+  --text-body-sm:     0.875rem;  /* 14px — secondary body */
+  --text-label:       0.875rem;  /* 14px — labels, chips */
+  --text-caption:     0.75rem;   /* 12px — captions, helper text */
+
+  /* Weights */
+  --weight-display:   700;
+  --weight-headline:  600;
+  --weight-title:     600;
+  --weight-body:      400;
+  --weight-label:     500;
+}
+
+/* ── Spacing scale (4px base) ── */
+:root {
+  --space-1:   4px;
+  --space-2:   8px;
+  --space-3:   12px;
+  --space-4:   16px;
+  --space-5:   20px;
+  --space-6:   24px;
+  --space-8:   32px;
+  --space-12:  48px;
+  --space-16:  64px;
+}
+
+/* ── Radius scale ── */
+:root {
+  --radius-xs:   4px;    /* inputs, small chips */
+  --radius-sm:   8px;    /* chips, icon buttons, form inputs */
+  --radius-md:   12px;   /* cards, bottom sheets, modals */
+  --radius-lg:   16px;   /* large cards, drawers */
+  --radius-xl:   24px;   /* oversized cards */
+  --radius-pill: 9999px; /* FAB, accent badges, full-round */
+
+  /* Legacy aliases (backward compat with P0 consumers) */
+  --radius:       var(--radius-sm);
+  --radius-small: var(--radius-sm);
+  --radius-medium: var(--radius-md);
+  --radius-large:  var(--radius-lg);
+}
+
+/* ── Motion tokens (Ace timing philosophy: micro 150ms · macro 200ms · reveal 600ms) ── */
+:root {
+  /* Durations */
+  --motion-duration-short:   150ms;
+  --motion-duration-medium:  200ms;
+  --motion-duration-long:    600ms;
+
+  /* Easing curves */
+  --motion-easing-standard:    cubic-bezier(0.2, 0, 0, 1);
+  --motion-easing-decelerate:  cubic-bezier(0, 0, 0, 1);
+  --motion-easing-accelerate:  cubic-bezier(0.3, 0, 1, 1);
+
+  /* Legacy transition aliases */
+  --t-micro: var(--motion-duration-short)  var(--motion-easing-standard);
+  --t-base:  var(--motion-duration-medium) var(--motion-easing-standard);
+  --t-slow:  var(--motion-duration-long)   var(--motion-easing-standard);
+
+  /* Sidebar width (layout) */
+  --sidebar-w: 200px;
 }
 
 /* ── Tabular numerals utility class ── */
