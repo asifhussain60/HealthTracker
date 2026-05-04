@@ -90,7 +90,8 @@ describe('router — 16 routes', () => {
 
   it('deep-link to /profile/work-locations works', () => {
     renderAt('/profile/work-locations');
-    expect(document.body.textContent?.toLowerCase()).toMatch(/work.location/i);
+    // LibraryView heading is "workLocations" (camelCase sliceKey used as schema name)
+    expect(document.body.textContent?.toLowerCase()).toMatch(/worklocation/i);
   });
 
   it('deep-link to /cannabis/devices works', () => {

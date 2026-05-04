@@ -14,14 +14,15 @@
  *   - Delete button on card → soft-delete confirm dialog
  *
  * Props:
- *   schema {Object}   — LibrarySchema descriptor (from defineLibrarySchema)
- *   store  {Object}   — Store with getState()/setState() interface (injected for
- *                        testing; defaults to the real useStore singleton via a
- *                        minimal adapter when called from router.jsx)
+ *   schema {Object}    — LibrarySchema descriptor (from defineLibrarySchema)
+ *   store  {Object}    — Optional. Store with getState()/setState() interface
+ *                         (injected for testing). When omitted, the real Zustand
+ *                         useStore is used.
  *
  * AC-P1D-D1
  */
 import { useState, useCallback } from 'react';
+import { useStore } from '../../data/store/index.js';
 import { createLibraryRepo } from '../../data/library/LibraryRepo.js';
 import { LibraryGrid } from './LibraryGrid.jsx';
 import { LibraryItemForm } from './LibraryItemForm.jsx';
@@ -49,10 +50,18 @@ function ModalOverlay({ children, onClose }) {
  * @param {Object} props
  * @param {Object} props.schema - LibrarySchema descriptor.
  * @param {Object} [props.store] - Store interface. When omitted the real Zustand
- *   useStore is used via a thin subscribe-based adapter (set up by LibraryViewConnected).
+ *   useStore is used.
  */
-export function LibraryView({ schema, store }) {
-  const repo = createLibraryRepo({ schema, store });
+export function LibraryView({ schema, store: storeProp }) {
+  // Subscribe to the slice so this component re-renders when items change.
+  // When an injected store (test double) is provided we skip this hook and
+  // use the _version bump mechanism instead.
+  const realItems = useStore((s) => (storeProp ? null : s[schema.sliceKey]));
+  // Suppress unused-var warning — realItems is only read to trigger re-render.
+  void realItems;
+
+  const effectiveStore = storeProp ?? useStore;
+  const repo = createLibraryRepo({ schema, store: effectiveStore });
 
   // ── UI state ────────────────────────────────────────────────────────────────
   const [searchQuery, setSearchQuery] = useState('');
@@ -146,7 +155,7 @@ export function LibraryView({ schema, store }) {
   return (
     <div className="library-view" data-testid={`library-view-${schema.sliceKey}`}>
       {/* Header */}
-      <h1 className="library-view__heading">{schema.name}</h1>
+      <h2 className="library-view__heading">{schema.name}</h2>
 
       {/* Controls bar */}
       <div className="library-view__controls">

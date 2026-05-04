@@ -28,6 +28,7 @@ import { todoSliceInitial, createTodoSlice } from './todoSlice';
 import { workoutSliceInitial, createWorkoutSlice } from './workoutSlice';
 import { profileSliceInitial, createProfileSlice } from './profileSlice';
 import { uiSliceInitial, createUiSlice } from './uiSlice';
+import { librarySlicesInitial } from './librarySlices';
 
 // ── Combined initial state ────────────────────────────────────────────────────
 // Seed data is injected here, at the boundary where slices meet persistence.
@@ -51,6 +52,9 @@ const combinedInitial = {
 
   // uiSlice
   ...uiSliceInitial,
+
+  // Library slices (9 — managed by LibraryRepo via createLibraryRepo)
+  ...librarySlicesInitial,
 };
 
 // ── Store factory (exported for testing getInitialState support) ────────────
@@ -179,6 +183,17 @@ export const useStore = create(
       mealTemplates: state.mealTemplates,
       photos: state.photos,
       schemaVersion: state.schemaVersion,
+      theme: state.theme,
+      // Library slices — persisted
+      meals: state.meals,
+      workoutPrograms: state.workoutPrograms,
+      workoutRoutines: state.workoutRoutines,
+      exercises: state.exercises,
+      cannabisProducts: state.cannabisProducts,
+      cannabisDevices: state.cannabisDevices,
+      workLocations: state.workLocations,
+      fastingSafeItems: state.fastingSafeItems,
+      sweetToothItems: state.sweetToothItems,
       // foodLogs intentionally omitted — removed per D13
     }),
 

@@ -19,6 +19,7 @@ export const uiSliceInitial = {
   featureFlags: {},   // Record<string, boolean> — read by useFeature() (B11)
   activeView: null,   // string | null — reserved per UiState spec; routing currently in App.jsx
   photos: [],         // Photo[] — { id, date, weight, viewType, dataUrl, notes }
+  theme: 'light',    // 'light' | 'dark' — persisted via uiSlice (AC-P1D-D3)
 };
 
 /**
@@ -52,5 +53,8 @@ export function createUiSlice(set) {
 
     deletePhoto: (id) =>
       set((s) => ({ photos: s.photos.filter((p) => p.id !== id) })),
+
+    // ── Theme ─────────────────────────────────────────────────────────
+    setTheme: (theme) => set(() => ({ theme })),
   };
 }

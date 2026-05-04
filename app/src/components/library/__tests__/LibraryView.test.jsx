@@ -23,7 +23,7 @@ describe('LibraryView — smoke render', () => {
   it('renders the library name as heading', () => {
     const store = makeStore();
     render(<LibraryView schema={fastingSafeItemsSchema} store={store} />);
-    expect(screen.getByRole('heading', { name: /fastingSafeItems/i })).toBeTruthy();
+    expect(screen.getByRole('heading', { level: 2, name: /fastingSafeItems/i })).toBeTruthy();
   });
 
   it('renders search input', () => {
