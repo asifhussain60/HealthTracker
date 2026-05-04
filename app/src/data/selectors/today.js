@@ -15,6 +15,7 @@
 import { consumedMacrosForSlot } from '../calculators/macroMath.js';
 import { selectCannabisSessionsByDate } from './cannabis.js';
 import { selectWeeklyPlan } from './meals.js';
+import { planDay, taperCeiling } from '../calculators/cannabisPlanner.js';
 
 // ── selectTodayWeightEntry ────────────────────────────────────────────────────
 
@@ -149,4 +150,52 @@ export function selectTodayCalorieRing(state, userId, date) {
   }
 
   return { eaten, target, remaining: Math.max(0, target - eaten) };
+}
+
+// ── selectCannabisDayPlan ─────────────────────────────────────────────────────
+
+/**
+ * Return the planned cannabis sessions for the user on a given date.
+ *
+ * Composes cannabisPlanner.planDay with:
+ *   - taperDay computed from profile.cannabisTaperSchedule.startDate
+ *   - productLib from state.inventory (user's products)
+ *   - mgToday summed from state.cannabisLogs (filtered by userId + date)
+ *
+ * HT-CORE-010: filters logs by userId.
+ *
+ * @param {Object} state
+ * @param {string} userId
+ * @param {string} date - YYYY-MM-DD
+ * @returns {{ sessions: Array, taperCeilingMg: number, mgToday: number }}
+ */
+export function selectCannabisDayPlan(state, userId, date) {
+  const profile = state.profile ?? {};
+  const inventory = (state.inventory ?? []).filter(
+    (p) => !p.userId || p.userId === userId
+  );
+
+  // Compute taper day from start date
+  let taperDay = 0;
+  const startDate = profile?.cannabisTaperSchedule?.startDate;
+  if (startDate) {
+    const start = new Date(startDate);
+    const target = new Date(date);
+    const msPerDay = 24 * 60 * 60 * 1000;
+    taperDay = Math.max(0, Math.round((target - start) / msPerDay));
+  }
+
+  // Run planner
+  const plan = planDay({ date, taperDay, profile, productLib: inventory });
+
+  // mg consumed today for this user
+  const mgToday = (state.cannabisLogs ?? [])
+    .filter((s) => s.userId === userId && s.date === date)
+    .reduce((sum, s) => sum + (s.thcMg ?? 0), 0);
+
+  return {
+    sessions: plan.sessions ?? [],
+    taperCeilingMg: plan.taperCeilingMg ?? taperCeiling(taperDay),
+    mgToday,
+  };
 }
