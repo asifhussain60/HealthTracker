@@ -3,1793 +3,472 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>HealthTracker — What we're building</title>
+<title>HealthTracker — Wireframe</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+  tailwind.config = {
+    theme: {
+      extend: {
+        keyframes: {
+          'fade-in': { '0%': { opacity: '0' }, '100%': { opacity: '1' } },
+          'slide-in-from-top-2': {
+            '0%': { transform: 'translateY(-8px)' },
+            '100%': { transform: 'translateY(0)' },
+          },
+        },
+        animation: {
+          'in': 'fade-in 200ms ease-out, slide-in-from-top-2 200ms ease-out',
+        },
+      },
+    },
+  };
+</script>
 <style>
-  :root {
-    --teal: #14b8a6;
-    --teal-bg: rgba(20, 184, 166, 0.12);
-    --orange: #f97316;
-    --green: #22c55e;
-    --yellow: #eab308;
-    --red: #ef4444;
-    --surface: #0f172a;
-    --surface-2: #1e293b;
-    --bg: #020617;
-    --text: #f1f5f9;
-    --text-dim: #94a3b8;
-    --text-faint: #475569;
-    --border: #334155;
-    --radius-sm: 6px;
-    --radius-md: 10px;
-    --radius-lg: 16px;
-    --radius-pill: 999px;
-    --space-1: 4px; --space-2: 8px; --space-3: 12px; --space-4: 16px;
-    --space-6: 24px; --space-8: 32px; --space-12: 48px;
-  }
-
-  * { box-sizing: border-box; }
   html, body { margin: 0; padding: 0; }
   body {
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI Variable", "Segoe UI", system-ui, Roboto, Helvetica, Arial, sans-serif;
-    background: var(--bg);
-    color: var(--text);
-    line-height: 1.55;
-    font-feature-settings: "tnum" 1;
-  }
-
-  .container {
-    max-width: 1480px;
-    margin: 0 auto;
-    padding: var(--space-8) var(--space-6);
-  }
-
-  header.hero {
-    border-bottom: 1px solid var(--border);
-    padding-bottom: var(--space-8);
-    margin-bottom: var(--space-8);
-  }
-  header.hero h1 {
-    font-size: 2.5rem; margin: 0 0 var(--space-3); letter-spacing: -0.02em;
-  }
-  header.hero p {
-    color: var(--text-dim); font-size: 1.125rem; margin: 0; max-width: 70ch;
-  }
-  header.hero .meta {
-    margin-top: var(--space-4); color: var(--text-faint); font-size: 0.875rem;
-  }
-
-  nav.toc {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-md);
-    padding: var(--space-4) var(--space-6);
-    margin-bottom: var(--space-8);
-  }
-  nav.toc h2 {
-    font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.08em;
-    color: var(--text-dim); margin: 0 0 var(--space-3);
-  }
-  nav.toc ol { margin: 0; padding-left: var(--space-6); columns: 2; column-gap: var(--space-8); }
-  nav.toc li { margin: var(--space-1) 0; }
-  nav.toc a { color: var(--text); text-decoration: none; }
-  nav.toc a:hover { color: var(--teal); }
-
-  section {
-    margin-bottom: var(--space-12);
-    scroll-margin-top: var(--space-6);
-  }
-  section h2 {
-    font-size: 1.5rem;
-    margin: 0 0 var(--space-2);
-    padding-bottom: var(--space-3);
-    border-bottom: 2px solid var(--teal);
-    display: inline-block;
-  }
-  section .section-id {
-    display: inline-block;
-    background: var(--teal-bg);
-    color: var(--teal);
-    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-    font-size: 0.75rem;
-    padding: 2px 8px;
-    border-radius: var(--radius-pill);
-    margin-bottom: var(--space-3);
-  }
-  section h3 {
-    font-size: 1.125rem;
-    margin: var(--space-6) 0 var(--space-2);
-    color: var(--text);
-  }
-  section h3 .subid {
-    display: inline-block;
-    color: var(--text-faint);
-    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-    font-size: 0.75rem;
-    margin-right: var(--space-2);
-    font-weight: normal;
-  }
-
-  p { color: var(--text-dim); }
-  p strong { color: var(--text); }
-
-  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-4); }
-  .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--space-4); }
-  .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--space-3); }
-  @media (max-width: 720px) {
-    .grid-2, .grid-3, .grid-4 { grid-template-columns: 1fr; }
-    nav.toc ol { columns: 1; }
-  }
-
-  .card {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-md);
-    padding: var(--space-4);
-  }
-  .card.accent-teal    { border-top: 2px solid var(--teal); }
-  .card.accent-orange  { border-top: 2px solid var(--orange); }
-  .card.accent-green   { border-top: 2px solid var(--green); }
-  .card.accent-yellow  { border-top: 2px solid var(--yellow); }
-  .card.accent-red     { border-top: 2px solid var(--red); }
-  .card h4 {
-    margin: 0 0 var(--space-2);
-    font-size: 1rem;
-    display: flex; align-items: center; gap: var(--space-2);
-  }
-  .card .icon {
-    width: 20px; height: 20px; display: inline-flex; align-items: center; justify-content: center;
-    border-radius: var(--radius-sm); font-size: 0.875rem;
-  }
-  .card p { font-size: 0.875rem; margin: 0 0 var(--space-2); }
-  .card ul { margin: 0; padding-left: var(--space-4); font-size: 0.875rem; color: var(--text-dim); }
-
-  .badge {
-    display: inline-block;
-    padding: 2px 10px;
-    border-radius: var(--radius-pill);
-    font-size: 0.75rem;
-    font-weight: 600;
-  }
-  .badge.teal    { background: var(--teal-bg); color: var(--teal); }
-  .badge.orange  { background: rgba(249,115,22,.12); color: var(--orange); }
-  .badge.green   { background: rgba(34,197,94,.12); color: var(--green); }
-  .badge.yellow  { background: rgba(234,179,8,.12); color: var(--yellow); }
-  .badge.red     { background: rgba(239,68,68,.12); color: var(--red); }
-  .badge.muted   { background: var(--surface-2); color: var(--text-dim); }
-
-  .wireframe {
-    background: var(--surface-2);
-    border: 1px dashed var(--border);
-    border-radius: var(--radius-md);
-    padding: var(--space-4);
-    margin: var(--space-4) 0;
-    overflow: hidden;
-  }
-  .wireframe-title {
-    font-size: 0.75rem;
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    color: var(--text-faint);
-    margin-bottom: var(--space-3);
-  }
-  .wireframe-app {
-    display: grid;
-    grid-template-columns: 180px minmax(0, 1fr);
-    gap: 0;
-    background: var(--bg);
-    border: 1px solid var(--border);
-    border-radius: 18px;
-    overflow: hidden;
-    min-height: 380px;
-  }
-  .wireframe-sidebar {
-    background: var(--surface);
-    padding: var(--space-4) var(--space-3);
-    border-right: 1px solid var(--border);
-    min-width: 0;
-  }
-  .wireframe-sidebar .nav-item {
-    padding: 10px 12px;
-    border-radius: 10px;
-    font-size: 0.875rem;
-    color: var(--text-dim);
-    margin-bottom: 2px;
-    display: flex; align-items: center; gap: 8px;
-    transition: background 120ms ease, color 120ms ease;
-  }
-  .wireframe-sidebar .nav-item:hover { background: var(--surface-2); color: var(--text); }
-  .wireframe-sidebar .nav-item.active {
-    background: linear-gradient(135deg, rgba(20,184,166,.18), rgba(20,184,166,.06));
-    color: var(--teal);
-    font-weight: 600;
-  }
-  .wireframe-main {
-    padding: var(--space-4);
-    display: grid;
-    gap: var(--space-3);
-    min-width: 0;
-  }
-  .wireframe-main > * { min-width: 0; }
-  .ph-card {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-sm);
-    padding: var(--space-3);
-    font-size: 0.75rem;
-    color: var(--text-dim);
-  }
-  .ph-card .ph-title {
-    font-size: 0.75rem; color: var(--text); font-weight: 600; margin-bottom: 4px;
-    text-transform: uppercase; letter-spacing: 0.06em;
-  }
-  .ph-row { display: flex; gap: var(--space-2); flex-wrap: wrap; }
-  .ph-ring {
-    width: 56px; height: 56px; border-radius: 50%;
-    border: 4px solid var(--teal);
-    border-right-color: var(--surface-2);
-    display: inline-block;
-    margin-right: var(--space-2);
-  }
-  .ph-ring.orange { border-color: var(--orange); border-right-color: var(--surface-2); }
-  .ph-ring.green  { border-color: var(--green);  border-right-color: var(--surface-2); }
-  .ph-ring.yellow { border-color: var(--yellow); border-right-color: var(--surface-2); }
-  .ph-bar {
-    height: 6px; background: var(--surface-2); border-radius: 3px;
-    margin: 4px 0; overflow: hidden;
-  }
-  .ph-bar > span { display: block; height: 100%; background: var(--teal); }
-
-  .legend {
-    display: flex; flex-wrap: wrap; gap: var(--space-3);
-    font-size: 0.75rem; color: var(--text-dim);
-  }
-  .legend .swatch { width: 12px; height: 12px; border-radius: 3px; display: inline-block; vertical-align: middle; margin-right: 4px; }
-
-  .phases {
-    display: grid;
-    grid-template-columns: repeat(5, 1fr);
-    gap: var(--space-2);
-    margin: var(--space-4) 0;
-  }
-  .phase {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-sm);
-    padding: var(--space-3);
-    position: relative;
-  }
-  .phase.current { border-color: var(--teal); box-shadow: 0 0 0 1px var(--teal-bg); }
-  .phase .num {
-    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-    color: var(--text-faint); font-size: 0.75rem;
-  }
-  .phase .name { font-weight: 600; margin: 4px 0; }
-  .phase .desc { color: var(--text-dim); font-size: 0.75rem; }
-  @media (max-width: 720px) { .phases { grid-template-columns: 1fr; } }
-
-  .arch-diagram {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-md);
-    padding: var(--space-6);
-    margin: var(--space-4) 0;
-    text-align: center;
-    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-    font-size: 0.875rem;
-    color: var(--text-dim);
-    line-height: 2;
-  }
-  .arch-diagram .layer {
-    display: inline-block;
-    padding: var(--space-2) var(--space-4);
-    background: var(--surface-2);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-sm);
-    margin: var(--space-1);
-    color: var(--text);
-  }
-  .arch-diagram .layer.adapter {
-    border-color: var(--teal);
-    background: var(--teal-bg);
-    color: var(--teal);
-  }
-  .arch-diagram .arrow { color: var(--text-faint); padding: 0 var(--space-2); }
-
-  table.matrix {
-    width: 100%;
-    border-collapse: collapse;
-    margin: var(--space-4) 0;
-    font-size: 0.875rem;
-  }
-  table.matrix th, table.matrix td {
-    text-align: left;
-    padding: var(--space-2) var(--space-3);
-    border-bottom: 1px solid var(--border);
-  }
-  table.matrix th {
-    color: var(--text-dim);
-    font-weight: 600;
-    text-transform: uppercase;
-    font-size: 0.75rem;
-    letter-spacing: 0.06em;
-  }
-  table.matrix tr:hover td { background: var(--surface); }
-
-  footer {
-    margin-top: var(--space-12);
-    padding-top: var(--space-6);
-    border-top: 1px solid var(--border);
-    color: var(--text-faint);
-    font-size: 0.875rem;
-  }
-
-  .callout {
-    background: var(--teal-bg);
-    border-left: 3px solid var(--teal);
-    padding: var(--space-3) var(--space-4);
-    border-radius: var(--radius-sm);
-    margin: var(--space-4) 0;
-    color: var(--text);
-    font-size: 0.9375rem;
-  }
-  .callout.warning {
-    background: rgba(234, 179, 8, .12);
-    border-left-color: var(--yellow);
-  }
-
-  code.k {
-    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-    font-size: 0.875em;
-    background: var(--surface-2);
-    padding: 1px 6px;
-    border-radius: 4px;
-    color: var(--teal);
-  }
-
-  /* ============================================================
-     Modern tile system — for checkbox-driven home page
-     ============================================================ */
-  .tile {
-    background: var(--surface);
-    border: 1px solid transparent;
-    border-radius: 14px;
-    padding: 12px 14px;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    cursor: pointer;
-    transition: transform 120ms ease, box-shadow 120ms ease, background 120ms ease;
-    box-shadow: 0 1px 0 rgba(255,255,255,.03) inset, 0 2px 8px rgba(0,0,0,.25);
-    min-height: 64px;
-    min-width: 0;
-  }
-  .tile:hover { transform: translateY(-1px); box-shadow: 0 1px 0 rgba(255,255,255,.05) inset, 0 6px 16px rgba(0,0,0,.45); }
-  .tile .tile-icon {
-    width: 38px; height: 38px;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 1.2rem;
-    background: var(--surface-2);
-    border-radius: 10px;
-    flex-shrink: 0;
-  }
-  .tile .tile-body { display: flex; flex-direction: column; gap: 2px; flex: 1 1 0; min-width: 0; overflow: hidden; }
-  .tile .tile-label {
-    font-size: 0.9375rem; font-weight: 600; color: var(--text); line-height: 1.2;
-    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
-  }
-  .tile .tile-meta  {
-    font-size: 0.75rem; color: var(--text-dim); line-height: 1.3;
-    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
-  }
-  .tile.tile-vertical .tile-label,
-  .tile.tile-vertical .tile-meta { white-space: normal; }
-  .tile .tile-check {
-    width: 24px; height: 24px;
-    border: 1.5px solid var(--border);
-    border-radius: 50%;
-    flex-shrink: 0;
-    display: flex; align-items: center; justify-content: center;
-    color: var(--text-faint);
-    font-size: 0.875rem;
-    font-weight: 700;
-  }
-  .tile .tile-check:empty { color: transparent; }
-  .tile.checked {
-    background: linear-gradient(135deg, rgba(20,184,166,.14), rgba(20,184,166,.04));
-  }
-  .tile.checked .tile-icon { background: var(--teal-bg); color: var(--teal); }
-  .tile.checked .tile-check { background: var(--teal); border-color: var(--teal); color: white; }
-  .tile.recommended {
-    border-color: rgba(34,197,94,.45);
-    background: linear-gradient(135deg, rgba(34,197,94,.10), rgba(34,197,94,.02));
-  }
-  .tile.recommended .tile-icon { background: rgba(34,197,94,.18); color: var(--green); }
-  .tile.locked {
-    opacity: 0.55; cursor: not-allowed;
-  }
-  .tile.locked .tile-icon { background: var(--surface-2); }
-
-  .tile-vertical {
-    flex-direction: column;
-    text-align: center;
-    gap: 6px;
-    padding: 16px 10px;
-    align-items: center;
-  }
-  .tile-vertical .tile-icon { width: 44px; height: 44px; font-size: 1.5rem; }
-  .tile-vertical .tile-body { align-items: center; }
-  .tile-vertical .tile-meta { font-size: 0.7rem; }
-
-  .tile-grid {
-    display: grid;
-    gap: 10px;
-  }
-  .tile-grid.cols-3 { grid-template-columns: repeat(3, 1fr); }
-  .tile-grid.cols-4 { grid-template-columns: repeat(4, 1fr); }
-  .tile-grid.cols-5 { grid-template-columns: repeat(5, 1fr); }
-  @media (max-width: 720px) {
-    .tile-grid.cols-3,
-    .tile-grid.cols-4,
-    .tile-grid.cols-5 { grid-template-columns: 1fr 1fr; }
-  }
-
-  .pill-cta {
-    display: inline-flex; align-items: center; gap: 6px;
-    background: var(--teal-bg);
-    color: var(--teal);
-    border: 1px solid rgba(20,184,166,.35);
-    padding: 6px 12px;
-    border-radius: 999px;
-    font-size: 0.75rem; font-weight: 600;
-    cursor: pointer;
-    transition: background 120ms ease;
-    flex-shrink: 0;
-  }
-  .pill-cta:hover { background: rgba(20,184,166,.22); }
-
-  .section-label {
-    font-size: 0.7rem; color: var(--text-dim);
-    text-transform: uppercase; letter-spacing: 0.08em;
-    margin: var(--space-3) 0 var(--space-2);
-  }
-
-  .metric-strip {
-    display: flex; align-items: baseline; justify-content: space-between;
-    gap: var(--space-3);
-    margin: 4px 0 8px;
-    flex-wrap: wrap;
-  }
-  .metric-strip .metric { display: flex; flex-direction: column; gap: 2px; }
-  .metric-strip .metric .label {
-    font-size: 0.65rem; color: var(--text-dim);
-    text-transform: uppercase; letter-spacing: 0.06em;
-  }
-  .metric-strip .metric .value {
-    font-size: 1.25rem; font-weight: 700; color: var(--text);
-    font-variant-numeric: tabular-nums;
-  }
-  .metric-strip .metric .value.good { color: var(--green); }
-  .metric-strip .metric .value.warn { color: var(--red); }
-
-  /* ============================================================
-     Standout card headers + breathing-room rhythm
-     ============================================================ */
-  .card-head {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding-bottom: 16px;
-    margin-bottom: 20px;
-    border-bottom: 1px solid var(--border);
-    gap: var(--space-3);
-  }
-  .card-head .title-block { display: flex; align-items: center; gap: 12px; min-width: 0; }
-  .card-head .card-icon {
-    width: 38px; height: 38px;
-    display: flex; align-items: center; justify-content: center;
-    background: linear-gradient(135deg, var(--surface-2), var(--surface));
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    font-size: 1.15rem;
-    flex-shrink: 0;
-  }
-  .card-head h3 {
-    margin: 0;
-    font-size: 1.15rem;
-    font-weight: 700;
-    color: var(--text);
-    letter-spacing: -0.01em;
-    line-height: 1.2;
-  }
-  .card-head .head-meta {
-    display: flex; align-items: center; gap: 10px;
-    font-size: 0.8rem; color: var(--text-dim);
-    flex-wrap: wrap; justify-content: flex-end;
-  }
-  .card-head .head-meta strong { color: var(--text); }
-
-  /* Spacious main card variant for Today — uniform border, no accent stripes */
-  .ph-card.spacious {
-    padding: var(--space-4);
-    border-radius: 16px;
-    border: 1px solid var(--border) !important;       /* override any inline border-color accents */
-    border-left-width: 1px !important;
-    border-top-width: 1px !important;
-    border-right-width: 1px !important;
-    border-bottom-width: 1px !important;
-  }
-  .ph-card.spacious .section-label { margin-top: var(--space-4); margin-bottom: var(--space-3); font-size: 0.72rem; color: var(--text-dim); }
-  .ph-card.spacious .tile-grid { gap: 10px; }
-
-  /* Sweet-tooth keeps its diagonal-stripe background but loses the colored border */
-  .ph-card.sweet-tooth { border: 1px solid var(--border) !important; }
-
-  /* Looser main wireframe gap — 20 px between sections */
-  .wireframe-main.airy { gap: 20px; padding: var(--space-4); }
-
-  /* Profile banner uses the same uniform border */
-  .profile-banner { border: 1px solid var(--border) !important; }
-
-  /* Counter tile — for hydration / fasting-safe items */
-  .tile.counter {
-    cursor: default;
-  }
-  .tile.counter:hover { transform: none; }
-  .tile.counter .counter-controls {
-    display: flex; align-items: center; gap: 6px;
-    flex-shrink: 0;
-  }
-  .tile.counter .counter-btn {
-    width: 28px; height: 28px;
-    border-radius: 8px;
-    background: var(--surface-2);
-    border: 1px solid var(--border);
-    color: var(--text);
-    font-size: 1rem; font-weight: 700;
-    cursor: pointer;
-    display: flex; align-items: center; justify-content: center;
-    transition: background 120ms ease, border-color 120ms ease, color 120ms ease;
-    flex-shrink: 0;
-  }
-  .tile.counter .counter-btn:hover {
-    background: var(--teal-bg);
-    border-color: var(--teal);
-    color: var(--teal);
-  }
-  .tile.counter .counter-btn[disabled] {
-    opacity: 0.35; cursor: not-allowed;
-  }
-  .tile.counter .count-value {
-    min-width: 22px;
-    text-align: center;
-    font-size: 1.05rem;
-    font-weight: 700;
-    color: var(--text);
-    font-variant-numeric: tabular-nums;
-    flex-shrink: 0;
-  }
-  .tile.counter.has-count {
-    background: linear-gradient(135deg, rgba(20,184,166,.10), rgba(20,184,166,.02));
-  }
-  .tile.counter.has-count .tile-icon { background: var(--teal-bg); color: var(--teal); }
-
-  /* Sweet Tooth — discouraging visual treatment */
-  .ph-card.sweet-tooth {
-    background:
-      repeating-linear-gradient(135deg, rgba(239,68,68,.04) 0 12px, transparent 12px 24px),
-      var(--surface);
-    border: 1px solid rgba(239,68,68,.4);
-  }
-  .ph-card.sweet-tooth .card-head { border-bottom-color: rgba(239,68,68,.25); }
-  .ph-card.sweet-tooth .card-icon { background: rgba(239,68,68,.15); color: var(--red); border-color: rgba(239,68,68,.4); }
-  .tile.indulgence {
-    background: rgba(239,68,68,.04);
-    border: 1px solid rgba(239,68,68,.18);
-  }
-  .tile.indulgence .tile-icon { background: rgba(239,68,68,.10); }
-  .tile.indulgence.has-count {
-    background: linear-gradient(135deg, rgba(239,68,68,.20), rgba(239,68,68,.05));
-    border-color: rgba(239,68,68,.5);
-  }
-  .tile.indulgence.has-count .tile-icon { background: rgba(239,68,68,.20); color: var(--red); }
-  .tile.indulgence .counter-btn:hover {
-    background: rgba(239,68,68,.15);
-    border-color: var(--red);
-    color: var(--red);
-  }
-  .streak-strip {
-    display: flex; gap: 4px; margin-top: 12px;
-  }
-  .streak-strip .day {
-    flex: 1; height: 6px; border-radius: 3px;
-    background: var(--surface-2);
-  }
-  .streak-strip .day.clean { background: var(--green); }
-  .streak-strip .day.slip  { background: var(--red); }
-  .discourage-banner {
-    margin-top: 14px;
-    padding: 10px 14px;
-    background: rgba(239,68,68,.08);
-    border-left: 3px solid var(--red);
-    border-radius: 8px;
-    font-size: 0.8rem;
-    color: var(--text);
-    display: flex; align-items: center; gap: 8px;
-  }
-
-  /* Summary tiles row (MD3 dashboard tiles) */
-  .summary-tiles {
-    display: grid;
-    grid-template-columns: repeat(8, minmax(0,1fr));
-    gap: 10px;
-  }
-  @media (max-width: 1240px) { .summary-tiles { grid-template-columns: repeat(4, minmax(0,1fr)); } }
-  @media (max-width: 720px)  { .summary-tiles { grid-template-columns: repeat(2, minmax(0,1fr)); } }
-  .sum-tile {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    padding: 12px;
-    display: flex; flex-direction: column; gap: 4px;
-    min-width: 0;
-    transition: background 120ms ease;
-  }
-  .sum-tile:hover { background: var(--surface-2); }
-  .sum-tile .label {
-    font-size: 0.62rem; color: var(--text-dim);
-    text-transform: uppercase; letter-spacing: 0.07em;
-    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
-  }
-  .sum-tile .value {
-    font-size: 1.05rem; font-weight: 700; color: var(--text);
-    font-variant-numeric: tabular-nums;
-    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
-  }
-  .sum-tile .trend {
-    font-size: 0.65rem; color: var(--text-dim);
-    display: flex; align-items: center; gap: 4px;
-  }
-  .sum-tile .trend.good { color: var(--green); }
-  .sum-tile .trend.warn { color: var(--red); }
-  .sum-tile .icon {
-    width: 24px; height: 24px;
-    display: flex; align-items: center; justify-content: center;
-    background: var(--surface-2);
-    border-radius: 6px;
-    font-size: 0.85rem;
-    margin-bottom: 2px;
-  }
-
-  /* Accordion bar (single-expanded model) */
-  .acc-bar {
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 14px;
-    padding: 8px;
-  }
-  .acc-row {
-    display: flex; align-items: center; justify-content: space-between;
-    gap: 12px;
-    padding: 12px 14px;
-    border-radius: 10px;
-    cursor: pointer;
-    transition: background 120ms ease;
-  }
-  .acc-row:hover { background: var(--surface-2); }
-  .acc-row.expanded {
-    background: linear-gradient(135deg, rgba(20,184,166,.14), rgba(20,184,166,.04));
-    border: 1px solid rgba(20,184,166,.4);
-  }
-  .acc-row .acc-title {
-    display: flex; align-items: center; gap: 10px; min-width: 0;
-  }
-  .acc-row .acc-title .acc-icon {
-    width: 32px; height: 32px;
-    display: flex; align-items: center; justify-content: center;
-    background: var(--surface-2); border-radius: 8px; font-size: 1rem;
-    flex-shrink: 0;
-  }
-  .acc-row.expanded .acc-title .acc-icon { background: var(--teal-bg); color: var(--teal); }
-  .acc-row .acc-title .acc-name {
-    font-size: 0.95rem; font-weight: 600; color: var(--text);
-  }
-  .acc-row .acc-summary {
-    display: flex; gap: 8px; flex-wrap: wrap; justify-content: flex-end;
-    font-size: 0.72rem; color: var(--text-dim); flex: 1; min-width: 0;
-  }
-  .acc-row .acc-summary .chip {
-    background: var(--surface-2);
-    padding: 3px 9px; border-radius: 999px;
-    color: var(--text);
-  }
-  .acc-row .acc-summary .chip.good { background: rgba(34,197,94,.12); color: var(--green); }
-  .acc-row .acc-summary .chip.warn { background: rgba(239,68,68,.12); color: var(--red); }
-  .acc-row .acc-chevron { color: var(--text-faint); flex-shrink: 0; }
-  .acc-row.expanded .acc-chevron { color: var(--teal); transform: rotate(90deg); transition: transform 200ms ease; }
-
-  .expanded-section {
-    margin-top: 16px;
-    padding: 16px;
-    background: linear-gradient(135deg, rgba(20,184,166,.04), transparent);
-    border-left: 3px solid var(--teal);
-    border-radius: 0 14px 14px 0;
-  }
-  .expanded-section-label {
-    font-size: 0.7rem; color: var(--teal);
-    text-transform: uppercase; letter-spacing: 0.08em;
-    margin-bottom: 10px;
-  }
-
-  /* Cannabis 1×2 split (Limits + Sessions side-by-side) */
-  .cannabis-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: var(--space-3);
-    min-width: 0;
-  }
-  .cannabis-grid > * { min-width: 0; }
-  @media (max-width: 900px) {
-    .cannabis-grid { grid-template-columns: 1fr; }
-  }
-
-  /* Always-on Profile + Weight banner */
-  .profile-banner {
-    display: flex;
-    align-items: center;
-    gap: var(--space-4);
-    padding: 14px 18px;
-    background: linear-gradient(135deg, var(--surface), var(--surface-2));
-    border: 1px solid var(--border);
-    border-radius: 16px;
-    flex-wrap: wrap;
-  }
-  .profile-banner .pb-identity {
-    display: flex; align-items: center; gap: 12px;
-    min-width: 0; flex: 1 1 220px;
-  }
-  .profile-banner .pb-avatar {
-    width: 48px; height: 48px;
-    border-radius: 12px;
-    background: linear-gradient(135deg, var(--teal), var(--teal-dim));
-    color: white;
-    display: flex; align-items: center; justify-content: center;
-    font-weight: 700; font-size: 1rem;
-    flex-shrink: 0;
-    box-shadow: 0 4px 12px rgba(20,184,166,.3);
-  }
-  .profile-banner .pb-name { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
-  .profile-banner .pb-name-line {
-    font-size: 1rem; font-weight: 700; color: var(--text);
-    display: flex; align-items: center;
-  }
-  .profile-banner .pb-meta-line {
-    font-size: 0.72rem; color: var(--text-dim);
-    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
-  }
-  .profile-banner .pb-metrics {
-    display: flex; align-items: baseline; gap: 22px;
-    flex-wrap: wrap;
-  }
-  .profile-banner .pb-metrics .metric .label {
-    font-size: 0.6rem; color: var(--text-dim);
-    text-transform: uppercase; letter-spacing: 0.07em;
-  }
-  .profile-banner .pb-metrics .metric .value {
-    font-size: 1.05rem; font-weight: 700; color: var(--text);
-    font-variant-numeric: tabular-nums;
-  }
-  .profile-banner .pb-metrics .metric .value.good { color: var(--green); }
-  .profile-banner .pb-metrics .metric .value.warn { color: var(--red); }
-  .profile-banner .pb-log {
-    margin-left: auto;
-  }
-
-  /* Complete Day footer */
-  .day-complete-footer {
-    margin-top: 20px;
-    padding: var(--space-4) var(--space-6);
-    border: 1px solid var(--border);
-    border-radius: 14px;
-    background: var(--surface);
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 10px;
-  }
-  .complete-day-btn {
-    display: inline-flex; align-items: center; gap: 10px;
-    padding: 14px 32px;
-    border-radius: 999px;
-    background: linear-gradient(135deg, var(--teal), var(--teal-dim));
-    color: white;
-    border: 0;
-    font-size: 0.95rem; font-weight: 700;
-    cursor: pointer;
-    box-shadow: 0 4px 16px rgba(20,184,166,.35);
-    transition: transform 120ms ease, box-shadow 120ms ease;
-  }
-  .complete-day-btn:hover { transform: translateY(-1px); box-shadow: 0 6px 22px rgba(20,184,166,.5); }
-  .complete-day-btn .icon { font-size: 1.15rem; }
-  .complete-day-footer .helper { font-size: 0.7rem; color: var(--text-dim); text-align: center; max-width: 50ch; }
-
-  .day-locked-banner {
-    margin-top: 20px;
-    padding: var(--space-4) var(--space-6);
-    border-radius: 14px;
-    background: var(--surface);
-    border: 1px solid var(--border);
-    display: flex; align-items: center; justify-content: space-between; gap: var(--space-4);
-    flex-wrap: wrap;
-  }
-  .day-locked-banner .lock-info { display: flex; align-items: center; gap: 12px; }
-  .day-locked-banner .lock-icon {
-    width: 40px; height: 40px;
-    background: var(--teal); color: white;
-    border-radius: 10px;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 1.15rem;
-  }
-  .day-locked-banner .lock-text .title { color: var(--text); font-weight: 700; font-size: 0.95rem; }
-  .day-locked-banner .lock-text .meta  { color: var(--text-dim); font-size: 0.75rem; margin-top: 2px; }
-  .unlock-btn {
-    background: transparent;
-    border: 1px solid rgba(239,68,68,.5);
-    color: var(--red);
-    padding: 10px 18px;
-    border-radius: 999px;
-    font-size: 0.8rem; font-weight: 600;
-    cursor: pointer;
-    display: inline-flex; align-items: center; gap: 8px;
-  }
-  .unlock-btn:hover { background: rgba(239,68,68,.1); }
-
-  /* Add-custom ghost tile */
-  .tile.ghost {
-    background: transparent;
-    border: 1.5px dashed var(--border);
-    box-shadow: none;
-    color: var(--text-dim);
-    justify-content: center;
-  }
-  .tile.ghost:hover { border-color: var(--teal); color: var(--teal); }
-  .tile.ghost .tile-icon { background: transparent; }
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI Variable", "Segoe UI",
+      system-ui, Roboto, Helvetica, Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  /* tailwindcss-animate compatibility shims used inline by the component */
+  .animate-in { animation-duration: 200ms; animation-fill-mode: both; }
+  .fade-in { animation-name: htFadeIn; }
+  .slide-in-from-top-2 { animation-name: htFadeIn, htSlideTop; }
+  @keyframes htFadeIn { from { opacity: 0 } to { opacity: 1 } }
+  @keyframes htSlideTop { from { transform: translateY(-8px) } to { transform: translateY(0) } }
 </style>
+<script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 </head>
-<body>
-<div class="container">
+<body class="bg-[#020617] text-[#f1f5f9]">
+<div id="root"></div>
 
-<!-- ============================================================
-     HEADER (minimal)
-     ============================================================ -->
-<header class="hero" style="padding-bottom:var(--space-4);margin-bottom:var(--space-6)">
-  <h1 style="margin:0">HealthTracker — Wireframes</h1>
-  <div class="meta">Per <a href="../../DESIGN-REQUIREMENTS.md" style="color:var(--teal)">DESIGN-REQUIREMENTS.md</a> · MD3 · adaptive nav · accordion dashboard · updated 2026-05-03</div>
-</header>
+<script type="text/babel" data-presets="react">
+const { useState } = React;
 
-<!-- ============================================================
-     RESPONSIVE NAV ANNOTATION STRIP
-     ============================================================ -->
-<div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:var(--space-4);margin-bottom:var(--space-6)">
-  <div style="font-size:0.7rem;color:var(--text-dim);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:var(--space-3)">Adaptive navigation by breakpoint (DRD §4)</div>
-  <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:var(--space-3);font-size:0.8rem">
-    <div style="background:var(--surface-2);border-radius:10px;padding:12px"><div style="color:var(--teal);font-weight:600">📱 Mobile</div><div style="color:var(--text-dim);font-size:0.72rem">0–599 px</div><div style="margin-top:6px">Bottom nav · 5 destinations max · sticky FAB</div></div>
-    <div style="background:var(--surface-2);border-radius:10px;padding:12px"><div style="color:var(--teal);font-weight:600">📱 Tablet</div><div style="color:var(--text-dim);font-size:0.72rem">600–904 px</div><div style="margin-top:6px">Navigation rail (icons only, left edge)</div></div>
-    <div style="background:var(--surface-2);border-radius:10px;padding:12px"><div style="color:var(--teal);font-weight:600">💻 Small desktop</div><div style="color:var(--text-dim);font-size:0.72rem">905–1239 px</div><div style="margin-top:6px">Collapsible side drawer (collapses to rail)</div></div>
-    <div style="background:linear-gradient(135deg,var(--teal-bg),transparent);border:1px solid var(--teal);border-radius:10px;padding:12px"><div style="color:var(--teal);font-weight:600">💻 Desktop ◀ shown below</div><div style="color:var(--text-dim);font-size:0.72rem">1240 px+</div><div style="margin-top:6px">Persistent side drawer · optional right detail pane</div></div>
-  </div>
-</div>
+// --- Shared Components ---
 
-<!-- ============================================================
-     TABLE OF CONTENTS
-     ============================================================ -->
-<nav class="toc">
-  <h2>Screens — final 7-section IA</h2>
-  <ol>
-    <li><a href="#dashboard">Dashboard</a></li>
-    <li><a href="#food">Food</a></li>
-    <li><a href="#cannabis">Cannabis</a></li>
-    <li><a href="#cannabis-inventory">Cannabis Inventory</a></li>
-    <li><a href="#workouts">Workouts</a></li>
-    <li><a href="#profile">Profile</a></li>
-    <li><a href="#settings">Settings</a></li>
-  </ol>
-</nav>
+const SidebarItem = ({ icon, label, active }) => (
+  <button
+    className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-all ${
+      active
+        ? 'bg-teal-500/15 text-teal-500 font-semibold'
+        : 'text-slate-400 hover:bg-white/5 hover:text-slate-200'
+    }`}
+  >
+    <span className="w-[18px] text-center flex-shrink-0 text-base">{icon}</span>
+    <span>{label}</span>
+  </button>
+);
 
-<!-- ============================================================
-     SCREENS — WIREFRAMES ONLY
-     ============================================================ -->
-<section id="screens">
-  <h3 id="dashboard"><span class="subid">3.1</span> Dashboard</h3>
-  <div class="wireframe">
-    <div class="wireframe-title">Wireframe — DashboardView · profile banner · summary tiles · accordion routines (one expanded at a time)</div>
-    <div class="wireframe-app">
-      <div class="wireframe-sidebar">
-        <div class="nav-item active">🏠 Dashboard</div>
-        <div class="nav-item">🍽️ Food</div>
-        <div class="nav-item">🌿 Cannabis</div>
-        <div class="nav-item">📦 Cannabis Inventory</div>
-        <div class="nav-item">🥊 Workouts</div>
-        <div class="nav-item">👤 Profile</div>
-        <div class="nav-item">⚙️ Settings</div>
+const Panel = ({ icon, title, subtitle, libTag, children }) => (
+  <section className="flex flex-col gap-4 p-5 rounded-[18px] bg-slate-900 border border-slate-800">
+    <div className="flex flex-wrap items-start justify-between gap-3">
+      <div className="flex items-center gap-4">
+        <div className="w-[48px] h-[48px] rounded-2xl bg-slate-800 border border-white/5 shadow-inner flex items-center justify-center text-2xl flex-shrink-0">
+          {icon}
+        </div>
+        <div>
+          <h1 className="text-xl md:text-2xl font-extrabold text-slate-100 tracking-tight m-0 leading-tight">{title}</h1>
+          <div className="text-xs text-slate-400 mt-1 font-medium">{subtitle}</div>
+        </div>
       </div>
-      <div class="wireframe-main airy">
+      {libTag && (
+        <span className="text-[10px] text-slate-500 uppercase tracking-widest bg-white/5 px-2.5 py-1 rounded-full mt-1">
+          {libTag}
+        </span>
+      )}
+    </div>
+    <div className="pt-4 border-t border-slate-800">{children}</div>
+  </section>
+);
 
-        <!-- Always-on Profile + Weight banner -->
-        <div class="profile-banner">
-          <div class="pb-identity">
-            <div class="pb-avatar">AH</div>
-            <div class="pb-name">
-              <div class="pb-name-line">Asif Hussain <span class="badge muted" style="margin-left:6px">Owner</span></div>
-              <div class="pb-meta-line">5'10" · 38 yrs · IF 14:00–18:00 · Cannabis taper week 2/8</div>
-            </div>
-          </div>
-          <div class="pb-metrics">
-            <div class="metric"><div class="label">Current</div><div class="value">182.4 lb</div></div>
-            <div class="metric"><div class="label">vs last wk</div><div class="value good">▼ 0.6</div></div>
-            <div class="metric"><div class="label">Goal</div><div class="value">175.0</div></div>
-            <div class="metric"><div class="label">Δ to goal</div><div class="value warn">−7.4 lb</div></div>
-            <div class="metric"><div class="label">BMI</div><div class="value">26.2</div></div>
-          </div>
-          <button class="pill-cta pb-log">＋ Log weight</button>
-        </div>
+const Chip = ({ label, meta, selected, onClick }) => {
+  const baseStyles =
+    "flex flex-col items-center justify-center gap-0.5 p-3 min-w-[92px] rounded-2xl border-[1.5px] cursor-pointer transition-all";
+  const stateStyles = selected
+    ? "bg-teal-500/10 border-teal-500/60 text-teal-400 shadow-[inset_0_1px_0_rgba(255,255,255,0.06),_0_4px_12px_rgba(20,184,166,0.15)]"
+    : "bg-slate-800 border-transparent text-slate-400 hover:border-slate-700 hover:text-slate-200";
 
-        <!-- Modern day header + week strip -->
-        <div style="background:linear-gradient(135deg,var(--surface),var(--surface-2));border-radius:14px;padding:14px 18px;display:flex;align-items:center;justify-content:space-between;border:1px solid var(--border)">
-          <div style="display:flex;align-items:center;gap:10px;color:var(--text-faint);font-size:0.875rem;cursor:pointer">‹ Prev</div>
-          <div style="text-align:center">
-            <div style="font-size:0.65rem;color:var(--text-dim);text-transform:uppercase;letter-spacing:0.08em">Today</div>
-            <div style="font-size:1.05rem;font-weight:700;color:var(--text);margin-top:2px">Saturday · May 3</div>
-          </div>
-          <div style="display:flex;align-items:center;gap:10px;color:var(--text-faint);font-size:0.875rem;cursor:pointer">Next ›</div>
-        </div>
-        <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:6px;text-align:center">
-          <div style="padding:8px 0;border-radius:10px;background:var(--surface);font-size:0.7rem;color:var(--text-dim)">Sun<br><strong style="color:var(--text);font-size:0.875rem">27</strong></div>
-          <div style="padding:8px 0;border-radius:10px;background:var(--surface);font-size:0.7rem;color:var(--text-dim)">Mon<br><strong style="color:var(--text);font-size:0.875rem">28</strong></div>
-          <div style="padding:8px 0;border-radius:10px;background:var(--surface);font-size:0.7rem;color:var(--text-dim)">Tue<br><strong style="color:var(--text);font-size:0.875rem">29</strong></div>
-          <div style="padding:8px 0;border-radius:10px;background:var(--surface);font-size:0.7rem;color:var(--text-dim)">Wed<br><strong style="color:var(--text);font-size:0.875rem">30</strong></div>
-          <div style="padding:8px 0;border-radius:10px;background:var(--surface);font-size:0.7rem;color:var(--text-dim)">Thu<br><strong style="color:var(--text);font-size:0.875rem">1</strong></div>
-          <div style="padding:8px 0;border-radius:10px;background:var(--surface);font-size:0.7rem;color:var(--text-dim)">Fri<br><strong style="color:var(--text);font-size:0.875rem">2</strong></div>
-          <div style="padding:8px 0;border-radius:10px;background:linear-gradient(135deg,var(--teal),var(--teal-dim));font-size:0.7rem;color:white;font-weight:600">Sat<br><strong style="font-size:0.875rem">3</strong></div>
-        </div>
-        <div style="font-size:0.7rem;color:var(--text-faint);text-align:center">Navigable range: previous Sunday → this Saturday · outside → read-only History</div>
+  return (
+    <div className={`${baseStyles} ${stateStyles}`} onClick={onClick}>
+      <span className="text-sm font-semibold leading-tight">{label}</span>
+      <span className={`text-[10px] ${selected ? 'text-teal-500/70' : 'text-slate-500'} mt-0.5`}>
+        {meta}
+      </span>
+    </div>
+  );
+};
 
-        <!-- Daily summary — calories only -->
-        <div class="ph-card spacious" style="display:flex;align-items:center;justify-content:space-between;gap:24px">
-          <div style="display:flex;align-items:center;gap:14px">
-            <div style="width:44px;height:44px;background:var(--surface-2);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.25rem">🍽️</div>
-            <div>
-              <div style="font-size:0.7rem;color:var(--text-dim);text-transform:uppercase;letter-spacing:0.07em">Calories today</div>
-              <div style="font-size:1.5rem;font-weight:700;color:var(--text);font-variant-numeric:tabular-nums">320 / 2000</div>
-            </div>
-          </div>
-          <div style="flex:1;max-width:480px">
-            <div class="ph-bar"><span style="width:16%;background:linear-gradient(90deg,var(--green),var(--teal))"></span></div>
-            <div style="font-size:0.7rem;color:var(--text-dim);margin-top:4px;display:flex;justify-content:space-between"><span>16% of daily target</span><span style="color:var(--green)">1680 cal remaining</span></div>
-          </div>
-        </div>
+function App() {
+  const [activeRoute, setActiveRoute] = useState('dashboard');
+  const [workoutSelection, setWorkoutSelection] = useState({
+    walk: true,
+    kickboxing: false,
+    weights: false,
+  });
+  const [sessions, setSessions] = useState([
+    {
+      id: 'chest-tris',
+      title: 'Chest & Triceps',
+      meta: '6 exercises · 8:30–9:15 am · done',
+      status: 'done',
+      statusLabel: 'Volume 4,820 lb',
+    },
+    {
+      id: 'core',
+      title: 'Core Burner',
+      meta: '5 exercises · started 4:10 pm',
+      status: 'in-progress',
+      statusLabel: 'In progress',
+    },
+  ]);
+  const removeSession = (id) => setSessions((prev) => prev.filter((s) => s.id !== id));
 
-        <!-- 5 Daily Prayers row -->
-        <div class="ph-card spacious" style="border-color:var(--teal)">
-          <div class="card-head">
-            <div class="title-block">
-              <div class="card-icon">🕌</div>
-              <h3>Prayers</h3>
-            </div>
-            <div class="head-meta">
-              <span><strong>2 of 5</strong> prayed</span>
-              <span>·</span>
-              <span>Next: Asr in <strong>1h 28m</strong></span>
-            </div>
-          </div>
-          <div class="tile-grid cols-5">
-            <div class="tile tile-vertical checked">
-              <div class="tile-icon">🌅</div>
-              <div class="tile-body"><div class="tile-label">Fajr</div><div class="tile-meta">5:14 am</div></div>
-              <div class="tile-check">✓</div>
-            </div>
-            <div class="tile tile-vertical checked">
-              <div class="tile-icon">☀️</div>
-              <div class="tile-body"><div class="tile-label">Dhuhr</div><div class="tile-meta">1:02 pm</div></div>
-              <div class="tile-check">✓</div>
-            </div>
-            <div class="tile tile-vertical">
-              <div class="tile-icon">🌤️</div>
-              <div class="tile-body"><div class="tile-label">Asr</div><div class="tile-meta">4:38 pm</div></div>
-              <div class="tile-check"></div>
-            </div>
-            <div class="tile tile-vertical">
-              <div class="tile-icon">🌇</div>
-              <div class="tile-body"><div class="tile-label">Maghrib</div><div class="tile-meta">7:51 pm</div></div>
-              <div class="tile-check"></div>
-            </div>
-            <div class="tile tile-vertical">
-              <div class="tile-icon">🌙</div>
-              <div class="tile-body"><div class="tile-label">Isha</div><div class="tile-meta">9:17 pm</div></div>
-              <div class="tile-check"></div>
-            </div>
-          </div>
-        </div>
+  // Calories ring percentage (320 / 2000 = 16%)
+  const caloriesPct = 16;
+  const ringStyle = {
+    background: `conic-gradient(#14b8a6 0% ${caloriesPct}%, rgba(255,255,255,0.10) ${caloriesPct}% 100%)`,
+  };
 
-        <!-- Workout -->
-        <div class="ph-card spacious" style="border-color:var(--green)">
-          <div class="card-head">
-            <div class="title-block">
-              <div class="card-icon">🥊</div>
-              <h3>Workout</h3>
-            </div>
-            <div class="head-meta">
-              <span>Today's pick</span>
-              <span>·</span>
-              <span style="color:var(--green);font-weight:600">Kickboxing</span>
-            </div>
-          </div>
-          <div class="tile-grid cols-3">
-            <div class="tile checked">
-              <div class="tile-icon">🚶</div>
-              <div class="tile-body">
-                <div class="tile-label">Walk</div>
-                <div class="tile-meta">Daily · 10 min · done</div>
-              </div>
-              <div class="tile-check">✓</div>
-            </div>
-            <div class="tile recommended">
-              <div class="tile-icon">🥊</div>
-              <div class="tile-body">
-                <div class="tile-label">Core de Force · Block 2</div>
-                <div class="tile-meta">Kickboxing · 2 / 5 wk · recommended</div>
-              </div>
-              <span class="pill-cta">Start</span>
-            </div>
-            <div class="tile">
-              <div class="tile-icon">🏋️</div>
-              <div class="tile-body">
-                <div class="tile-label">LIIFT4 · Push Day</div>
-                <div class="tile-meta">Weights · 1 / 3 wk · rest day</div>
-              </div>
-              <div class="tile-check"></div>
-            </div>
-          </div>
-        </div>
+  return (
+    <div className="min-h-screen bg-[#020617] text-[#f1f5f9] font-sans flex items-center justify-center p-4 md:p-8">
+      {/* V2 Shell - Glass Backdrop */}
+      <div
+        className="w-full max-w-[1200px] rounded-[22px] border border-slate-800 overflow-hidden grid grid-cols-[220px_minmax(0,1fr)] min-h-[700px] shadow-2xl relative"
+        style={{
+          background: `
+            radial-gradient(circle at 18% 12%, rgba(20,184,166,.12), transparent 38%),
+            radial-gradient(circle at 88% 78%, rgba(249,115,22,.08), transparent 42%),
+            radial-gradient(circle at 50% 50%, rgba(34,197,94,.05), transparent 60%),
+            #020617
+          `,
+        }}
+      >
+        {/* Navigation Rail */}
+        <aside className="bg-slate-900/60 backdrop-blur-xl border-r border-white/5 p-5 flex flex-col gap-1 z-10">
+          <div className="text-[15px] font-bold text-slate-100 px-2.5 pb-4 tracking-tight">HealthTracker</div>
 
-        <!-- Working from (location picker) -->
-        <div class="ph-card spacious" style="border-color:var(--teal)">
-          <div class="card-head">
-            <div class="title-block">
-              <div class="card-icon">📍</div>
-              <h3>Working from</h3>
-            </div>
-            <div class="head-meta">
-              <span>Tap to log session · contributes to productivity-by-location</span>
-            </div>
-          </div>
-          <div class="tile-grid cols-4">
-            <div class="tile checked">
-              <div class="tile-icon">🏠</div>
-              <div class="tile-body"><div class="tile-label">Home Office</div><div class="tile-meta">2h 14m today</div></div>
-              <div class="tile-check">✓</div>
-            </div>
-            <div class="tile">
-              <div class="tile-icon">☕</div>
-              <div class="tile-body"><div class="tile-label">Coffee Roastery</div><div class="tile-meta">1.2 mi · strong wifi</div></div>
-              <div class="tile-check"></div>
-            </div>
-            <div class="tile">
-              <div class="tile-icon">🛍️</div>
-              <div class="tile-body"><div class="tile-label">Mall Food Court</div><div class="tile-meta">3.8 mi</div></div>
-              <div class="tile-check"></div>
-            </div>
-            <div class="tile">
-              <div class="tile-icon">📚</div>
-              <div class="tile-body"><div class="tile-label">Public Library</div><div class="tile-meta">2.1 mi · quiet</div></div>
-              <div class="tile-check"></div>
-            </div>
-          </div>
-        </div>
+          <SidebarItem icon="🏠" label="Dashboard" active={activeRoute === 'dashboard'} />
+          <SidebarItem icon="🍽️" label="Meals" />
+          <SidebarItem icon="🥊" label="Workouts" />
+          <SidebarItem icon="🌿" label="Cannabis" />
+          <SidebarItem icon="📍" label="Work Locations" />
 
-        <!-- Cannabis (split into 1×2 grid: Daily Limits + Planned Sessions) -->
-        <div class="cannabis-grid">
+          <div className="flex-1" />
 
-          <!-- Cannabis A — Daily Limits -->
-          <div class="ph-card spacious" style="border-color:var(--red)">
-            <div class="card-head">
-              <div class="title-block">
-                <div class="card-icon">🌿</div>
-                <h3>Cannabis — Limits</h3>
-              </div>
-              <div class="head-meta">
-                <span class="badge red">STRICT TAPER</span>
-                <span>Week <strong>2 of 8</strong></span>
-              </div>
+          <button className="flex items-center gap-2.5 px-3 pt-3 mt-1.5 border-t border-white/5 hover:opacity-80 transition-opacity">
+            <span className="text-base">👤</span>
+            <span className="text-sm text-slate-400">Asif</span>
+            <span className="ml-auto text-xs text-slate-500">⌄</span>
+          </button>
+        </aside>
+
+        {/* Main Dashboard View */}
+        <main className="p-7 flex flex-col gap-5 overflow-y-auto z-10">
+          {/* V2 Glass Profile Banner */}
+          <section className="relative p-5 rounded-[18px] border border-white/10 flex items-center gap-5 flex-wrap bg-white/5 backdrop-blur-[28px]">
+            <div className="w-[52px] h-[52px] rounded-2xl bg-gradient-to-br from-teal-400 to-teal-600 text-white font-bold text-[17px] flex items-center justify-center flex-shrink-0 shadow-[0_8px_24px_rgba(20,184,166,0.35)]">
+              AH
             </div>
 
-            <div class="metric-strip">
-              <div class="metric"><div class="label">Today's ceiling</div><div class="value">40 mg</div></div>
-              <div class="metric"><div class="label">Used</div><div class="value good">15 mg</div></div>
-              <div class="metric"><div class="label">Remaining</div><div class="value">25 mg</div></div>
-              <div class="metric"><div class="label">Per-session cap</div><div class="value warn">25 mg</div></div>
-            </div>
-            <div class="ph-bar" style="margin:8px 0 var(--space-3)"><span style="width:38%;background:linear-gradient(90deg,var(--green),var(--teal))"></span></div>
-
-            <div style="font-size:0.7rem;color:var(--text-faint);line-height:1.6">
-              Half-unit default · attempts above 25 mg per session are blocked · taper updates the ceiling weekly.
-            </div>
-          </div>
-
-          <!-- Cannabis B — Planned Sessions -->
-          <div class="ph-card spacious" style="border-color:var(--red)">
-            <div class="card-head">
-              <div class="title-block">
-                <div class="card-icon">📅</div>
-                <h3>Cannabis — Sessions</h3>
-              </div>
-              <div class="head-meta">
-                <span>Back-scheduled from <strong>8:00 pm</strong> bedtime</span>
-              </div>
+            <div className="flex flex-col gap-0.5 flex-1 min-w-[150px]">
+              <div className="text-[17px] font-bold text-slate-100">Asif Hussain</div>
+              <div className="text-xs text-slate-400">5'10" · 38 yrs · IF 14:00–18:00</div>
             </div>
 
-            <div class="tile-grid" style="grid-template-columns:1fr;gap:10px">
-              <div class="tile">
-                <div class="tile-icon">🍫</div>
-                <div class="tile-body">
-                  <div class="tile-label">2:30 pm · Edible</div>
-                  <div class="tile-meta">Peanut Buddha Buddha · ½ piece (25 mg) · peak 6:00–7:30 pm</div>
+            <div className="flex flex-col gap-0.5">
+              <div className="text-[10px] text-slate-400 uppercase tracking-wider">Current</div>
+              <div className="text-[17px] font-bold tabular-nums">182.4 lb</div>
+            </div>
+
+            <div className="flex flex-col gap-0.5">
+              <div className="text-[10px] text-slate-400 uppercase tracking-wider">vs last wk</div>
+              <div className="text-[17px] font-bold tabular-nums text-green-500">▼ 0.6</div>
+            </div>
+
+            <div className="flex flex-col gap-0.5">
+              <div className="text-[10px] text-slate-400 uppercase tracking-wider">Goal</div>
+              <div className="text-[17px] font-bold tabular-nums">175.0</div>
+            </div>
+
+            <div
+              className="relative w-[72px] h-[72px] rounded-full flex items-center justify-center flex-shrink-0 ml-2"
+              style={ringStyle}
+            >
+              <div className="absolute inset-[6px] bg-slate-900/60 backdrop-blur-[20px] rounded-full" />
+              <span className="relative text-[15px] font-extrabold tabular-nums leading-none">{caloriesPct}%</span>
+            </div>
+
+            <div className="flex flex-col items-end gap-0.5 ml-1">
+              <span className="text-[10px] text-slate-400 uppercase tracking-wider">Calories today</span>
+              <span className="text-[17px] font-bold tabular-nums">320 / 2000</span>
+              <span className="text-[10.5px] text-green-500">1680 remaining</span>
+            </div>
+          </section>
+
+          {/* Compact Date Selector */}
+          <section className="flex items-center justify-between px-4 py-2.5 bg-slate-900 border border-slate-800 rounded-2xl">
+            <button className="w-8 h-8 rounded-lg flex items-center justify-center text-slate-400 hover:bg-slate-800 hover:text-slate-100 transition-colors">‹</button>
+            <div className="flex flex-col items-center gap-px cursor-pointer">
+              <div className="text-[10px] text-teal-500 uppercase tracking-widest font-semibold">Today</div>
+              <div className="text-[15px] font-bold text-slate-100">Saturday · May 3</div>
+            </div>
+            <button className="w-8 h-8 rounded-lg flex items-center justify-center text-slate-400 hover:bg-slate-800 hover:text-slate-100 transition-colors">›</button>
+          </section>
+
+          {/* Spirituality Panel */}
+          <Panel icon="🕌" title="Spirituality" subtitle="5 daily prayers · sticky chips" libTag="~/shared-services/prayer-times">
+            <div className="flex flex-wrap gap-2.5">
+              <Chip label="Fajr" meta="5:14 am" selected={true} />
+              <Chip label="Zohr" meta="1:02 pm" selected={true} />
+              <Chip label="Asr" meta="4:38 pm" selected={false} />
+              <Chip label="Maghrib" meta="7:51 pm" selected={false} />
+              <Chip label="Isha" meta="9:17 pm" selected={false} />
+            </div>
+          </Panel>
+
+          {/* Workout Panel */}
+          <Panel
+            icon="🥊"
+            title="Workout"
+            subtitle="Walk · Kickboxing (5×/wk) · Weights (multi-session)"
+            libTag="workoutLibrary.routines · title field"
+          >
+            <div className="flex flex-wrap gap-2.5 mb-3">
+              <Chip
+                label="Walk"
+                meta="10 min · daily"
+                selected={workoutSelection.walk}
+                onClick={() => setWorkoutSelection((prev) => ({ ...prev, walk: !prev.walk }))}
+              />
+              <Chip
+                label="Kickboxing"
+                meta="2 / 5 wk"
+                selected={workoutSelection.kickboxing}
+                onClick={() => setWorkoutSelection((prev) => ({ ...prev, kickboxing: !prev.kickboxing }))}
+              />
+              <Chip
+                label="Weights"
+                meta="Select routine"
+                selected={workoutSelection.weights}
+                onClick={() => setWorkoutSelection((prev) => ({ ...prev, weights: !prev.weights }))}
+              />
+            </div>
+
+            {/* Weights Routine Picker Dropdown */}
+            {workoutSelection.weights && (
+              <div className="mb-4 bg-slate-800 border border-slate-700 rounded-xl p-2 shadow-xl relative animate-in fade-in slide-in-from-top-2">
+                <div className="text-[10px] text-slate-400 uppercase tracking-widest font-semibold px-2 pt-1 pb-2">
+                  Select a Routine
                 </div>
-                <span class="pill-cta">Log</span>
-              </div>
-              <div class="tile">
-                <div class="tile-icon">🌬️</div>
-                <div class="tile-body">
-                  <div class="tile-label">6:00 pm · Flower</div>
-                  <div class="tile-meta">Blue Dream · 2 puffs (~6 mg) · clears before sleep</div>
+                <div className="flex flex-col gap-1">
+                  {[
+                    { title: 'Chest & Triceps', meta: '6 exercises · ~45 min' },
+                    { title: 'Back & Biceps', meta: '6 exercises · ~45 min' },
+                    { title: 'Shoulders', meta: '5 exercises · ~40 min' },
+                    { title: 'Quads & Hamstrings', meta: '6 exercises · ~50 min' },
+                  ].map((routine, idx) => (
+                    <div
+                      key={idx}
+                      className="flex items-center justify-between p-2.5 rounded-lg hover:bg-slate-700/50 cursor-pointer border border-transparent hover:border-slate-600 transition-all group"
+                    >
+                      <div>
+                        <div className="text-sm font-semibold text-slate-200 group-hover:text-teal-400 transition-colors">
+                          {routine.title}
+                        </div>
+                        <div className="text-[10.5px] text-slate-400">{routine.meta}</div>
+                      </div>
+                      <button className="w-7 h-7 rounded-full bg-slate-900 border border-slate-700 flex items-center justify-center text-teal-500 font-bold group-hover:bg-teal-500 group-hover:text-white group-hover:border-teal-500 transition-colors">
+                        +
+                      </button>
+                    </div>
+                  ))}
                 </div>
-                <span class="pill-cta">Log</span>
               </div>
-              <div class="tile">
-                <div class="tile-icon">💨</div>
-                <div class="tile-body">
-                  <div class="tile-label">7:30 pm · Vape</div>
-                  <div class="tile-meta">Indica · 1 draw (~3 mg) · last call</div>
+            )}
+
+            {/* Session Tiles Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-4">
+              {sessions.map((s) => {
+                const done = s.status === 'done';
+                const tileCls = done
+                  ? 'bg-teal-500/10 border border-teal-500/40 rounded-xl overflow-hidden'
+                  : 'bg-slate-800 border border-orange-500/50 rounded-xl overflow-hidden';
+                const iconCls = done
+                  ? 'w-6 h-6 rounded-full bg-teal-500 flex items-center justify-center text-white text-[11px] font-bold'
+                  : 'w-6 h-6 rounded-full bg-orange-500/20 border-2 border-orange-500 flex items-center justify-center text-orange-500 text-[11px] font-bold';
+                const labelCls = done ? 'text-green-500 font-semibold' : 'text-orange-500 font-semibold';
+                return (
+                  <div key={s.id} className={tileCls}>
+                    <div className="flex items-center justify-between p-3">
+                      <div className="flex items-center gap-2.5 cursor-pointer min-w-0">
+                        <div className={iconCls}>{done ? '✓' : '▶'}</div>
+                        <div className="min-w-0">
+                          <div className="text-sm font-semibold text-slate-100 truncate">{s.title}</div>
+                          <div className="text-[10.5px] text-slate-400 mt-0.5 truncate">{s.meta}</div>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2 text-[11px] text-slate-400 flex-shrink-0">
+                        <span className={labelCls}>{s.statusLabel}</span>
+                        <button
+                          type="button"
+                          onClick={(e) => { e.stopPropagation(); removeSession(s.id); }}
+                          aria-label={`Remove ${s.title}`}
+                          title="Remove workout"
+                          className="w-6 h-6 rounded-full bg-slate-900/80 border border-slate-700 flex items-center justify-center text-slate-400 hover:bg-red-500/15 hover:border-red-500/50 hover:text-red-400 transition-colors text-[14px] leading-none"
+                        >
+                          −
+                        </button>
+                        <span className="text-slate-500">›</span>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+              {sessions.length === 0 && (
+                <div className="md:col-span-2 text-center text-[11px] text-slate-500 italic py-6 border border-dashed border-slate-700 rounded-xl">
+                  No workouts logged yet — tap a chip above to add one.
                 </div>
-                <span class="pill-cta">Log</span>
+              )}
+            </div>
+          </Panel>
+
+          {/* Cannabis Panel */}
+          <Panel
+            icon="🌿"
+            title="Cannabis"
+            subtitle="2 sessions · taper week 2 / 8 · 15 / 73 mg today"
+            libTag="cannabisProducts · session planner"
+          >
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <div className="bg-slate-800 rounded-xl p-3.5 flex flex-col gap-2">
+                <div className="flex items-center justify-between">
+                  <div className="text-sm font-bold text-slate-100">2:30 pm</div>
+                  <div className="text-[10px] px-2 py-1 rounded-full bg-slate-900 text-slate-400 uppercase tracking-wider">Edible</div>
+                </div>
+                <div className="flex items-center gap-2.5">
+                  <div className="w-9 h-9 bg-slate-900 rounded-[9px] flex items-center justify-center text-[17px] flex-shrink-0">🍫</div>
+                  <div>
+                    <div className="text-[13.5px] font-semibold text-slate-100">Peanut Buddha Buddha</div>
+                    <div className="text-[11px] text-slate-400 mt-0.5">½ piece · 25 mg · ⭐⭐⭐</div>
+                  </div>
+                </div>
+                <button className="self-start px-3.5 py-1.5 rounded-full bg-teal-500/10 text-teal-400 border border-teal-500/30 text-[11.5px] font-semibold hover:bg-teal-500/20 transition-colors">
+                  Log session
+                </button>
+              </div>
+
+              <div className="bg-slate-800 rounded-xl p-3.5 flex flex-col gap-2">
+                <div className="flex items-center justify-between">
+                  <div className="text-sm font-bold text-slate-100">7:30 pm</div>
+                  <div className="text-[10px] px-2 py-1 rounded-full bg-slate-900 text-slate-400 uppercase tracking-wider">Vape</div>
+                </div>
+                <div className="flex items-center gap-2.5">
+                  <div className="w-9 h-9 bg-slate-900 rounded-[9px] flex items-center justify-center text-[17px] flex-shrink-0">💨</div>
+                  <div>
+                    <div className="text-[13.5px] font-semibold text-slate-100">Indica Cart</div>
+                    <div className="text-[11px] text-slate-400 mt-0.5">2 puffs · ~6 mg · ⭐⭐</div>
+                  </div>
+                </div>
+                <button className="self-start px-3.5 py-1.5 rounded-full bg-teal-500/10 text-teal-400 border border-teal-500/30 text-[11.5px] font-semibold hover:bg-teal-500/20 transition-colors">
+                  Log session
+                </button>
               </div>
             </div>
-          </div>
-
-        </div>
-
-        <!-- Food + IF -->
-        <div class="ph-card spacious" style="border-color:var(--orange)">
-          <div class="card-head">
-            <div class="title-block">
-              <div class="card-icon">🍽️</div>
-              <h3>Food &amp; Fasting</h3>
+            <div className="text-[10.5px] text-slate-500 mt-3 text-center">
+              Algorithm: favorites-weighted · onset back-scheduled from 8 pm bedtime · variety constraint (no same product back-to-back)
             </div>
-            <div class="head-meta">
-              <span class="badge yellow">FASTING</span>
-              <span>Window opens in <strong>02:14</strong></span>
-            </div>
-          </div>
+          </Panel>
 
-          <div class="metric-strip">
-            <div class="metric"><div class="label">Window</div><div class="value">2:00 – 6:00 pm</div></div>
-            <div class="metric"><div class="label">Hrs since last meal</div><div class="value">14:32</div></div>
-            <div class="metric"><div class="label">Adherence (7d)</div><div class="value good">96%</div></div>
-            <div class="metric"><div class="label">Calories today</div><div class="value">320 / 2000</div></div>
-            <div class="metric"><div class="label">Remaining</div><div class="value good">1680</div></div>
-          </div>
-          <div class="ph-bar" style="margin:0 0 var(--space-3)"><span style="width:16%;background:linear-gradient(90deg,var(--orange),var(--red))"></span></div>
-
-          <div class="section-label">Allowed during fast — counter, tracks multiple</div>
-          <div class="tile-grid cols-4">
-            <div class="tile counter has-count">
-              <div class="tile-icon">💧</div>
-              <div class="tile-body"><div class="tile-label">Water</div><div class="tile-meta">target 8 glasses</div></div>
-              <div class="counter-controls">
-                <button class="counter-btn">−</button>
-                <span class="count-value">4</span>
-                <button class="counter-btn">+</button>
+          {/* Food Panel */}
+          <Panel
+            icon="🍽️"
+            title="Food"
+            subtitle="Intermittent fasting · feeding window 2:00 – 6:00 pm"
+            libTag="meals library · weekly auto-plan"
+          >
+            <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-xl p-2.5 px-3.5 flex items-center justify-between text-xs text-slate-200 flex-wrap gap-2 mb-3.5">
+              <div className="flex items-center gap-2">
+                <span className="bg-yellow-500 text-[#1a1300] font-bold px-2 py-0.5 rounded-full text-[10.5px] tracking-wider">FASTING</span>
+                <span>Window opens in <strong className="text-slate-100">2h 14m</strong></span>
+              </div>
+              <div className="text-slate-400 text-[12px]">
+                14:32 since last meal · <strong className="text-slate-200 font-semibold">96%</strong> 7-day adherence
               </div>
             </div>
-            <div class="tile counter has-count">
-              <div class="tile-icon">🍵</div>
-              <div class="tile-body"><div class="tile-label">Green tea</div><div class="tile-meta">cups</div></div>
-              <div class="counter-controls">
-                <button class="counter-btn">−</button>
-                <span class="count-value">1</span>
-                <button class="counter-btn">+</button>
+
+            <div className="flex flex-col gap-2">
+              {/* Eaten Meal */}
+              <div className="grid grid-cols-[36px_1fr_110px_32px] gap-3 items-center p-3 rounded-xl bg-teal-500/10 border border-transparent">
+                <div className="w-9 h-9 bg-slate-900 rounded-[9px] flex items-center justify-center text-[17px]">🍳</div>
+                <div>
+                  <div className="text-[10px] text-slate-400 uppercase tracking-wider">Breakfast (pre-window)</div>
+                  <div className="text-sm font-semibold text-slate-100 mt-px">Greek Yogurt Bowl</div>
+                  <div className="text-[10.5px] text-slate-500 mt-0.5">eaten 8:30 am · before fast started</div>
+                </div>
+                <div className="flex items-center gap-1 bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5">
+                  <input
+                    type="text"
+                    defaultValue="320"
+                    className="bg-transparent border-0 text-slate-100 w-12 text-right outline-none text-[13.5px] tabular-nums"
+                  />
+                  <span className="text-[11px] text-slate-400">cal</span>
+                </div>
+                <button className="w-[30px] h-[30px] bg-teal-500 border border-teal-500 rounded-full flex items-center justify-center text-white text-[13.5px] cursor-pointer">✓</button>
               </div>
-            </div>
-            <div class="tile counter has-count">
-              <div class="tile-icon">☕</div>
-              <div class="tile-body"><div class="tile-label">Black coffee</div><div class="tile-meta">cups</div></div>
-              <div class="counter-controls">
-                <button class="counter-btn">−</button>
-                <span class="count-value">1</span>
-                <button class="counter-btn">+</button>
-              </div>
-            </div>
-            <div class="tile counter">
-              <div class="tile-icon">🧂</div>
-              <div class="tile-body"><div class="tile-label">Electrolytes</div><div class="tile-meta">servings</div></div>
-              <div class="counter-controls">
-                <button class="counter-btn" disabled>−</button>
-                <span class="count-value">0</span>
-                <button class="counter-btn">+</button>
-              </div>
-            </div>
-          </div>
-          <div style="margin-top:10px">
-            <div class="tile ghost" style="min-height:48px">
-              <div class="tile-icon">＋</div>
-              <div class="tile-body" style="flex:0"><div class="tile-label" style="color:inherit">Add custom fasting-safe item</div></div>
-            </div>
-          </div>
 
-          <div class="section-label">Feeding window meals — from planner · per-recipe calories from MyNetDiary</div>
-          <div class="tile-grid cols-5">
-            <div class="tile tile-vertical checked">
-              <div class="tile-icon">🍳</div>
-              <div class="tile-body"><div class="tile-label">Breakfast</div><div class="tile-meta">Greek yogurt bowl · <strong style="color:var(--orange)">320 cal</strong></div></div>
-              <div class="tile-check">✓</div>
+              {/* Pending Meals */}
+              {[
+                { icon: '🥗', slot: 'Lunch · feeding window', name: 'Chicken & Rice', time: '2:00 pm', cal: '540' },
+                { icon: '🍽️', slot: 'Dinner · feeding window', name: 'Salmon & Greens', time: '5:30 pm', cal: '620' },
+                { icon: '🍿', slot: 'Snack · post-window', name: 'Almonds', time: 'window closed at 6 pm', cal: '170', dim: true },
+                { icon: '🥤', slot: 'Shake · flex slot', name: 'Whey Shake', time: 'add anytime', cal: '180' },
+              ].map((meal, idx) => (
+                <div
+                  key={idx}
+                  className={`grid grid-cols-[36px_1fr_110px_32px] gap-3 items-center p-3 rounded-xl bg-slate-800 border border-transparent ${
+                    meal.dim ? 'opacity-50' : ''
+                  }`}
+                >
+                  <div className="w-9 h-9 bg-slate-900 rounded-[9px] flex items-center justify-center text-[17px]">{meal.icon}</div>
+                  <div>
+                    <div className="text-[10px] text-slate-400 uppercase tracking-wider">{meal.slot}</div>
+                    <div className="text-sm font-semibold text-slate-100 mt-px">{meal.name}</div>
+                    <div className="text-[10.5px] text-slate-500 mt-0.5">{meal.time}</div>
+                  </div>
+                  <div className="flex items-center gap-1 bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5">
+                    <input
+                      type="text"
+                      placeholder={meal.cal}
+                      className="bg-transparent border-0 text-slate-100 w-12 text-right outline-none text-[13.5px] tabular-nums placeholder-slate-500"
+                    />
+                    <span className="text-[11px] text-slate-400">cal</span>
+                  </div>
+                  <button className="w-[30px] h-[30px] bg-slate-900 border-[1.5px] border-slate-700 rounded-full flex items-center justify-center text-slate-500 text-[13.5px] cursor-pointer hover:border-slate-500 transition-colors">○</button>
+                </div>
+              ))}
             </div>
-            <div class="tile tile-vertical">
-              <div class="tile-icon">🥗</div>
-              <div class="tile-body"><div class="tile-label">Lunch</div><div class="tile-meta">Chicken &amp; rice · <strong style="color:var(--orange)">540 cal</strong></div></div>
-              <div class="tile-check"></div>
-            </div>
-            <div class="tile tile-vertical">
-              <div class="tile-icon">🍽️</div>
-              <div class="tile-body"><div class="tile-label">Dinner</div><div class="tile-meta">Salmon &amp; greens · <strong style="color:var(--orange)">620 cal</strong></div></div>
-              <div class="tile-check"></div>
-            </div>
-            <div class="tile tile-vertical">
-              <div class="tile-icon">🍿</div>
-              <div class="tile-body"><div class="tile-label">Snack</div><div class="tile-meta">Almonds · <strong style="color:var(--orange)">170 cal</strong></div></div>
-              <div class="tile-check"></div>
-            </div>
-            <div class="tile tile-vertical">
-              <div class="tile-icon">🥤</div>
-              <div class="tile-body"><div class="tile-label">Add Shake</div><div class="tile-meta">flex slot</div></div>
-              <div class="tile-check">+</div>
-            </div>
-          </div>
-        </div>
 
-        <!-- Sweet Tooth Tracker — designed to discourage -->
-        <div class="ph-card sweet-tooth spacious">
-          <div class="card-head">
-            <div class="title-block">
-              <div class="card-icon">🚫</div>
-              <h3>Sweet Tooth Tracker</h3>
+            <div className="text-[10.5px] text-slate-500 mt-2 text-center">
+              Each calorie input sums into the profile-banner ring. Weekly plan auto-generated every Sunday from favorites; tap meal to swap.
             </div>
-            <div class="head-meta">
-              <span class="badge red">DISCOURAGED</span>
-              <span>Today: <strong style="color:var(--text)">0</strong></span>
-              <span>·</span>
-              <span>This week: <strong style="color:var(--text)">2</strong></span>
-            </div>
-          </div>
+          </Panel>
 
-          <div class="metric-strip">
-            <div class="metric"><div class="label">Clean streak</div><div class="value good">3 days</div></div>
-            <div class="metric"><div class="label">Weekly cap (self-set)</div><div class="value">3</div></div>
-            <div class="metric"><div class="label">Monthly slips</div><div class="value warn">7</div></div>
-          </div>
-
-          <div class="section-label">Log only if you slip — every tap is a slip</div>
-          <div class="tile-grid cols-4">
-            <div class="tile counter indulgence">
-              <div class="tile-icon">🍫</div>
-              <div class="tile-body"><div class="tile-label">Chocolate</div><div class="tile-meta">pieces</div></div>
-              <div class="counter-controls">
-                <button class="counter-btn" disabled>−</button>
-                <span class="count-value">0</span>
-                <button class="counter-btn">+</button>
-              </div>
-            </div>
-            <div class="tile counter indulgence">
-              <div class="tile-icon">🍬</div>
-              <div class="tile-body"><div class="tile-label">Candy</div><div class="tile-meta">pieces</div></div>
-              <div class="counter-controls">
-                <button class="counter-btn" disabled>−</button>
-                <span class="count-value">0</span>
-                <button class="counter-btn">+</button>
-              </div>
-            </div>
-            <div class="tile counter indulgence">
-              <div class="tile-icon">🍭</div>
-              <div class="tile-body"><div class="tile-label">Mints</div><div class="tile-meta">pieces</div></div>
-              <div class="counter-controls">
-                <button class="counter-btn" disabled>−</button>
-                <span class="count-value">0</span>
-                <button class="counter-btn">+</button>
-              </div>
-            </div>
-            <div class="tile counter indulgence">
-              <div class="tile-icon">🍪</div>
-              <div class="tile-body"><div class="tile-label">Cookies / Pastry</div><div class="tile-meta">pieces</div></div>
-              <div class="counter-controls">
-                <button class="counter-btn" disabled>−</button>
-                <span class="count-value">0</span>
-                <button class="counter-btn">+</button>
-              </div>
-            </div>
-          </div>
-
-          <div class="streak-strip" title="Last 14 days · green = clean · red = slip">
-            <div class="day clean"></div><div class="day clean"></div><div class="day slip"></div>
-            <div class="day clean"></div><div class="day clean"></div><div class="day slip"></div>
-            <div class="day clean"></div><div class="day clean"></div><div class="day clean"></div>
-            <div class="day clean"></div><div class="day clean"></div><div class="day clean"></div>
-            <div class="day clean"></div><div class="day clean"></div>
-          </div>
-          <div class="discourage-banner">
-            <span style="font-size:1rem">⚠️</span>
-            <span>Friction: a confirm dialog appears before each + tap. "Are you sure? You're at <strong>3 days clean</strong>." Logged slips can never be deleted — they roll into History.</span>
-          </div>
-        </div>
-
-        <!-- TODOs placeholder (Weight moved to top profile banner) -->
-        <div class="ph-card" style="border-color: var(--text-faint);"><div class="ph-title" style="color:var(--text-faint)">TODOs (Phase 3)</div><div style="font-size:0.75rem">placeholder shell</div></div>
-
-        <!-- Complete Day footer -->
-        <div class="day-complete-footer">
-          <button class="complete-day-btn"><span class="icon">✓</span> Complete Day</button>
-          <div class="helper">Locks the day · prayers, cannabis, fasting, workout, sweet-tooth become read-only · confirm dialog before locking · unlocking is permitted but recorded as a violation.</div>
-        </div>
-
-        <!-- Locked-state preview (what you see after Complete Day) -->
-        <div class="day-locked-banner">
-          <div class="lock-info">
-            <div class="lock-icon">🔒</div>
-            <div class="lock-text">
-              <div class="title">Day locked at 8:02 pm</div>
-              <div class="meta">Prayers 5/5 · cannabis 18/40 mg · fasting 96% adherence · workout ✓ · sweet tooth 0</div>
-            </div>
-          </div>
-          <button class="unlock-btn">⚠️ Unlock (logged as violation)</button>
-        </div>
-
+          {/* Footer Action */}
+          <section className="mt-2 flex items-center justify-center pb-6">
+            <button className="px-9 py-3.5 rounded-full bg-gradient-to-br from-teal-400 to-teal-600 text-white font-bold text-sm shadow-[0_10px_28px_rgba(20,184,166,0.35)] hover:scale-[1.02] active:scale-[0.98] transition-transform">
+              ✓ Complete Day
+            </button>
+          </section>
+        </main>
       </div>
     </div>
-  </div>
+  );
+}
 
-  <h3 id="food"><span class="subid">3.2</span> Food</h3>
-  <div class="wireframe">
-    <div class="wireframe-title">Wireframe — MealsView (two tabs)</div>
-    <div class="wireframe-app">
-      <div class="wireframe-sidebar">
-        <div class="nav-item">🏠 Dashboard</div>
-        <div class="nav-item active">🍽️ Food</div>
-        <div class="nav-item">🌿 Cannabis</div>
-        <div class="nav-item">📦 Cannabis Inventory</div>
-        <div class="nav-item">🥊 Workouts</div>
-        <div class="nav-item">👤 Profile</div>
-        <div class="nav-item">⚙️ Settings</div>
-      </div>
-      <div class="wireframe-main">
-        <div class="ph-row"><span class="badge teal">Inventory</span><span class="badge muted">Weekly Plan</span></div>
-        <div class="ph-card"><div class="ph-title">🔍 Search · Filter · + Add Meal · Import CSV</div></div>
-        <div class="tile-grid cols-3">
-          <div class="tile">
-            <div class="tile-icon">🍳</div>
-            <div class="tile-body">
-              <div class="tile-label">Greek Yogurt Bowl</div>
-              <div class="tile-meta">Breakfast · ⭐⭐⭐ · <strong style="color:var(--orange)">320 cal</strong></div>
-            </div>
-          </div>
-          <div class="tile">
-            <div class="tile-icon">🥗</div>
-            <div class="tile-body">
-              <div class="tile-label">Chicken &amp; Rice</div>
-              <div class="tile-meta">Lunch · ⭐⭐ · <strong style="color:var(--orange)">540 cal</strong></div>
-            </div>
-          </div>
-          <div class="tile">
-            <div class="tile-icon">🥤</div>
-            <div class="tile-body">
-              <div class="tile-label">Whey Shake</div>
-              <div class="tile-meta">Shake · ⭐⭐⭐ · <strong style="color:var(--orange)">180 cal</strong></div>
-            </div>
-          </div>
-        </div>
-        <div class="ph-card" style="border-color: var(--yellow);">
-          <div class="ph-title" style="color:var(--yellow)">Weekly Plan tab → 7-day grid (Breakfast · Lunch · Dinner · Snack + Shakes row) · Regenerate · Build shopping list (no plate-weight scaling)</div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <h3 id="cannabis"><span class="subid">3.3</span> Cannabis</h3>
-  <div class="wireframe">
-    <div class="wireframe-title">Wireframe — CannabisView · sessions log · taper progress · plan</div>
-    <div class="wireframe-app">
-      <div class="wireframe-sidebar">
-        <div class="nav-item">🏠 Dashboard</div>
-        <div class="nav-item">🍽️ Food</div>
-        <div class="nav-item active">🌿 Cannabis</div>
-        <div class="nav-item">📦 Cannabis Inventory</div>
-        <div class="nav-item">🥊 Workouts</div>
-        <div class="nav-item">👤 Profile</div>
-        <div class="nav-item">⚙️ Settings</div>
-      </div>
-      <div class="wireframe-main airy">
-        <div class="ph-row" style="margin-bottom:var(--space-3)">
-          <span class="badge teal">Today's Plan</span>
-          <span class="badge muted">Taper Progress</span>
-          <span class="badge muted">Session Log</span>
-          <span class="badge muted">Insights</span>
-        </div>
-
-        <div class="ph-card spacious" style="border-color:var(--red)">
-          <div class="card-head">
-            <div class="title-block"><div class="card-icon">📈</div><h3>Taper Progress</h3></div>
-            <div class="head-meta"><span class="badge red">STRICT</span><span>Linear · 80→25 mg / 8 wks</span></div>
-          </div>
-          <div class="metric-strip">
-            <div class="metric"><div class="label">Week</div><div class="value">2 of 8</div></div>
-            <div class="metric"><div class="label">Today's ceiling</div><div class="value">73 mg</div></div>
-            <div class="metric"><div class="label">7-day avg</div><div class="value good">62 mg</div></div>
-            <div class="metric"><div class="label">Adherence</div><div class="value good">88%</div></div>
-          </div>
-          <div class="ph-bar" style="margin:8px 0"><span style="width:25%;background:linear-gradient(90deg,var(--red),var(--orange),var(--green))"></span></div>
-          <div style="font-size:0.7rem;color:var(--text-faint)">Wk1 80 · Wk2 73 · Wk3 66 · Wk4 59 · Wk5 52 · Wk6 45 · Wk7 38 · Wk8 25 mg</div>
-        </div>
-
-        <div class="ph-card spacious">
-          <div class="card-head">
-            <div class="title-block"><div class="card-icon">📋</div><h3>Today's Plan</h3></div>
-            <div class="head-meta"><span>3 sessions · back-scheduled from 8 pm bedtime</span></div>
-          </div>
-          <div class="tile-grid" style="grid-template-columns:1fr;gap:8px">
-            <div class="tile"><div class="tile-icon">🍫</div><div class="tile-body"><div class="tile-label">2:30 pm · Edible</div><div class="tile-meta">Peanut Buddha Buddha · ½ piece (25 mg)</div></div><span class="pill-cta">Log</span></div>
-            <div class="tile"><div class="tile-icon">🌬️</div><div class="tile-body"><div class="tile-label">6:00 pm · Flower</div><div class="tile-meta">Blue Dream · 2 puffs (~6 mg)</div></div><span class="pill-cta">Log</span></div>
-            <div class="tile"><div class="tile-icon">💨</div><div class="tile-body"><div class="tile-label">7:30 pm · Vape</div><div class="tile-meta">Indica · 1 draw (~3 mg)</div></div><span class="pill-cta">Log</span></div>
-          </div>
-        </div>
-
-        <div class="ph-card spacious">
-          <div class="card-head">
-            <div class="title-block"><div class="card-icon">📊</div><h3>Session Log (last 7 days)</h3></div>
-            <div class="head-meta"><span>Filterable · sortable · exportable</span></div>
-          </div>
-          <div style="font-size:0.75rem;color:var(--text-dim);display:grid;grid-template-columns:90px 1fr 80px 80px 80px;gap:8px;padding:6px 0;border-bottom:1px solid var(--border)">
-            <span>Date</span><span>Product</span><span>Form</span><span>THC mg</span><span>Effect</span>
-          </div>
-          <div style="font-size:0.8rem;color:var(--text);display:grid;grid-template-columns:90px 1fr 80px 80px 80px;gap:8px;padding:8px 0;border-bottom:1px solid var(--border)">
-            <span>May 3 · 2:30p</span><span>Peanut Buddha Buddha</span><span>edible</span><span>25</span><span style="color:var(--green)">good</span>
-          </div>
-          <div style="font-size:0.8rem;color:var(--text);display:grid;grid-template-columns:90px 1fr 80px 80px 80px;gap:8px;padding:8px 0;border-bottom:1px solid var(--border)">
-            <span>May 2 · 7:00p</span><span>Blue Dream</span><span>flower</span><span>6</span><span style="color:var(--green)">good</span>
-          </div>
-          <div style="font-size:0.8rem;color:var(--text);display:grid;grid-template-columns:90px 1fr 80px 80px 80px;gap:8px;padding:8px 0">
-            <span>May 1 · 8:00p</span><span>Indica vape</span><span>vape</span><span>3</span><span style="color:var(--text-dim)">neutral</span>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <h3 id="cannabis-inventory"><span class="subid">3.4</span> Cannabis Inventory</h3>
-  <div class="wireframe">
-    <div class="wireframe-title">Wireframe — CannabisInventoryView · LibraryView pattern (products + devices tabs)</div>
-    <div class="wireframe-app">
-      <div class="wireframe-sidebar">
-        <div class="nav-item">🏠 Dashboard</div>
-        <div class="nav-item">🍽️ Food</div>
-        <div class="nav-item">🌿 Cannabis</div>
-        <div class="nav-item active">📦 Cannabis Inventory</div>
-        <div class="nav-item">🥊 Workouts</div>
-        <div class="nav-item">👤 Profile</div>
-        <div class="nav-item">⚙️ Settings</div>
-      </div>
-      <div class="wireframe-main airy">
-        <div class="ph-row" style="margin-bottom:var(--space-3)">
-          <span class="badge teal">Products (8)</span>
-          <span class="badge muted">Devices (2)</span>
-        </div>
-
-        <div class="ph-card spacious">
-          <div class="card-head">
-            <div class="title-block"><div class="card-icon">📦</div><h3>Products Library</h3></div>
-            <div class="head-meta"><span>🔍 Search</span><span>·</span><span>Filter: form ▾ · risk ▾</span><span class="pill-cta">＋ Add Product</span></div>
-          </div>
-          <div class="tile-grid cols-3">
-            <div class="tile"><div class="tile-icon">🌿</div><div class="tile-body"><div class="tile-label">Blue Dream <span class="badge teal" style="margin-left:6px">flower</span></div><div class="tile-meta">⭐⭐⭐ · 22% THC · ~3 mg/puff · 3.8 g remaining</div></div></div>
-            <div class="tile"><div class="tile-icon">🍫</div><div class="tile-body"><div class="tile-label">Peanut Buddha Buddha <span class="badge teal" style="margin-left:6px">edible</span></div><div class="tile-meta">⭐⭐⭐ · 50 mg/piece · 7 of 10 left</div></div></div>
-            <div class="tile"><div class="tile-icon">💊</div><div class="tile-body"><div class="tile-label">Indica Capsules <span class="badge teal" style="margin-left:6px">capsule</span></div><div class="tile-meta">⭐⭐ · 10 mg/cap · 14 caps left</div></div></div>
-            <div class="tile"><div class="tile-icon">💨</div><div class="tile-body"><div class="tile-label">Sativa Cart <span class="badge teal" style="margin-left:6px">cartridge</span></div><div class="tile-meta">⭐⭐ · 80% THC · ~3 mg/puff · 0.5 g</div></div></div>
-            <div class="tile"><div class="tile-icon">🌿</div><div class="tile-body"><div class="tile-label">CBD Tincture <span class="badge teal" style="margin-left:6px">tincture</span></div><div class="tile-meta">⭐ · 20:1 CBD:THC · 30 ml</div></div></div>
-            <div class="tile ghost"><div class="tile-icon">＋</div><div class="tile-body" style="flex:0"><div class="tile-label" style="color:inherit">Add product</div></div></div>
-          </div>
-        </div>
-
-        <div class="ph-card spacious">
-          <div class="card-head">
-            <div class="title-block"><div class="card-icon">🔌</div><h3>Devices Library</h3></div>
-            <div class="head-meta"><span class="pill-cta">＋ Add Device</span></div>
-          </div>
-          <div class="tile-grid cols-3">
-            <div class="tile"><div class="tile-icon">🖊️</div><div class="tile-body"><div class="tile-label">Vessel Element</div><div class="tile-meta">vape · default for cartridges</div></div></div>
-            <div class="tile"><div class="tile-icon">🪈</div><div class="tile-body"><div class="tile-label">Session Goods Bong</div><div class="tile-meta">pipe · default for flower</div></div></div>
-            <div class="tile ghost"><div class="tile-icon">＋</div><div class="tile-body" style="flex:0"><div class="tile-label" style="color:inherit">Add device</div></div></div>
-          </div>
-        </div>
-
-        <div style="font-size:0.7rem;color:var(--text-faint);text-align:center">Built on the unified LibraryView pattern (DRD §11.5). Same primitives serve Meals, Workouts, Work Locations.</div>
-      </div>
-    </div>
-  </div>
-
-  <h3 id="workouts"><span class="subid">3.5</span> Workouts</h3>
-
-  <div class="wireframe">
-    <div class="wireframe-title">Wireframe — WorkoutsView (Library · Today's session · Strength gains)</div>
-    <div class="wireframe-app">
-      <div class="wireframe-sidebar">
-        <div class="nav-item">🏠 Dashboard</div>
-        <div class="nav-item">🍽️ Food</div>
-        <div class="nav-item">🌿 Cannabis</div>
-        <div class="nav-item">📦 Cannabis Inventory</div>
-        <div class="nav-item active">🥊 Workouts</div>
-        <div class="nav-item">👤 Profile</div>
-        <div class="nav-item">⚙️ Settings</div>
-      </div>
-      <div class="wireframe-main">
-
-        <div class="ph-row" style="margin-bottom:var(--space-3)">
-          <span class="badge teal">Library</span>
-          <span class="badge muted">Today's Session</span>
-          <span class="badge muted">Strength Gains</span>
-        </div>
-
-        <div class="ph-card spacious">
-          <div class="card-head">
-            <div class="title-block">
-              <div class="card-icon">🥊</div>
-              <h3>Workout Library</h3>
-            </div>
-            <div class="head-meta">
-              <span class="badge yellow">Fitness level: VERY POOR</span>
-              <span>Source: Beachbody + custom</span>
-            </div>
-          </div>
-
-          <div class="section-label">Recommended for your level</div>
-          <div class="tile-grid cols-3">
-            <div class="tile recommended">
-              <div class="tile-icon">🏋️</div>
-              <div class="tile-body">
-                <div class="tile-label">LIIFT4 (Beachbody)</div>
-                <div class="tile-meta">Lift + cardio · 4×/wk · 30–40 min · beginner modifier track</div>
-              </div>
-              <span class="pill-cta">Pick</span>
-            </div>
-            <div class="tile recommended">
-              <div class="tile-icon">🥊</div>
-              <div class="tile-body">
-                <div class="tile-label">Core de Force (Beachbody)</div>
-                <div class="tile-meta">Kickboxing-style cardio · scalable · 30–47 min</div>
-              </div>
-              <span class="pill-cta">Pick</span>
-            </div>
-            <div class="tile">
-              <div class="tile-icon">🎯</div>
-              <div class="tile-body">
-                <div class="tile-label">21 Day Fix (Beachbody)</div>
-                <div class="tile-meta">Mixed · 21 days · 30 min · scalable beginner</div>
-              </div>
-              <span class="pill-cta">Pick</span>
-            </div>
-          </div>
-
-          <div class="section-label">Browse by category</div>
-          <div class="tile-grid cols-4">
-            <div class="tile"><div class="tile-icon">🏋️</div><div class="tile-body"><div class="tile-label">Weight Training</div><div class="tile-meta">12 programs</div></div></div>
-            <div class="tile"><div class="tile-icon">🥊</div><div class="tile-body"><div class="tile-label">Kickboxing</div><div class="tile-meta">8 programs</div></div></div>
-            <div class="tile"><div class="tile-icon">🚶</div><div class="tile-body"><div class="tile-label">Cardio / Walks</div><div class="tile-meta">5 programs</div></div></div>
-            <div class="tile"><div class="tile-icon">🧘</div><div class="tile-body"><div class="tile-label">Mobility</div><div class="tile-meta">3 programs</div></div></div>
-          </div>
-
-          <div class="section-label">Custom routines (sets × reps per body part)</div>
-          <div class="tile-grid cols-3">
-            <div class="tile"><div class="tile-icon">💪</div><div class="tile-body"><div class="tile-label">Push (Chest / Shoulders / Tri)</div><div class="tile-meta">5 exercises · ~45 min</div></div></div>
-            <div class="tile"><div class="tile-icon">🦵</div><div class="tile-body"><div class="tile-label">Pull (Back / Biceps)</div><div class="tile-meta">5 exercises · ~40 min</div></div></div>
-            <div class="tile"><div class="tile-icon">🏃</div><div class="tile-body"><div class="tile-label">Legs (Quads / Hams / Glutes)</div><div class="tile-meta">6 exercises · ~50 min</div></div></div>
-          </div>
-          <div style="margin-top:10px">
-            <div class="tile ghost" style="min-height:48px">
-              <div class="tile-icon">＋</div>
-              <div class="tile-body" style="flex:0"><div class="tile-label" style="color:inherit">Add custom routine</div></div>
-            </div>
-          </div>
-        </div>
-
-        <div class="ph-card spacious">
-          <div class="card-head">
-            <div class="title-block">
-              <div class="card-icon">📈</div>
-              <h3>Strength Gains</h3>
-            </div>
-            <div class="head-meta">
-              <span>Tracked per exercise · last 30 days</span>
-            </div>
-          </div>
-          <div class="metric-strip">
-            <div class="metric"><div class="label">Bench (1RM est)</div><div class="value">115 lb</div></div>
-            <div class="metric"><div class="label">Δ 30d</div><div class="value good">+10 lb</div></div>
-            <div class="metric"><div class="label">Squat (1RM est)</div><div class="value">155 lb</div></div>
-            <div class="metric"><div class="label">Δ 30d</div><div class="value good">+15 lb</div></div>
-            <div class="metric"><div class="label">Total volume / wk</div><div class="value">12,400 lb</div></div>
-          </div>
-          <div style="font-size:0.7rem;color:var(--text-faint);margin-top:8px">Each set logs: weight × reps × RPE. 1RM estimated via Epley formula. Progressive overload nudges shown when same weight × reps held for 2 sessions.</div>
-        </div>
-
-      </div>
-    </div>
-  </div>
-
-  <h3 id="profile"><span class="subid">3.6</span> Profile</h3>
-
-  <div class="wireframe">
-    <div class="wireframe-title">Wireframe — ProfileView</div>
-    <div class="wireframe-app">
-      <div class="wireframe-sidebar">
-        <div class="nav-item">🏠 Dashboard</div>
-        <div class="nav-item">🍽️ Food</div>
-        <div class="nav-item">🌿 Cannabis</div>
-        <div class="nav-item">📦 Cannabis Inventory</div>
-        <div class="nav-item active">👤 Profile</div>
-        <div class="nav-item">⚙️ Settings</div>
-      </div>
-      <div class="wireframe-main">
-        <div class="ph-card"><div class="ph-title">Personal · Body Metrics · Medical Flags · Dietary Rules</div></div>
-        <div class="ph-card"><div class="ph-title">Cannabis Targets</div><div style="font-size:0.875rem">Daily THC mg ceiling: 50</div></div>
-        <div class="ph-card" style="border-color:var(--orange)"><div class="ph-title" style="color:var(--orange)">Daily Calorie Target</div><div style="font-size:0.875rem">2000 cal/day · sums per-recipe calories from checked-off meal slots</div></div>
-        <div class="ph-card" style="border-color:var(--yellow)"><div class="ph-title" style="color:var(--yellow)">Fasting Protocol</div><div style="font-size:0.875rem">Window: 14:00 → 18:00 · Enabled</div></div>
-        <div class="ph-card" style="border-color:var(--red)"><div class="ph-title" style="color:var(--red)">Cannabis Plan (strict)</div><div style="font-size:0.875rem">Per-session cap 25 mg · Daily ceiling tapers weekly · Half-unit default · Sessions back-scheduled from bedtime</div></div>
-        <div class="ph-card" style="border-color:var(--yellow)"><div class="ph-title" style="color:var(--yellow)">Sleep Schedule</div><div style="font-size:0.875rem">Bedtime 8:00 pm · Wake 4:30 am · Drives prayer reminders, cannabis last-call, and IF window edge</div></div>
-        <div class="ph-card" style="border-color:var(--yellow)"><div class="ph-title" style="color:var(--yellow)">Workout Targets</div><div style="font-size:0.875rem">Walk daily · Kickboxing 5×/wk · Weights 3–4×/wk</div></div>
-        <div class="ph-card" style="border-color:var(--yellow)"><div class="ph-title" style="color:var(--yellow)">Prayer Settings</div><div style="font-size:0.875rem">Location · calculation method · per-prayer reminder times</div></div>
-
-        <div class="ph-card spacious" style="border-color:var(--teal)">
-          <div class="card-head">
-            <div class="title-block"><div class="card-icon">📍</div><h3>Work Locations Library</h3></div>
-            <div class="head-meta"><span>4 saved · drives Today's "Working from" picker</span></div>
-          </div>
-          <div class="tile-grid cols-3">
-            <div class="tile"><div class="tile-icon">🏠</div><div class="tile-body"><div class="tile-label">Home Office</div><div class="tile-meta">Default · 0 mi · always available</div></div></div>
-            <div class="tile"><div class="tile-icon">☕</div><div class="tile-body"><div class="tile-label">Coffee Roastery</div><div class="tile-meta">Cafe · 1.2 mi · strong wifi</div></div></div>
-            <div class="tile"><div class="tile-icon">🛍️</div><div class="tile-body"><div class="tile-label">Mall Food Court</div><div class="tile-meta">Mall · 3.8 mi · medium wifi</div></div></div>
-            <div class="tile"><div class="tile-icon">📚</div><div class="tile-body"><div class="tile-label">Public Library</div><div class="tile-meta">Library · 2.1 mi · quiet</div></div></div>
-          </div>
-          <div style="margin-top:10px">
-            <div class="tile ghost" style="min-height:48px">
-              <div class="tile-icon">＋</div>
-              <div class="tile-body" style="flex:0"><div class="tile-label" style="color:inherit">Add work location</div></div>
-            </div>
-          </div>
-          <div style="font-size:0.7rem;color:var(--text-faint);margin-top:8px">Each entry: name · type · address · drive distance · wifi · notes. Drives the "Working from" picker on Today and the productivity-by-location chart in History.</div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <h3 id="settings"><span class="subid">3.7</span> Settings</h3>
-  <div class="wireframe">
-    <div class="wireframe-title">Wireframe — SettingsView · app preferences (separate from Profile which holds personal/health data)</div>
-    <div class="wireframe-app">
-      <div class="wireframe-sidebar">
-        <div class="nav-item">🏠 Dashboard</div>
-        <div class="nav-item">🍽️ Food</div>
-        <div class="nav-item">🌿 Cannabis</div>
-        <div class="nav-item">📦 Cannabis Inventory</div>
-        <div class="nav-item">🥊 Workouts</div>
-        <div class="nav-item">👤 Profile</div>
-        <div class="nav-item active">⚙️ Settings</div>
-      </div>
-      <div class="wireframe-main airy">
-
-        <div class="ph-card spacious">
-          <div class="card-head">
-            <div class="title-block"><div class="card-icon">🎨</div><h3>Appearance</h3></div>
-          </div>
-          <div class="tile-grid cols-3">
-            <div class="tile"><div class="tile-icon">🌙</div><div class="tile-body"><div class="tile-label">Theme</div><div class="tile-meta">Dark · System · Light</div></div></div>
-            <div class="tile"><div class="tile-icon">🔠</div><div class="tile-body"><div class="tile-label">Density</div><div class="tile-meta">Compact · Comfortable</div></div></div>
-            <div class="tile"><div class="tile-icon">🎯</div><div class="tile-body"><div class="tile-label">Reduced motion</div><div class="tile-meta">System default · On</div></div></div>
-          </div>
-        </div>
-
-        <div class="ph-card spacious">
-          <div class="card-head">
-            <div class="title-block"><div class="card-icon">🔔</div><h3>Notifications</h3></div>
-          </div>
-          <div class="tile-grid cols-3">
-            <div class="tile"><div class="tile-icon">🕌</div><div class="tile-body"><div class="tile-label">Prayer reminders</div><div class="tile-meta">5 min before each prayer · ON</div></div></div>
-            <div class="tile"><div class="tile-icon">🍽️</div><div class="tile-body"><div class="tile-label">Fasting window</div><div class="tile-meta">Opens / closes alerts · ON</div></div></div>
-            <div class="tile"><div class="tile-icon">🌿</div><div class="tile-body"><div class="tile-label">Cannabis dose times</div><div class="tile-meta">Planned session reminders · ON</div></div></div>
-            <div class="tile"><div class="tile-icon">🚶</div><div class="tile-body"><div class="tile-label">Post-meal walk</div><div class="tile-meta">5 min after meal check-off · ON</div></div></div>
-            <div class="tile"><div class="tile-icon">🥊</div><div class="tile-body"><div class="tile-label">Workout reminder</div><div class="tile-meta">If today's pick not started by 6 pm</div></div></div>
-            <div class="tile"><div class="tile-icon">✓</div><div class="tile-body"><div class="tile-label">Day complete nudge</div><div class="tile-meta">8:15 pm if not closed</div></div></div>
-          </div>
-        </div>
-
-        <div class="ph-card spacious">
-          <div class="card-head">
-            <div class="title-block"><div class="card-icon">💾</div><h3>Data</h3></div>
-            <div class="head-meta"><span>Local storage today · Supabase Phase 2</span></div>
-          </div>
-          <div class="tile-grid cols-4">
-            <div class="tile"><div class="tile-icon">⬇️</div><div class="tile-body"><div class="tile-label">Export data</div><div class="tile-meta">JSON bundle</div></div></div>
-            <div class="tile"><div class="tile-icon">⬆️</div><div class="tile-body"><div class="tile-label">Import data</div><div class="tile-meta">JSON / CSV</div></div></div>
-            <div class="tile"><div class="tile-icon">📅</div><div class="tile-body"><div class="tile-label">.ics calendar</div><div class="tile-meta">Phase 2 · per-user feed URL</div></div></div>
-            <div class="tile"><div class="tile-icon">🗑️</div><div class="tile-body"><div class="tile-label">Wipe local data</div><div class="tile-meta">Soft-delete only · confirm gate</div></div></div>
-          </div>
-        </div>
-
-        <div class="ph-card spacious">
-          <div class="card-head">
-            <div class="title-block"><div class="card-icon">🚩</div><h3>Feature flags</h3></div>
-            <div class="head-meta"><span>URL override: ?ff=name</span></div>
-          </div>
-          <div class="tile-grid cols-3">
-            <div class="tile"><div class="tile-icon">🤖</div><div class="tile-body"><div class="tile-label">AI assistant</div><div class="tile-meta">Phase 4 · OFF</div></div></div>
-            <div class="tile"><div class="tile-icon">📲</div><div class="tile-body"><div class="tile-label">PWA install prompt</div><div class="tile-meta">ON</div></div></div>
-            <div class="tile"><div class="tile-icon">⌨️</div><div class="tile-body"><div class="tile-label">Keyboard shortcuts</div><div class="tile-meta">Desktop only · ON</div></div></div>
-          </div>
-        </div>
-
-        <div class="ph-card spacious">
-          <div class="card-head">
-            <div class="title-block"><div class="card-icon">ℹ️</div><h3>About</h3></div>
-          </div>
-          <div style="font-size:0.85rem;color:var(--text-dim);line-height:1.7">
-            HealthTracker v0.0 · local-first React SPA · MD3 design language<br>
-            See <code class="k">DESIGN-REQUIREMENTS.md</code> · <code class="k">framework.md</code> · <code class="k">reference/ht-core-rules.yaml</code>
-          </div>
-        </div>
-
-      </div>
-    </div>
-  </div>
-
-  <h3 id="mobile"><span class="subid">3.8</span> Mobile shell — bottom nav</h3>
-  <div class="wireframe" style="max-width:420px;margin-left:auto;margin-right:auto">
-    <div class="wireframe-title">Wireframe — MobileShell · 0–599 px breakpoint · bottom navigation (5 destinations)</div>
-    <div style="background:var(--bg);border:1px solid var(--border);border-radius:24px;overflow:hidden;min-height:540px;display:flex;flex-direction:column">
-      <div style="background:var(--surface);padding:14px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between">
-        <div style="font-size:1rem;font-weight:700;color:var(--text)">Dashboard</div>
-        <div style="display:flex;gap:8px">
-          <span style="width:32px;height:32px;background:var(--surface-2);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:0.9rem">🔔</span>
-          <span style="width:32px;height:32px;background:var(--surface-2);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:0.9rem">⚙️</span>
-        </div>
-      </div>
-      <div style="flex:1;padding:14px;display:flex;flex-direction:column;gap:10px;overflow:hidden">
-        <div style="background:var(--surface);border-radius:12px;padding:10px;display:flex;align-items:center;gap:10px"><div style="width:34px;height:34px;background:linear-gradient(135deg,var(--teal),var(--teal-dim));border-radius:10px;color:white;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:0.8rem">AH</div><div style="flex:1;min-width:0"><div style="font-size:0.85rem;font-weight:700;color:var(--text)">Asif</div><div style="font-size:0.65rem;color:var(--text-dim)">182.4 lb · ▼ 0.6 wk</div></div></div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px"><div class="sum-tile" style="padding:8px"><div class="label">Cal</div><div class="value" style="font-size:0.85rem">320 / 2000</div></div><div class="sum-tile" style="padding:8px"><div class="label">Cannabis</div><div class="value" style="font-size:0.85rem">15 / 73 mg</div></div></div>
-        <div class="acc-bar" style="padding:4px">
-          <div class="acc-row" style="padding:8px 10px"><div class="acc-title"><div class="acc-icon" style="width:26px;height:26px">🕌</div><div class="acc-name" style="font-size:0.85rem">Prayers</div></div><span style="font-size:0.65rem;color:var(--text-dim)">2/5</span></div>
-          <div class="acc-row expanded" style="padding:8px 10px"><div class="acc-title"><div class="acc-icon" style="width:26px;height:26px">🍽️</div><div class="acc-name" style="font-size:0.85rem">Food</div></div><span style="font-size:0.65rem;color:var(--yellow)">FASTING</span></div>
-          <div class="acc-row" style="padding:8px 10px"><div class="acc-title"><div class="acc-icon" style="width:26px;height:26px">🌿</div><div class="acc-name" style="font-size:0.85rem">Cannabis</div></div><span style="font-size:0.65rem;color:var(--text-dim)">15 mg</span></div>
-        </div>
-      </div>
-      <div style="background:var(--surface);border-top:1px solid var(--border);padding:8px;display:grid;grid-template-columns:repeat(5,1fr);gap:4px">
-        <div style="text-align:center;padding:6px;color:var(--teal)"><div style="font-size:1.1rem">🏠</div><div style="font-size:0.6rem;font-weight:600">Dashboard</div></div>
-        <div style="text-align:center;padding:6px;color:var(--text-dim)"><div style="font-size:1.1rem">🍽️</div><div style="font-size:0.6rem">Food</div></div>
-        <div style="text-align:center;padding:6px;color:var(--text-dim)"><div style="font-size:1.1rem">🥊</div><div style="font-size:0.6rem">Workouts</div></div>
-        <div style="text-align:center;padding:6px;color:var(--text-dim)"><div style="font-size:1.1rem">🌿</div><div style="font-size:0.6rem">Cannabis</div></div>
-        <div style="text-align:center;padding:6px;color:var(--text-dim)"><div style="font-size:1.1rem">⋯</div><div style="font-size:0.6rem">More</div></div>
-      </div>
-    </div>
-  </div>
-</section>
-
-</section>
-
-</div>
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script>
 </body>
 </html>
