@@ -11,9 +11,9 @@ This document is the single source of truth for what HealthTracker is, how it lo
 
 A personal-first health dashboard that consolidates daily routine: prayers, intermittent fasting, planner-only meals, post-meal walks, structured workouts, strict cannabis tapering, work-location logging, and discouraged sweet-tooth tracking. Today is a checklist, the past is read-only history, the future is unmade. Built as a compact, polished, production-quality Material Design 3 SPA — local-first today, multi-user Supabase tomorrow.
 
-## 2 · Locked Decisions (DoR — 2026-05-03)
+## 2 · Locked Decisions (DoR — 2026-05-03 / 2026-05-04)
 
-These were confirmed via interactive Q&A and are inputs to every architect commit going forward. Stored in [_workspace/scratch/observed-debt.md](_workspace/scratch/observed-debt.md) under the `[LOCKED]` entry.
+These were confirmed via interactive Q&A and are inputs to every architect commit going forward. Stored in [_workspace/scratch/observed-debt.md](_workspace/scratch/observed-debt.md) under the `[LOCKED]` entries.
 
 | # | Topic | Decision |
 |---|---|---|
@@ -29,6 +29,17 @@ These were confirmed via interactive Q&A and are inputs to every architect commi
 | 10 | Sleep schedule | **Bedtime 8:00 pm, wake 4:30 am** — drives prayer reminders, cannabis last-call, IF window |
 | 11 | Beachbody seed | **LIIFT4** (weights), **Core de Force** (kickboxing), **21 Day Fix** (onramp); fitnessLevel default = `very-poor` |
 | 12 | Plate-weight scaling | **Removed** entirely from scope (commit `4629266`) |
+| 13 | Migration topology (2026-05-04) | **Single forward migration `v_legacy → v3`** in P0 B10; v1/v2 collapsed (Q1) |
+| 14 | Primary color (2026-05-04) | **Blue** `oklch(55% 0.15 262)`; teal mockup divergence is documentation only (Q2a) |
+| 15 | Shell gradients (2026-05-04) | **Rejected**; flat `--surface` / `--surface-variant`; glass restricted to modal backdrop + banner (Q2b) |
+| 16 | Route inventory (2026-05-04) | 7 canonical routes + every library mounted as a sub-route of its parent (Q3) |
+| 17 | Sub-phase ordering (2026-05-04) | Capability-spine: A (storage) → B (primitives) → C (shell+routing) → D (profile + library editors) → E (Today panels) → F (dayClose + history + evals + PWA) (Q4) |
+| 18 | CLAUDE.md target (2026-05-04) | **≤100 lines**; only deterministic must-do migrates to hooks (Q5) |
+| 19 | Pre-push gate (2026-05-04) | `npm run preflight` (typecheck + vitest + lint + jest-axe + bundle-budget); `/audit` agent run remains manual at STOPs (Q6) |
+| 20 | Migration fixtures (2026-05-04) | Two synthetic fixtures: v0 baseline + post-`4629266` v1 state; both forward to v3 (Q7) |
+| 21 | Sweet Tooth scope (2026-05-04) | Independent panel + slice + Profile sub-route; never embedded in Food (Q8) |
+| 22 | PWA topology (2026-05-04) | Dropped from P0; lands once in P1.F (final sub-phase) (Q10) |
+| 23 | Performance budget (2026-05-04) | LCP < **1.8 s** on 4G; initial JS ≤ **180 KB gz**; lazy-load charts (Q11) |
 
 ## 3 · Material Design 3 Design Language
 
@@ -198,14 +209,12 @@ All: `padding: 0.75rem 1.5rem`, `border-radius: var(--radius-small)`, `font-weig
 3. **Glass scope creep** — comment `⚠️ Glass restricted to backdrop + banner only` in `tokens.css`.
 4. **Icon library lock-in** — Material Symbols only; ban FontAwesome / Lucide imports in lint config.
 
-### Deferred design decisions (open — 2026-05-03)
+### Resolved design decisions (DoR convergence — 2026-05-04)
 
-A polished React mockup was reviewed on 2026-05-03; eight strengths were adopted into canon (see § 3.6, § 6.1, § 6.4, § 7, § 11.5). Two divergences from this canon are **deferred** pending explicit user decision and **must not** be applied to tokens or shell until resolved:
+Two divergences from canon (open as of 2026-05-03) are now resolved and locked. Mockup screenshots that disagree are review affordances only, not canon:
 
-1. **Primary color: teal vs. blue.** The mockup uses `#14b8a6` (teal) end-to-end as primary. Canon currently locks `--primary: oklch(55% 0.15 262)` (blue, ~`#1E88E5`). Switching primary touches every interactive surface; defer until the user chooses. Until then: keep blue, render mockup screenshots with the documented divergence.
-2. **Decorative background gradients.** The mockup paints subtle radial gradients (teal / orange / green at 5–12 % alpha) behind the app shell. Canon today is flat `--surface` / `--surface-variant`. This conflicts with § 3.5's "subtle backgrounds, high-contrast foreground text" rule and the no-glass-on-shell discipline. Defer.
-
-Both must be resolved (yes / no with rationale) before P1 token migration lands.
+1. **Primary color = blue** (`oklch(55% 0.15 262)` ≈ `#1E88E5`). Rationale: 18-theme survey ranked Material-Admin/Unify blue palette best for data dashboards; calorie-ring "primary" reads as data-progress, not action; teal mockup divergence is documentation, not source-of-truth. The mockup's teal stays out of the token set.
+2. **Decorative background gradients = rejected.** App shell uses flat `--surface` / `--surface-variant`. Rationale: honors § 3.5 "subtle backgrounds, high-contrast foreground text" + no-glass-on-shell discipline; ring + libTag + soft elevation already give the dashboard texture; flat surfaces win on LCP and contrast. Glass treatment remains restricted to modal backdrop and the always-on profile banner only (§ 3.5).
 
 ## 3.6 · Panel header convention (libTag)
 
@@ -252,15 +261,25 @@ Cards adapt to their container, not the viewport. A dashboard tile in a 2-column
 
 ## 5 · Application Sections
 
+Per locked decision #16, every library declared in § 11.5.6 has a deep-linkable sub-route under its parent. Single `<LibraryView>` instance per library; URL → library name is a 1:1 mapping.
+
 | Route | Section | Notes |
 |---|---|---|
 | `/` | **Dashboard** | Today's checklist + summary tiles. Replaces the legacy "Today" view. |
-| `/food` | **Food** | Meal library + weekly planner + intermittent fasting state |
-| `/workouts` | **Workouts** | Library (Beachbody + custom routines) + Today's session + Strength gains |
-| `/cannabis` | **Cannabis** | Sessions log + taper status + plan |
-| `/cannabis/inventory` | **Cannabis Inventory** | Products, devices, restocking |
-| `/profile` | **Profile** | Personal, body metrics, sleep, fasting, prayer settings, work locations, plan settings |
-| `/settings` | **Settings** | App preferences, theme, notifications, data export, feature flags |
+| `/food` | **Food** | Today's meals + IF state; weekly planner |
+| `/food/library` | **Meals Library** | `<LibraryView<MealInventoryItem>>` |
+| `/workouts` | **Workouts** | Today's session + Strength Gains placeholder |
+| `/workouts/programs` | **Workout Programs** | `<LibraryView<WorkoutProgram>>` (Beachbody + manual) |
+| `/workouts/routines` | **Workout Routines** | `<LibraryView<WorkoutRoutine>>` (custom) |
+| `/workouts/exercises` | **Exercises** | `<LibraryView<Exercise>>` |
+| `/cannabis` | **Cannabis** | Sessions log + taper status + daily plan |
+| `/cannabis/products` | **Cannabis Products** | `<LibraryView<CannabisProduct>>` |
+| `/cannabis/devices` | **Cannabis Devices** | `<LibraryView<CannabisDevice>>` |
+| `/profile` | **Profile** | Personal, body metrics, sleep, IF, prayer settings, plan settings |
+| `/profile/work-locations` | **Work Locations** | `<LibraryView<WorkLocation>>` |
+| `/profile/fasting-safe` | **Fasting-safe Items** | `<LibraryView<FastingSafeItem>>` |
+| `/profile/sweet-tooth` | **Sweet Tooth Items** | `<LibraryView<SweetToothItem>>` |
+| `/settings` | **Settings** | Theme, notifications, data export, feature flags |
 
 History is reachable from the date-strip of every routine view (week navigation goes to History when crossing the ±1 calendar-week boundary).
 
@@ -422,14 +441,18 @@ Panels without a recommendation engine (Prayers, Working from, Notes) do **not**
 
 ## 10 · Performance Budget
 
+Locked per decision #23 (2026-05-04):
+
 - **Initial JS** ≤ 180 KB gzip (route-split everything beyond the shell).
+- **LCP** < 1.8 s on 4G; **CLS** ≤ 0.05; **INP** ≤ 200 ms.
 - **Lazy-load** charts (recharts is ~100 KB; load only on routes that render charts).
 - **Responsive images** with `srcset` + `loading="lazy"`.
 - **Icon strategy**: tree-shake Material Symbols variable font, ship only used glyphs (~10 KB).
-- **Virtualize** lists > 50 rows (history log, inventory).
+- **Virtualize** lists > 50 rows (history log, library views).
 - **Debounce** search inputs at 200 ms.
 - **Cache** API responses (Phase 2) with stale-while-revalidate.
-- **CLS** ≤ 0.05; **LCP** ≤ 2.0 s on 4G; **INP** ≤ 200 ms.
+
+Enforced by `npm run preflight` bundle-budget check (decision #19) gating every push.
 
 ## 11 · Architecture
 
@@ -649,7 +672,7 @@ In `.claude/commands/<name>.md`. Each command is a thin wrapper that loads the r
 
 | Phase | Name | Headline |
 |---|---|---|
-| **P0** | Refactor + Scaffolding *(in flight)* | Store split, primitives, repository layer, audit fields, schemaVersion, PWA shell |
+| **P0** | Refactor + Scaffolding *(in flight)* | Store split, calculators/selectors, repository layer, single `v_legacy → v3` migration with audit fields + `schemaVersion: 3`, `npm run preflight` script. PWA dropped (lands in P1.F per decision #22). |
 | **P1** | MD3 SPA Shell + Daily Routine | App shell w/ adaptive nav; Dashboard w/ accordion model; Food / Workouts / Cannabis / Profile / Settings routes; design tokens migrated to MD3; primitives library |
 | **P1.5** | Storybook + History UX | Component documentation; History view (read-only past); Notes feature |
 | **P2** | Backend + Multi-User | Supabase, Google SSO, RLS, Realtime on TODOs, Web Push, .ics export, PWA offline sync |
@@ -658,18 +681,16 @@ In `.claude/commands/<name>.md`. Each command is a thin wrapper that loads the r
 | **P5** | shared-services Repo | Spin out `~/PROJECTS/shared-services/prayer-times` (consumed by HT and journal); evaluate other extracted services |
 
 ### P0 close-out checklist (the active work)
-See [_workspace/handoffs/phase-0-refactor-handoff.md](_workspace/handoffs/phase-0-refactor-handoff.md). Open commits: B4 → B14, then C1 → C3+. Architect must land **B10.5 + B13.5** (data-model expansion per `observed-debt.md` items 6–7g) **before** executor work continues on B-track.
+See [_workspace/handoffs/phase-0-refactor-handoff.md](_workspace/handoffs/phase-0-refactor-handoff.md). Per decision #13, **B10 lands a single `v_legacy → v3` migration** (no separate B10.5/B13.5; v1/v2 collapsed). PWA dropped from P0 (decision #22).
 
-### P1 work breakdown (preview)
-1. Migrate design tokens in `app/src/styles/tokens.css` to MD3 names.
-2. Build app shell with responsive nav (`AppShell.jsx`, `BottomNav.jsx`, `NavRail.jsx`, `SideDrawer.jsx`).
-3. Primitives: `Card`, `Tile`, `Chip`, `Button` (filled/tonal/outlined/text/icon), `Switch`, `Slider`, `Drawer`, `BottomSheet`, `Snackbar`, `Skeleton`, `EmptyState`, `Alert`, `Tabs`.
-4. Dashboard route with summary tiles + accordion model.
-5. Food / Workouts / Cannabis / Cannabis Inventory / Profile / Settings routes.
-6. Lazy-load + skeleton loaders + optimistic updates wired throughout.
-7. Material Symbols sprite (~40 glyphs only).
-8. A11y audit pass on every component.
-9. ui-reviewer signs off via `/md3-review`.
+### P1 work breakdown (canonical, capability-spine ordering — decision #17)
+- **P1.A — Storage & repository layer.** `StorageAdapter`, `LibraryRepo<T>`, `AuditFields` decorator, user-scoped selectors. No UI.
+- **P1.B — Theme tokens + MD3 primitives.** Tokens.css from § 3.5; primitives: Card, Chip, Button (5 variants), IconButton, Switch, Checkbox, Radio, Slider, ProgressRing, ProgressBar, TextField, BottomSheet, Modal, Snackbar, Toast, Avatar, Badge, NavRail, TopAppBar, FAB, Skeleton, EmptyState, Alert, Tabs, Lists with leading/trailing slots, Date/time pickers.
+- **P1.C — App shell + routing + Profile/Settings shells.** Adaptive nav (BottomNav / NavRail / SideDrawer); 7 canonical routes mounted; `/profile` and `/settings` shells empty but routable; `<DateSelector>` honors ±1-week boundary.
+- **P1.D — Profile editor + library editors.** Profile editor (every `ProfileFields` field); 7 `<LibraryView<T>>` sub-routes (`/food/library`, `/workouts/{programs,routines,exercises}`, `/cannabis/{products,devices}`, `/profile/{work-locations,fasting-safe,sweet-tooth}`); Beachbody seed for workout programs.
+- **P1.E — Today panels.** Profile banner (calorie ring) → Spirituality → Workout → Cannabis → Food → Sweet Tooth (independent, decision #21) → Working from. Single-open accordion invariant tested.
+- **P1.F — DayClose + History + continuous evals + PWA.** Dynamic snapshot (freezes every slice the store currently exposes); `<HistoryView>` reuses Today components read-only outside ±1 week; ANT-091 eval suite wired into CI; PWA shell + manifest land here once.
+- ui-reviewer signs off via `/md3-review` at every STOP.
 
 ## 17 · Definition of Done (per phase)
 
