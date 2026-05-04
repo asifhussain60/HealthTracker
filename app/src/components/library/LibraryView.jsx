@@ -87,7 +87,8 @@ export function LibraryView({ schema, store: storeProp }) {
   }
 
   if (selectedCategory) {
-    items = items.filter((r) => r.category === selectedCategory);
+    const catField = schema.categoryField ?? 'category';
+    items = items.filter((r) => r[catField] === selectedCategory);
   }
 
   if (favoritesOnly) {

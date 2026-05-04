@@ -30,6 +30,7 @@ export const exercisesSchema = defineLibrarySchema({
     { key: 'favoriteStars', label: 'Stars', type: 'stars' },
   ],
   categories: ['chest', 'back', 'shoulders', 'arms', 'core', 'legs', 'glutes', 'full-body'],
+  categoryField: 'muscleGroup',
   sortOptions: [
     { key: 'name', label: 'Name', direction: 'asc' },
     { key: 'muscleGroup', label: 'Muscle Group', direction: 'asc' },

@@ -87,6 +87,7 @@ function deepFreeze(obj) {
  * @param {string} config.sliceKey     - Zustand state key for the items array.
  * @param {Array}  config.fields       - Array of field descriptors.
  * @param {string[]} [config.categories]   - Optional category list for filtering.
+ * @param {string} [config.categoryField]  - Item field to filter by (default: 'category').
  * @param {Object[]} [config.sortOptions]  - Optional sort option descriptors.
  * @param {string|null} [config.importFormat] - 'csv' | 'json' | null.
  * @returns {Readonly<Object>} A frozen LibrarySchema descriptor.
@@ -117,6 +118,7 @@ export function defineLibrarySchema(config) {
     sliceKey: config.sliceKey,
     fields: config.fields,
     categories: config.categories ?? [],
+    categoryField: config.categoryField ?? 'category',
     sortOptions: config.sortOptions ?? [],
     importFormat: config.importFormat ?? null,
   };

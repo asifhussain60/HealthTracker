@@ -32,6 +32,7 @@ export const workoutRoutinesSchema = defineLibrarySchema({
     { key: 'favoriteStars', label: 'Stars', type: 'stars' },
   ],
   categories: ['strength', 'cardio', 'flexibility', 'hiit', 'yoga', 'core'],
+  categoryField: 'type',
   sortOptions: [
     { key: 'name', label: 'Name', direction: 'asc' },
     { key: 'durationMinutes', label: 'Duration', direction: 'asc' },

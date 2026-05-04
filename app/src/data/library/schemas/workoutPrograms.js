@@ -25,6 +25,7 @@ export const workoutProgramsSchema = defineLibrarySchema({
     { key: 'favoriteStars', label: 'Stars', type: 'stars' },
   ],
   categories: ['beginner', 'intermediate', 'advanced'],
+  categoryField: 'level',
   sortOptions: [
     { key: 'name', label: 'Name', direction: 'asc' },
     { key: 'favoriteStars', label: 'Stars', direction: 'desc' },
