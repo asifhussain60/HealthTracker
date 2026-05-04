@@ -8,9 +8,8 @@
  * Delegates to:
  *   - cannabis.js selectCannabisSessionsByDate
  *   - macroMath.consumedMacrosForSlot
- * B10 debt: profile.dailyCalorieTarget defaults to 2000 until B10 sets it.
- * B10 debt: weightHistory records lack userId; selectTodayWeightEntry filters
- *   by userId gracefully — records without userId field are excluded.
+ * profile.dailyCalorieTarget defaults to 2000 when not set.
+ * weightHistory records without userId are excluded by the userId filter.
  */
 
 import { consumedMacrosForSlot } from '../calculators/macroMath.js';
@@ -22,8 +21,7 @@ import { selectWeeklyPlan } from './meals.js';
 /**
  * Return the most recent WeightEntry for the user on or before the given date.
  * HT-CORE-010: filters by userId.
- * Debt: current weightHistory records in seed.js lack userId field. This
- *   selector requires records to have userId; seed will be updated at B10.
+ * Requires records to have userId; seed records without userId are excluded.
  *
  * @param {Object} state
  * @param {string} userId
@@ -44,8 +42,7 @@ export function selectTodayWeightEntry(state, userId, date) {
 /**
  * Return WorkoutLog[] for the user on the given date.
  * HT-CORE-010: filters by userId.
- * Debt: current workoutLogs records in slices lack userId field. Will be
- *   populated at B10.
+ * Records without userId are excluded (records must have userId field).
  *
  * @param {Object} state
  * @param {string} userId
@@ -84,7 +81,7 @@ export function selectTodayCannabisSessions(state, userId, date) {
  * remaining: max(0, target − eaten).
  *
  * HT-CORE-010: reads only userId's mealPlan (via selectWeeklyPlan).
- * Debt: profile.dailyCalorieTarget defaults to 2000 — B10 fix-up required.
+ * profile.dailyCalorieTarget defaults to 2000 when not set.
  *
  * @param {Object} state
  * @param {string} userId

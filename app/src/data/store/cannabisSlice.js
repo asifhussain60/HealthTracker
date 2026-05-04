@@ -3,11 +3,7 @@
  *
  * Owns: cannabisLogs, inventory (products / devices)
  *
- * B10 note: Shape is kept at current v_legacy form.
- * The v_legacy → v3 migration (B10) will expand to products / devices / sessions
- * per the Unified Library Pattern. For now, keep current shape exactly.
- *
- * B5: getDailyCannabisPlan delegates pure logic to cannabisPlanner.planDay.
+ * getDailyCannabisPlan delegates pure logic to cannabisPlanner.planDay.
  */
 
 import { format } from 'date-fns';

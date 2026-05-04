@@ -6,7 +6,7 @@
  * HT-CORE-008: no Date.now() / new Date() — callers inject date/now.
  *
  * Memoization: single-input memo with reference-equality check (no reselect dependency).
- * B8 fix-up: callers will pass useCurrentUser().id as userId.
+ * Callers pass CURRENT_USER_ID as userId (solo-user scope).
  */
 
 import { dailyThcTotal, thcCeilingStatus } from '../calculators/thcMath.js';
@@ -75,7 +75,7 @@ export const selectCannabisProducts = makeMemo((state, userId) =>
 /**
  * Return active CannabisDevice[] for the given user.
  * HT-CORE-010: filters by userId.
- * Debt: cannabisDevices slice key lands at B10. Gracefully returns [] if absent.
+ * Gracefully returns [] if cannabisDevices slice key is absent.
  *
  * @param {Object} state
  * @param {string} userId
@@ -127,7 +127,7 @@ export function selectDailyThcMg(state, userId, date) {
  * Delegates to thcMath.thcCeilingStatus.
  * HT-CORE-010: uses userId-filtered sessions.
  *
- * Defaults: dailyThcMgCeiling = 50 when not set in profile (B10 fix-up).
+ * Defaults: dailyThcMgCeiling = 50 when not set in profile.
  *
  * @param {Object} state
  * @param {string} userId

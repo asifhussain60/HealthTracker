@@ -8,12 +8,10 @@
  *   - soft-delete pattern (deletedAt) instead of hard deletes
  *   - sync-by-signature: every method returns a value directly, never a Promise
  *
- * Debt note (filed 2026-05-04):
- *   mealSlice has no updateMealTemplate action — only saveMealTemplate (append)
- *   and deleteMealTemplate (hard delete). The repo fills the gap for updateMealTemplate
- *   and soft-delete by calling useStore.setState() directly. When B10 lands the
- *   Unified Library Pattern, slice actions should be added.
- *   See _workspace/scratch/observed-debt.md entry B9-DEBT-002.
+ * Debt (B9-DEBT-002, filed 2026-05-04):
+ *   mealSlice exposes only saveMealTemplate (append) and deleteMealTemplate (hard delete).
+ *   updateMealTemplate and soft-delete are implemented here via useStore.setState()
+ *   directly. See _workspace/scratch/observed-debt.md entry B9-DEBT-002.
  *
  * Architecture rule 5 invariant: NO async, NO await, NO Promise.resolve, NO .then.
  */
