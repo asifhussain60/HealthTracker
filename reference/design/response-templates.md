@@ -83,7 +83,7 @@ For major work (new phase commits, plan reviews), responses may begin with:
 ```markdown
 # 🩺 HealthTracker — {mode}
 
-🧭 Routing: {intent} → {handler.agent.md}
+🧭 Routing: {intent} → {handler}
 ```
 
 This is informational. The end-state contract is required; the header is not.

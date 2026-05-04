@@ -1,135 +1,107 @@
-# HealthTracker — Feature Roadmap
+# HealthTracker — Feature Roadmap (product framing)
 
-**Status:** active · **Owner:** architect · **Last updated:** 2026-05-03
+**Status:** active · **Owner:** architect · **Last updated:** 2026-05-04 (reconciled with program-roadmap.md; superseded the legacy 4-phase scheme).
 
-This is the high-level roadmap. Phase plans live in `_workspace/ideas/` and are the canonical execution authority.
+> **This document is the product framing of the roadmap.** The canonical execution authority — universal phase shape, 7-commit close-out recipe, refactor + cleanup cadence, full commit maps — is `_workspace/plan/program-roadmap.md`. When the two disagree, `program-roadmap.md` wins. This file's job is to communicate *user-facing themes* and *gating user value* per phase; not to enumerate commits.
 
-## Phases at a glance
+The legacy 4-phase scheme (P0..P4 with P1 = "Cannabis Redesign + Meals") was retired 2026-05-03 and replaced by the 6-phase scheme below.
 
-| Phase | Name | Scope | Gate to next |
-|---|---|---|---|
-| 0 | Refactor + Scaffolding | Governance scaffold, store split, primitives extraction, repository layer, audit fields, schemaVersion, PWA shell | All Phase-0 commits done; auditor reports zero P0/P1 |
-| 1 | Cannabis Redesign + Meals | Rename to Cannabis; favorites; add-product; THC ring on Today; device chips; Meals view; weekly plan; CSV import | User-verified UI parity + new flows; sweep catalogue closed |
-| 2 | Backend + Multi-User | Supabase; Google SSO; per-user data; TODO assignment; PWA realtime on todos; Web Push + email digest; .ics export; encrypted-at-rest | Production sign-off via /audit; security review pass |
-| 3 | TODO Logger UX | Full UX design + implementation for TODOs view, Today TODOs card, History integration | User-verified UX parity; coverage maintained |
-| 4 | Polish | A11y polish, AI assistant flag-on, HealthKit (if native shell), calendar two-way (if needed) | Continuous; no hard close |
+---
 
-## Phase 0 — Refactor + Scaffolding (current)
+## 6-phase roadmap
 
-Deliverables:
-- Governance scaffold (this work — Sub-phase A)
-- Code refactor under `app/` (Sub-phase B): store split, calculators, selectors, adapter, auth, repos, audit fields, schemaVersion, migrations, feature flags, adapter stubs, PWA shell
-- Component decomposition (Sub-phase C): primitives, card extraction, view-registry, TODOs scaffolding
-- Phase 0 close-out (Sub-phase D)
+| Phase | Theme (user-facing) | Gate to next |
+|---|---|---|
+| **P0** | Refactor + scaffolding (no user-visible change) | Auditor + challenger PASS; sweep catalogue empty; tag `phase-0-complete` |
+| **P1** | SPA build — local-first, planner-first | All 16 routes work; `/plan` is canonical entry; report-dimension matrix delivered; Lighthouse ≥ 90; tag `phase-1-complete` |
+| **P2** | Backend swap — Supabase + Google SSO + multi-user | Zero data loss across LS→Supabase migration; multi-user works; RLS prevents cross-user reads; offline edits sync deterministically; tag `phase-2-complete` |
+| **P3** | TODOs + assignment + collaboration | Todo lifecycle works for self-assigned and delegated; notifications deliver; delegation history append-only; tag `phase-3-complete` |
+| **P4** | Shared services + LLM | Prayer-times live; HealthData adapters auto-import; Assistant produces daily summaries; degradation tested; tag `phase-4-complete` |
+| **P5** | Production hardening + analytics | Zero `[OPEN]` debt; security review passed; full export/import works; `program-v1` tag pushed; post-mortem written |
 
-Definition of Done:
-- All commits in `_workspace/ideas/healthtracker-execution-plan.md` are `done` or `wont_fix`
-- `/audit` reports zero P0/P1 findings
-- App still passes a smoke test (Today renders, Cannabis renders, History renders, Profile renders)
-- No behavior change end-user-visible
+Each phase ends with a mandatory close-out sub-phase (7 commits) per `program-roadmap.md` § 1. Build sub-phase completion alone does **not** close a phase.
 
-## Phase 1 — Cannabis Redesign + Meal Planner + Intermittent Fasting + Post-meal Walks
+---
 
-Cannabis:
-- Rename "Inventory" → "Cannabis" in sidebar
-- Redesigned product cards in `v2-card` style: form badge, THC%, est mg per dose, remaining ring, favorites stars, effect chips, risk badge, device chip
-- "+ Add Product" with full schema form
-- Default sort: favorites desc, then remaining desc
-- Today gets a second cannabis ring: THC mg today / ceiling
+## Phase 0 — Refactor + scaffolding (active)
 
-Devices (light touch):
-- Two seeded devices (Vessel Element, Session Goods Bong)
-- Recommended-device computed by product `form`; rendered as small chip on product cards
+Lift the legacy SPA onto the architecture-of-record (slices, calculators, selectors, repositories, audit fields, schemaVersion) without changing any user-facing behavior.
 
-Meals (planner-only — no daily nutrition tracking):
-- New `Meals` sidebar entry between Today and History
-- Two tabs: **Inventory**, **Weekly Plan**
-- Inventory: meal cards with category badge, favorites, MyNetDiary deep-link, ingredients/prep, reference macros (informational), "+ Add Meal", CSV/JSON import drop-zone for MyNetDiary export. Includes a `'shake'` category for protein shakes.
-- Weekly Plan: **7×4 grid** (Mon–Sun × Breakfast/Lunch/Dinner/Snack) with a flex `shakes[]` row per day. Auto-generator: variety + favorites + category constraint; no repeats within 3 days; favorites weighted; "Regenerate" + per-day "Lock". On-demand **"Build shopping list"** button aggregates ingredients across the week scaled by category plate weight.
-- Each slot is **check-off-able** (mark eaten; capture `totalWeightWithPlate`) AND **drag-and-droppable** across days.
-- MyNetDiary is the system of record for nutrition. HT stores reference macros per recipe (from MyNetDiary) + plate weights (from profile) and computes scaled macros at consumption time as a gut-check only.
+**Build sub-phases (active):**
+- Sub-phase A — Governance scaffold (✅ shipped 2026-05-03)
+- Sub-phase B — Code refactor (in progress; B1–B5 ✅ as of 2026-05-04)
+- Sub-phase C — Component decomposition
 
-Intermittent Fasting (Phase 1):
-- Profile: `fastingProtocol.enabled` (default true), `windowStart` 14:00, `windowEnd` 18:00.
-- Today gets a **Fasting card** showing live state ("FASTING" / "FEEDING"), window timer, hours since last meal, countdown to fast-break.
-- Soft warning on Today when a meal is check-offed outside the feeding window. Data is recorded normally; window adherence shown as a metric.
+**Close-out sub-phase D** — 7-commit close-out per `program-roadmap.md` § 1.
 
-Post-meal walks (Phase 1):
-- `WorkoutLog.type` extends to include `'post-meal-walk'`; `precedingMealSlotId` links to the slot whose check-off triggered it.
-- On meal check-off: passive "🚶 Walk recommended in 5 min" badge appears on Today's walks card. No PWA push (Phase 2).
-- Today shows walks-today / meals-today count; default target 10 minutes, configurable in Profile.
+**User-visible deliverable:** none (architecture-only).
 
-Today view composition (post-Phase-1):
-- Cannabis sessions ring + THC mg ring
-- Workout / steps card
-- Weight card
-- **Planned-meals card** (4 slots + shakes row) with check-off and macro totals (collapsible)
-- **Fasting card** (live state + timer)
-- **Walks card** (post-meal walk reminders + count)
-- TODOs card (placeholder Phase 0; UX in Phase 3)
+---
 
-Definition of Done:
-- All Phase 1 commits done
-- /audit clean
-- User verifies redesigned cannabis flow, weekly plan generator + check-off + plate-weight scaling, fasting card, post-meal walk flow hands-on
+## Phase 1 — SPA build (local-first, planner-first)
 
-## Phase 2 — Backend + Multi-User
+Ship the full HealthTracker SPA on localStorage with planner-first framing, library editors for nine domains, day-close with versioned snapshots, and a PWA shell.
 
-Backend:
-- Supabase project: Postgres + Auth (Google) + RLS + Realtime + Storage
-- Schema mirrors `data-model.md`
-- pgcrypto on sensitive columns
+**Build sub-phases:** A (generic library layer) · B (MD3 primitives) · C (app shell + 16 routes) · D (profile + 9 library editors + planner) · E (Today panels) · F (DayClose + history + PWA + evals).
 
-Sync:
-- Local-first with background sync; last-write-wins per-field
-- Realtime channel on `todos` table only
+**Close-out sub-phase G** — 7-commit close-out, specialized to strip food-stub views (B4 transitional code), delete `store.legacy.js`, axe-core sweep, perf re-baseline against the LCP/INP/CLS/bundle budget (decision #23).
 
-Auth:
-- Google SSO; AuthContext hydrates from Supabase session
-- 3 roles: owner / member / viewer
-- TODO ACLs: creator + assignee can edit
+**User-visible deliverable:** the planner-first SPA — installable PWA, 16 routes, full Today + History + Settings + 9 library editors + `/plan` route.
 
-Notifications:
-- Web Push (opt-in) for assigned TODOs
-- Email digest (opt-in)
+---
 
-Calendar:
-- One-way `.ics` feed URL per user
+## Phase 2 — Backend swap (Supabase + auth + multi-user)
 
-Definition of Done:
-- /audit fix passes; no P0/P1
-- Security review (manual + automated): no plaintext secrets, RLS verified, encrypted columns confirmed
-- PWA install + offline + sync verified on macOS Safari, macOS Chrome, Windows Chrome, Windows Edge
+Swap localStorage for Supabase behind the existing `StorageAdapter` interface; add Google SSO; enable multi-user with assignment scaffolding for Phase 3 todos.
 
-## Phase 3 — TODO Logger UX
+**Build sub-phases:** A (Postgres schema + RLS + pgcrypto) · B (Auth + repository swap behind feature flag, dual-write canary) · C (RLS + multi-user UX + assignment scaffolding) · D (offline sync via PWA service worker upgrade).
 
-UX (you'll design this with me when ready):
-- TODOs view (Inbox / Today / Upcoming / Done)
-- Today's "TODOs Today" card (overdue + due today + 3 priority)
-- History "TODOs" section with completion-rate chart
-- Quick-add from `QuickAddModal`
-- Snooze: tomorrow / next week / pick date
-- Recurrence templates that materialize per-day
-- Assignment UI (uses Phase 2 capability)
+**User-visible deliverable:** sign-in with Google, two devices stay in sync, offline edits reconcile on reconnect.
 
-Definition of Done:
-- /audit clean
-- User verifies UX flows hands-on
+---
 
-## Phase 4 — Polish
+## Phase 3 — TODOs + assignment + collaboration
 
-Continuous:
-- A11y polish (focus traps, ARIA, color-blind safe)
-- AI assistant flag-on (natural-language quick-add via Claude API; macro inference)
-- HealthKit if/when a native shell is added (deferred indefinitely)
-- Calendar two-way (if assigned tasks need bidirectional Google Calendar sync)
+Activate the Todo schema scaffolded in Phase 0; add assignment UX, notifications, and a delegation-history view.
 
-No hard close — Phase 4 is the steady-state improvement lane.
+**Build sub-phases:** A (todo schema activation + lifecycle) · B (assignment UX) · C (notifications + delegation history).
 
-## Out of scope (for at least the next 12 months)
+**User-visible deliverable:** todo list works for self-assigned and delegated todos, with web-push notifications and a per-todo delegation timeline.
 
-- React Native / Capacitor native app
-- Family / household account model (use individual accounts + assignments instead)
-- Wearables direct integration without a native shell
-- Multi-region deployment
-- Full HIPAA compliance (we're medical-adjacent, not under BAA)
+---
+
+## Phase 4 — Shared services + LLM
+
+Integrate real prayer-times (replaces P1 stub), HealthData adapters (Apple Health / Google Fit), and the Assistant adapter (LLM coaching, daily summaries, behavior correlations).
+
+**Build sub-phases:** A (prayer-times real service) · B (HealthData adapters) · C (Assistant adapter on Claude API with prompt caching).
+
+**User-visible deliverable:** prayer-times accurate to user's location; weight/steps/sleep auto-imported from device platform; daily LLM-generated summary card on the dashboard.
+
+---
+
+## Phase 5 — Production hardening + analytics
+
+Make HealthTracker production-ready: telemetry, security audit, export/import maturity, and a final hardening pass that retires every remaining scaffold.
+
+**Build sub-phases:** A (opt-in telemetry + cohort metrics, zero PII) · B (perf re-baseline against P1 budget) · C (security + privacy audit) · D (export/import maturity, including LLM journal summaries).
+
+**Close-out sub-phase E** — Program close-out: full audit, retire ALL scaffolds, `git tag program-v1`, post-mortem written.
+
+**User-visible deliverable:** export/import works for the entire user dataset, security review passed, app ready for general availability.
+
+---
+
+## Cross-references
+
+| Concern | Authoritative file |
+|---|---|
+| Active phase's commit map | `_workspace/plan/phase-{N}-*.md` |
+| Universal phase shape + 7-commit close-out recipe | `_workspace/plan/program-roadmap.md` § 1 |
+| Close-out skill (operationalizes the recipe) | `.claude/skills/ht-close-out/SKILL.md` |
+| Locked design decisions | `DESIGN-REQUIREMENTS.md` § 2 |
+| Data model | `reference/architecture/data-model.md` |
+| Architecture | `reference/architecture/architecture.md` |
+| Privacy + encryption envelope | `reference/product/privacy.md` |
+| Governance contract | `framework.md` |
+| HT-CORE rules | `reference/governance/ht-core-rules.yaml` |

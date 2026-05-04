@@ -1,11 +1,11 @@
 ---
 name: ht-architecture-review
-description: Architecture-first review template for IMPLEMENT/REFACTOR. Loaded by architect.agent.md.
+description: Architecture-first review template for IMPLEMENT/REFACTOR. Loaded by the architect agent.
 ---
 
 # ht-architecture-review — Architecture-First Review
 
-Operationalizes HT-CORE-001. Loaded by `architect.agent.md` before any IMPLEMENT/FIX/REFACTOR.
+Operationalizes HT-CORE-001. Loaded by `the architect agent` before any IMPLEMENT/FIX/REFACTOR.
 
 ## Template
 

@@ -4,7 +4,7 @@ This is the one command for everything in the HealthTracker repo.
 
 Load the agent and route via the intent matrix.
 
-@../../.github/agents/healthtracker.agent.md
+@../agents/healthtracker.md
 
 ---
 

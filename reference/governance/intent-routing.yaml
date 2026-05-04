@@ -2,19 +2,22 @@
 # HealthTracker Intent Routing Matrix
 # ============================================================================
 # Maps user intent to handler agent + pre-execution gate.
-# The healthtracker.agent.md classifies intent and dispatches per this matrix.
+# The healthtracker agent classifies intent and dispatches per this matrix.
+# Handler/fallback values are agent NAMES (resolved by `name:` frontmatter in
+# `.claude/agents/<name>.md`), not paths. Renamed 2026-05-04 from legacy
+# `core/<name>.agent.md` / `support/<name>.agent.md` paths.
 # ============================================================================
 
 id: ht-intent-routing
 version: "1.0"
-last_updated: "2026-05-03"
+last_updated: "2026-05-04"
 authority: framework.md
 ssot: true
 
 intents:
 
   IMPLEMENT:
-    handler: core/executor.agent.md
+    handler: executor
     pre_gate: dor-hard-gate
     governing_rules: [HT-CORE-001, HT-CORE-002, HT-CORE-007]
     severity: BLOCKED
@@ -24,10 +27,10 @@ intents:
       - build
       - add feature
       - create new
-    fallback: core/architect.agent.md
+    fallback: architect
 
   FIX:
-    handler: core/executor.agent.md
+    handler: executor
     pre_gate: tdd-gate
     governing_rules: [HT-CORE-002, HT-CORE-005, HT-CORE-007]
     severity: BLOCKED
@@ -37,10 +40,10 @@ intents:
       - bug
       - resolve
       - patch
-    fallback: core/auditor.agent.md
+    fallback: auditor
 
   REFACTOR:
-    handler: core/executor.agent.md
+    handler: executor
     pre_gate: holistic-gate
     governing_rules: [HT-CORE-003, HT-CORE-004, HT-CORE-005]
     severity: BLOCKED
@@ -50,10 +53,10 @@ intents:
       - clean up
       - restructure
       - extract
-    fallback: core/architect.agent.md
+    fallback: architect
 
   AUDIT:
-    handler: core/auditor.agent.md
+    handler: auditor
     pre_gate: sweep-gate
     governing_rules: [HT-CORE-003, HT-CORE-004, HT-CORE-005]
     severity: BLOCKED
@@ -64,10 +67,10 @@ intents:
       - architectural audit
       - cleanup sweep
       - find regressions
-    fallback: core/challenger.agent.md
+    fallback: challenger
 
   PLAN:
-    handler: core/planner.agent.md
+    handler: planner
     pre_gate: dor-hard-gate
     governing_rules: [HT-CORE-001]
     severity: BLOCKED
@@ -77,10 +80,10 @@ intents:
       - phase
       - roadmap
       - dor
-    fallback: core/architect.agent.md
+    fallback: architect
 
   REVIEW:
-    handler: core/challenger.agent.md
+    handler: challenger
     pre_gate: governance-gate
     governing_rules: [HT-CORE-003]
     severity: WARNING
@@ -89,10 +92,10 @@ intents:
       - challenge
       - review the plan
       - guideline check
-    fallback: support/ui-reviewer.agent.md
+    fallback: ui-reviewer
 
   DEBUG:
-    handler: core/auditor.agent.md
+    handler: auditor
     pre_gate: null
     governing_rules: [HT-CORE-007]
     severity: NONE
@@ -102,10 +105,10 @@ intents:
       - why is
       - investigate
       - root cause
-    fallback: core/architect.agent.md
+    fallback: architect
 
   QUERY:
-    handler: healthtracker.agent.md
+    handler: healthtracker
     pre_gate: null
     governing_rules: []
     severity: NONE

@@ -83,7 +83,7 @@ HTML/JSX files that demonstrate visual intent before primitives ship. Not part o
 
 Edits to these files are governance changes. They go through `/plan` flow:
 
-1. Open a phase doc in `_workspace/ideas/`.
+1. Open a phase doc in `_workspace/plan/`.
 2. State the change, the rationale, the affected agents.
 3. `/audit` confirms no broken references in agents/skills/commands.
 4. Commit with `AC-GOV-{date}` audit marker.

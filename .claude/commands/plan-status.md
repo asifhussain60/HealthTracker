@@ -2,42 +2,39 @@
 
 Summarize all phases by status: which is active, which is in DoR review, which has open commits.
 
-@../../.github/agents/core/planner.agent.md
+@../agents/planner.md
 
 ---
 
 ## Procedure
 
-1. List all plans in `_workspace/ideas/`:
-   ```bash
-   ls _workspace/ideas/
-   ```
-2. For each, parse the frontmatter (`status:`, `priority:`, `created:`).
-3. List all handoffs in `_workspace/plan/`:
+1. Read `_workspace/plan/program-roadmap.md` to learn the canonical 6-phase scheme (P0..P5) and universal phase shape (PF → build → close-out → handoff).
+2. List all handoffs in `_workspace/plan/`:
    ```bash
    ls _workspace/plan/
    ```
-4. For the active handoff, count the commit-map status:
+3. For the active handoff, count commit-map status:
    - ⬜ pending
    - 🔄 in progress
    - ✅ done
    - 🟥 blocked
    - ⬛ wont-fix
-5. Output a compact table:
+4. Output a compact table mirroring the program-roadmap phase set:
 
 ```markdown
 ## Phase Status
 
-| Phase | Status | DoR | Commits | Last Activity |
-|---|---|---|---|---|
-| 0 — Refactor + Scaffolding | active | 100/100 | 12/24 (3🔄, 9⬜) | 2026-05-03 |
-| 1 — Cannabis + Meals | draft | -/100 | - | - |
-| 2 — Backend + Multi-User | planned | - | - | - |
-| 3 — TODO UX | planned | - | - | - |
-| 4 — Polish | planned | - | - | - |
+| Phase | Theme | Status | DoR | Commits | Last Activity |
+|---|---|---|---|---|---|
+| P0 | Refactor + scaffolding | active | 100/100 | n/m (k⬜) | YYYY-MM-DD |
+| P1 | SPA build (planner-first) | DoR-2 ready | -/100 | not-started | - |
+| P2 | Backend swap (Supabase) | outlined | - | - | - |
+| P3 | TODOs + assignment | outlined | - | - | - |
+| P4 | Shared services + LLM | outlined | - | - | - |
+| P5 | Production hardening | outlined | - | - | - |
 
-**Active:** Phase 0 — first ⬜ is `B3` in `phase-0-refactor-handoff.md`.
-**Pending STOPs:** none.
+**Active:** P0 — first ⬜ commit ID and file.
+**Pending STOPs:** list any 🛑 awaiting user verification.
 ```
 
 End with the standard end-state contract.

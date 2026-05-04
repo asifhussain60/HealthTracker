@@ -1,11 +1,11 @@
 ---
 name: ht-tdd
-description: TDD red-green-refactor enforcement for HealthTracker. Auto-loaded by executor.agent.md. Use when implementing or fixing code.
+description: TDD red-green-refactor enforcement for HealthTracker. Loaded by the executor agent on every IMPLEMENT/FIX commit. Use when implementing or fixing code under app/src/.
 ---
 
 # ht-tdd — TDD red-green-refactor
 
-This skill enforces HT-CORE-002 (Tests-First). Loaded by `.github/agents/core/executor.agent.md` on every IMPLEMENT/FIX.
+This skill enforces HT-CORE-002 (Tests-First). The `executor` agent (`.claude/agents/executor.md`) loads it on every IMPLEMENT/FIX commit.
 
 ## Procedure
 
@@ -64,7 +64,7 @@ GREEN:
 
 If during GREEN/REFACTOR you discover side issues:
 - DO NOT fix silently.
-- DO call `support/debt-logger.agent.md` to append to `_workspace/scratch/sweep-catalogue.md`.
+- DO call the `debt-logger` agent (`.claude/agents/debt-logger.md`) to append to `_workspace/scratch/sweep-catalogue.md`.
 - Address before claiming the commit complete OR mark WONT-FIX with rationale.
 
 ## Coverage targets

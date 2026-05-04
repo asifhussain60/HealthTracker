@@ -1,8 +1,8 @@
 # /plan — Phase Planning
 
-Invoke `planner.agent.md` for phase plan creation, DoR review, or commit-map maintenance.
+Invoke the `planner` agent for phase plan creation, DoR review, or commit-map maintenance.
 
-@../../.github/agents/core/planner.agent.md
+@../agents/planner.md
 
 ---
 
@@ -15,12 +15,12 @@ $ARGUMENTS
 ## Behavior
 
 If `$ARGUMENTS` is empty:
-- Read `_workspace/ideas/` and `_workspace/plan/` to summarize current state.
+- Read `_workspace/plan/` to summarize current state (program-roadmap.md + active phase handoff).
 - Identify the active phase, its DoR status, and the next ⬜ commit.
 
 If `$ARGUMENTS` describes a new phase:
-- Use [`reference/governance/phase-template.yaml`](../../../reference/governance/phase-template.yaml).
-- Save as `_workspace/ideas/<phase-id>-execution-plan.md`.
+- Use [`reference/governance/phase-template.yaml`](../../reference/governance/phase-template.yaml).
+- Save as `_workspace/plan/phase-<N>-master-plan.md` (or `phase-<N>-<slug>-handoff.md` for sub-phase).
 - Hand off to `architect` for DoR scoring (must hit 100/100).
 
 If `$ARGUMENTS` references a specific commit-id:

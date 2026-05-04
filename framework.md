@@ -31,18 +31,20 @@ Full matrix: `reference/governance/intent-routing.yaml`. Gate definitions: `refe
 
 ## Agents
 
-| Agent | Location | Role |
-|---|---|---|
-| `healthtracker` | `.github/agents/healthtracker.agent.md` | Singular entry point; classifies intent and delegates |
-| `architect` | `.github/agents/core/architect.agent.md` | Architecture-first review; DoR scoring; design |
-| `executor` | `.github/agents/core/executor.agent.md` | TDD red-green-refactor implementation |
-| `auditor` | `.github/agents/core/auditor.agent.md` | 4-pass holistic audit (Structure → Code → Architecture → Brittleness); repair plan |
-| `planner` | `.github/agents/core/planner.agent.md` | Phase planning; commit map maintenance |
-| `challenger` | `.github/agents/core/challenger.agent.md` | YAML-backed enforcement: Anthropic + HT-CORE + UI/UX |
-| `ui-reviewer` | `.github/agents/support/ui-reviewer.agent.md` | CSS/theme/a11y review |
-| `debt-logger` | `.github/agents/support/debt-logger.agent.md` | Append observed debt to `_workspace/scratch/observed-debt.md` |
+All agents live at `.claude/agents/<name>.md` (Anthropic format with YAML frontmatter). The harness resolves them by `name:` frontmatter, not by path. Legacy `.github/agents/` tree was removed 2026-05-03.
 
-Full registry: `.github/agents/AGENT-INDEX.md`.
+| Agent | File | Role |
+|---|---|---|
+| `healthtracker` | `.claude/agents/healthtracker.md` | Singular entry point; classifies intent and delegates |
+| `architect` | `.claude/agents/architect.md` | Architecture-first review; DoR scoring; design |
+| `executor` | `.claude/agents/executor.md` | TDD red-green-refactor implementation |
+| `auditor` | `.claude/agents/auditor.md` | 4-pass holistic audit (Structure → Code → Architecture → Brittleness); repair plan |
+| `planner` | `.claude/agents/planner.md` | Phase planning; commit map maintenance |
+| `challenger` | `.claude/agents/challenger.md` | YAML-backed enforcement: Anthropic + HT-CORE + UI/UX. Block / rollback / DoR-veto authority. |
+| `ui-reviewer` | `.claude/agents/ui-reviewer.md` | CSS/theme/a11y review |
+| `debt-logger` | `.claude/agents/debt-logger.md` | Append observed debt to `_workspace/scratch/observed-debt.md` |
+
+Discover by `ls .claude/agents/` — there is no separate index file.
 
 ## Skills (Claude Code)
 
@@ -53,6 +55,7 @@ Full registry: `.github/agents/AGENT-INDEX.md`.
 | `ht-plan` | `.claude/skills/ht-plan/SKILL.md` | Phase + commit-map maintenance |
 | `ht-audit` | `.claude/skills/ht-audit/SKILL.md` | 4-pass auditor procedure |
 | `ht-architecture-review` | `.claude/skills/ht-architecture-review/SKILL.md` | Architecture-first review template |
+| `ht-md3` | `.claude/skills/ht-md3/SKILL.md` | Material Design 3 conformance checklist (loaded by ui-reviewer) |
 | `ht-close-out` | `.claude/skills/ht-close-out/SKILL.md` | Mandatory 7-commit phase close-out recipe (refactor → debt → sweep → audit → doc-sync → perf → tag) |
 
 ## Slash commands
@@ -73,20 +76,18 @@ Full registry: `.github/agents/AGENT-INDEX.md`.
 HealthTracker/
 ├── framework.md                    ← this file (governance contract)
 ├── CLAUDE.md                       ← Claude Code entry point
-├── .github/
-│   ├── agents/                     ← agent specifications
-│   └── hooks/                      ← git hooks (pre-commit)
+├── DESIGN-REQUIREMENTS.md          ← canonical design north-star
 ├── .claude/
 │   ├── settings.json               ← Stop hook + commands registry
 │   ├── settings.local.json         ← per-developer permissions (gitignored)
-│   ├── commands/                   ← slash commands
-│   ├── skills/                     ← named skills
-│   └── hooks/                      ← Claude Code hooks
+│   ├── agents/                     ← agent specifications (8 files)
+│   ├── commands/                   ← slash commands (7 files)
+│   ├── skills/                     ← named skills (7 dirs, each with SKILL.md)
+│   └── hooks/                      ← Claude Code hooks (challenger-stop.sh, pre-commit.sh)
 ├── _workspace/                     ← UNTRACKED — plans, handoffs, scratch
-│   ├── ideas/                      ← execution plans
-│   ├── plan/                       ← phase handoff docs + forward-looking checklists
-│   ├── scratch/                    ← append-only logs (debt, sweep, audit trail)
-│   └── archive/                    ← superseded artifacts
+│   ├── plan/                       ← program-roadmap + phase master plans + sub-phase handoffs
+│   ├── scratch/                    ← append-only logs (debt, sweep, audit trail, perf baselines)
+│   └── archive/                    ← superseded artifacts (created by ht-close-out commit 7)
 ├── reference/                      ← SSOT for canonical references
 │   ├── governance/
 │   │   ├── ht-core-rules.yaml
@@ -116,13 +117,22 @@ HealthTracker/
 | Path | Owner | Write Rules |
 |---|---|---|
 | `framework.md` | `architect` only | Update when agents/rules change. Snapshot before major edits. |
-| `reference/*.yaml` | `architect` + `challenger` | SSOT. Do not duplicate content into agents — link instead. |
-| `reference/*.md` | `architect` | One concept, one home. |
-| `.github/agents/*.agent.md` | `architect` | Frontmatter required. Mark deprecation; do not silently delete. |
+| `CLAUDE.md` | `architect` | Keep ≤ 100 lines (PF-2); deterministic must-do moves to hooks. |
+| `DESIGN-REQUIREMENTS.md` | `architect` | Locked decisions list is append-only with explicit revision notes. |
+| `reference/governance/*.yaml` | `architect` + `challenger` co-sign | SSOT. Do not duplicate content into agents — link instead. Challenger counter-signs amendments. |
+| `reference/architecture/*.md` | `architect` | One concept, one home. |
+| `reference/product/*.md` | `architect` | Cross-link to `_workspace/plan/program-roadmap.md` for phase scheme. |
+| `reference/design/*.md` and `reference/design/*.yaml` | `architect` (with ui-reviewer counter-sign for design-system.md) | Keep aligned with DESIGN-REQUIREMENTS.md. |
+| `.claude/agents/*.md` | `architect` | Frontmatter required. Mark deprecation; do not silently delete. |
 | `.claude/commands/*.md` | `architect` | Keep aligned with `framework.md` command table. |
-| `_workspace/ideas/*.md` | `planner` | Locked DoR before any commit; phases A..N with gates. |
-| `_workspace/plan/*.md` | `planner` + `executor` | Commit map is canonical work queue; forward-looking checklists. |
-| `_workspace/scratch/observed-debt.md` | `debt-logger` (append-only) | Never silently resolves; tracked as work. |
+| `.claude/skills/<name>/SKILL.md` | `architect` | Frontmatter `name:` + `description:` required; one skill, one operational concern. |
+| `.claude/hooks/*.sh` and `.claude/settings.json` | `architect` | Hooks are deterministic must-do (ANT-084). Aspirational behaviors stay in agent prompts, not hooks. |
+| `_workspace/plan/program-roadmap.md` | `planner` (architect counter-signs at phase boundaries) | Universal phase shape, recipe, and 6-phase roadmap. The single program-level SSOT. |
+| `_workspace/plan/phase-N-*.md` | `planner` | Phase master plan + sub-phase handoffs. Commit map is canonical work queue. Architect counter-signs at phase boundaries. |
+| `_workspace/scratch/observed-debt.md` | `debt-logger` (append-only) | Never silently resolves; tracked as work. Resolution notes appended at close-out. |
+| `_workspace/scratch/sweep-catalogue.md` | `executor` (open) + `challenger` (close) | Opened on every FIX/REFACTOR; closed at close-out commit 3. |
+| `_workspace/scratch/audit-trail.md` | `auditor` + `challenger` (append-only) | AC_START / AC_COMPLETE markers + sweep PASS notes. |
+| `_workspace/scratch/perf-baselines.md` | `executor` | Per-phase perf baseline at close-out commit 6. |
 | `app/src/**` | `executor` | Tests-first. PR-shape commits matching commit map. |
 
 ## Rules of engagement
@@ -158,7 +168,9 @@ Never both. Never neither.
 
 ## Active execution plan
 
-`_workspace/ideas/healthtracker-execution-plan.md` is the single source of truth for the roadmap. Phase 0 (Refactor + Scaffolding) is active. Sub-phases A → D with 🛑 STOPs between for human verification.
+`_workspace/plan/program-roadmap.md` is the single source of truth for the program — universal phase shape (PF → build → close-out → handoff), refactor + cleanup cadence at four levels each, and the 6-phase roadmap (P0..P5). Per-phase commit maps live in `_workspace/plan/phase-N-*.md`.
+
+**Active:** P0 (Refactor + Scaffolding). Sub-phases A → D, with sub-phase D re-aligned 2026-05-04 to the canonical 7-commit close-out recipe (D1, D3, D4, D5, D6, D7a, D7b; D2 retired).
 
 ## DoR Hard Gate
 

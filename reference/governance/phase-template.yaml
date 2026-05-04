@@ -1,9 +1,11 @@
 ---
 # HealthTracker Phase Template
 # ============================================================================
-# Standard template for new phase plans in _workspace/ideas/.
-# Copy this file, rename to <phase-id>-execution-plan.yaml or use the
-# markdown variant. Locked DoR before any commit; gates per phase.
+# Standard template for new phase plans in _workspace/plan/.
+# Copy this file, rename to phase-<N>-master-plan.yaml or use the markdown
+# variant (phase-<N>-master-plan.md). Locked DoR before any commit; gates
+# per phase. Every phase MUST include a final close-out sub-phase that
+# references the canonical 7-commit recipe in _workspace/plan/program-roadmap.md § 1.
 # ============================================================================
 
 phase_id: phase-NN

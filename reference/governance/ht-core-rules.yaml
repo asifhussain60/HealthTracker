@@ -35,7 +35,7 @@ rules:
       The assessment names: problem, affected modules/contracts/state, current vs
       desired behavior, backward-compat impact, risks, and whether the change is
       additive / modifying / breaking. No code is written before this lands.
-    enforcement_check: architect.agent.md must produce an assessment before executor proceeds.
+    enforcement_check: architect agent must produce an assessment before executor proceeds.
     anti_patterns:
       - Implementing before identifying impacted modules
       - Treating refactors as "no-impact" without an assessment
@@ -51,7 +51,7 @@ rules:
       Tests are written before implementation. Red → Green → Refactor.
       The failing test must fail with the expected error message before
       any production code is written.
-    enforcement_check: executor.agent.md must show a failing test (verified output) before any source-code write.
+    enforcement_check: executor agent must show a failing test (verified output) before any source-code write.
     anti_patterns:
       - "Writing implementation, then tests"
       - "Skipping tests with --ignore or test.skip"

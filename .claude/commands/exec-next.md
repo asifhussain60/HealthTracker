@@ -2,7 +2,7 @@
 
 Identify the active handoff, find the first `⬜` commit, and execute it.
 
-@../../.github/agents/healthtracker.agent.md
+@../agents/healthtracker.md
 
 ---
 

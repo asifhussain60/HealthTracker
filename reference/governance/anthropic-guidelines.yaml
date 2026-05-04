@@ -2,7 +2,7 @@
 # Anthropic Engineering Guidelines — Synthesized
 # ============================================================================
 # Distilled from the public Anthropic Engineering blog (anthropic.com/engineering).
-# Each principle is testable / observable. The challenger.agent.md cites these
+# Each principle is testable / observable. The challenger agent cites these
 # IDs in its verdicts (e.g., "[ANT-001] BLOCK because ...").
 # Refresh via /sync-guidelines. Last refresh: 2026-05-04.
 # ============================================================================

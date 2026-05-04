@@ -1,11 +1,25 @@
 ---
 name: ht-governance
-description: HT-CORE rule enforcement skill. Loaded by challenger.agent.md and auditor.agent.md to score changes against the 10 non-negotiable rules.
+description: HT-CORE rule enforcement skill. Loaded by the challenger and auditor agents. Scoring is intent-aware (challenger) vs mechanical (auditor) — see § Author-vs-reviewer split below.
 ---
 
 # ht-governance — HT-CORE Rule Enforcement
 
-This skill operationalizes [`reference/governance/ht-core-rules.yaml`](../../../reference/governance/ht-core-rules.yaml) as actionable checks.
+This skill operationalizes [`reference/governance/ht-core-rules.yaml`](../../../reference/governance/ht-core-rules.yaml) as actionable checks. **Both** the auditor and the challenger load it, but they operate it in different modes — see § Author-vs-reviewer split.
+
+## Author-vs-reviewer split (ANT-088 application)
+
+The auditor and challenger both score against HT-CORE-001..010 but their scopes are deliberately divergent so the pair gives the user *two different signals*, not one signal duplicated:
+
+| Aspect | Auditor mode | Challenger mode |
+|---|---|---|
+| Posture | Mechanical / structural / inventory | Adversarial / intent-checking / spirit-of-the-rule |
+| Evidence demanded | grep, find, file:line citations of *current* violations | Counter-example: a one-paragraph minimal-failing-case showing how the *next* violation would compound the current one |
+| Severity scale | Critical / High / Medium / Low (HT-CORE → severity table) | BLOCK / ROLLBACK / DOR-RISK / PHASE-NOT-CLOSED (binding directives — see challenger.md) |
+| When fired | On every commit at sub-phase STOP; on `/audit` | On every commit's diff at landed-time; on `/challenge`; on close-out commit 4; on DoR review |
+| Required output uniqueness | List of file:line violations | List of file:line violations + counter-example + spirit-grading + binding directive |
+
+The rules below describe the violations both modes detect. The mode-specific output discipline lives in `challenger.md` (binding directives) and `auditor.md` (4-pass procedure).
 
 ## The 10 rules
 
@@ -76,6 +90,35 @@ Per [`reference/governance/governance-gates.yaml`](../../../reference/governance
 
 When a HT-CORE rule conflicts with an Anthropic guideline, the HT-CORE rule wins. Always surface the conflict; never silently choose.
 
+## Counter-example discipline (challenger only)
+
+Every challenger finding **must** include a *counter-example*: a minimal failing case demonstrating how the violation would compound if left unfixed. Format:
+
+```
+[CHALLENGER] HT-CORE-003 violation at framework.md:36 (agent table cites .github/agents/)
+  Counter-example: if a new agent is added to .claude/agents/, framework.md
+  will silently miss it AND the broken `.github/agents/` link will continue
+  to be the documented authority — propagating the error to every onboarding
+  session that reads the framework first.
+  Spirit grade: 1/5 (the rule's intent is "one canonical owner per data
+  domain"; two competing paths are zero canonical owners).
+  Directive: 🛑 BLOCK until the registry is reconciled.
+```
+
+The auditor does not produce counter-examples; auditor output stays mechanical (file:line + severity + fix). This is the structural difference that makes the auditor + challenger pairing satisfy ANT-088 reviewer rotation rather than duplicating a single review.
+
+## Spirit-grading (challenger only)
+
+For each rule violation, the challenger grades against the *spirit* of the rule on a 1-5 scale:
+
+- **5** — implementation honors both letter and spirit
+- **4** — letter honored; spirit slightly drifted
+- **3** — letter honored; spirit eroded
+- **2** — letter eroded; spirit violated
+- **1** — letter and spirit both violated
+
+If grade ≤ 2: emit `🛑 BLOCK` directive. If grade = 3: emit `❌ DOR-RISK` advisory. The auditor does not spirit-grade.
+
 ## Output format
 
-Used by `auditor` and `challenger` — see those agents for end-state contract.
+Both agents end with a verdict (PASS / WARN / BLOCK). The challenger additionally emits any binding directives (`🛑 BLOCK`, `🔄 ROLLBACK`, `❌ DOR-RISK`, `🛑 PHASE-NOT-CLOSED`) — see `.claude/agents/challenger.md` for directive semantics.

@@ -1,6 +1,6 @@
 ---
 name: ht-md3
-description: Material Design 3 conformance checklist for HealthTracker. Auto-loaded by ui-reviewer.agent.md. Use when reviewing or implementing any UI work in app/src/components/, app/src/views/, or app/src/styles/.
+description: Material Design 3 conformance checklist for HealthTracker. Loaded by the ui-reviewer agent (and by executor when implementing UI). Use when reviewing or implementing any UI work in app/src/components/, app/src/views/, or app/src/styles/.
 ---
 
 # Material Design 3 Conformance Checklist

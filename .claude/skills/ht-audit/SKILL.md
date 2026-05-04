@@ -1,13 +1,13 @@
 ---
 name: ht-audit
-description: 4-pass audit procedure (Structure → Code → Architecture → Brittleness). Loaded by auditor.agent.md.
+description: 4-pass audit procedure (Structure → Code → Architecture → Brittleness). Loaded by the auditor agent.
 ---
 
 # ht-audit — 4-Pass Audit
 
 Operationalizes the auditor's 4-pass procedure. Inspired by CORTEX repo-surgeon.
 
-## Pass 1 — Structure (`auditor.agent.md` Pass 1)
+## Pass 1 — Structure
 
 **Goal:** repo root is clean; files live in governed locations.
 
@@ -61,10 +61,10 @@ grep -rn "createdAt:" app/src/data/store/ | wc -l
 grep -rn '/Users/\|C:\\\\' app/src/ --include='*.js' --include='*.jsx'
 
 # Stale branch refs
-grep -rn 'refine-all-redesign\|main-old' .github/agents/ .claude/agents/ 2>/dev/null
+grep -rn 'refine-all-redesign\|main-old' .claude/agents/ 2>/dev/null
 
 # Broken markdown links
-grep -rnoP '\[.*?\]\(((?!http)[^)]+)\)' framework.md reference/ .github/agents/ 2>/dev/null | while IFS=: read -r file line match; do
+grep -rnoP '\[.*?\]\(((?!http)[^)]+)\)' framework.md reference/ .claude/agents/ .claude/skills/ 2>/dev/null | while IFS=: read -r file line match; do
   path=$(echo "$match" | grep -oP '\(([^)]+)\)' | tr -d '()')
   [[ -e "$path" || "$path" =~ ^# ]] || echo "BROKEN LINK in $file:$line → $path"
 done
@@ -100,7 +100,7 @@ grep -rn 'TODO\|FIXME\|HACK\|XXX' app/src/ --include='*.js' --include='*.jsx'
 2. **Non-destructive.** Move > delete. Deprecate > remove.
 3. **Destructive ops require user confirmation.** Deletions, agent removals.
 4. **Batch commits.** One per pass: `audit(P{N}): <summary>`.
-5. **Update registries.** After structural change: `framework.md`, `AGENT-INDEX.md`.
+5. **Update registries.** After structural change: `framework.md` (agent + skill tables, file-ownership table). There is no `AGENT-INDEX.md` — discover agents via `ls .claude/agents/`.
 6. **Log.** Append to `_workspace/scratch/audit-trail.md`.
 
 ## Reporting

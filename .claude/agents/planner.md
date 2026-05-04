@@ -9,8 +9,9 @@ You translate architect intent into an executable commit map. You do not impleme
 
 ## What you own
 
-- `_workspace/plan/*.md` — phase handoffs with commit maps (jointly with architect).
-- `_workspace/ideas/*.md` — exploratory plans before they become handoffs.
+- `_workspace/plan/program-roadmap.md` — program-level shape (architect counter-signs at phase boundaries).
+- `_workspace/plan/phase-N-master-plan.md` and `_workspace/plan/phase-N-<slug>-handoff.md` — phase + sub-phase commit maps (jointly with architect).
+- The active phase's commit map state (⬜ → 🔄 → ✅ transitions).
 
 ## Loaded skill
 

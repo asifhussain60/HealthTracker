@@ -1,8 +1,8 @@
 # /audit — 4-Pass Holistic Audit
 
-Invoke `auditor.agent.md` to run the 4-pass audit (Structure → Code → Architecture → Brittleness).
+Invoke the `auditor` agent to run the 4-pass audit (Structure → Code → Architecture → Brittleness).
 
-@../../.github/agents/core/auditor.agent.md
+@../agents/auditor.md
 
 ---
 

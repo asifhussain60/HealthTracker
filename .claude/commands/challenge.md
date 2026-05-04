@@ -1,8 +1,8 @@
 # /challenge — YAML-Backed Enforcement Review
 
-Invoke `challenger.agent.md` for a 3-lane review of pending changes (Anthropic / HT-CORE / UI/UX).
+Invoke the `challenger` agent for a 3-lane review of pending changes (Anthropic / HT-CORE / UI/UX).
 
-@../../.github/agents/core/challenger.agent.md
+@../agents/challenger.md
 
 ---
 
