@@ -88,6 +88,46 @@ export function selectTodayCannabisSessions(state, userId, date) {
  * @param {string} date - YYYY-MM-DD
  * @returns {{ eaten: number, target: number, remaining: number }}
  */
+// ── selectWeightDeltaWeek ─────────────────────────────────────────────────────
+
+/**
+ * Return the weight change (lb) between the most recent entry on/before `today`
+ * and the most recent entry on/before `today - 7 days`.
+ * Returns 0 when there is insufficient data for comparison.
+ *
+ * HT-CORE-010: filters by userId.
+ * No Date.now() / new Date() — uses the injected `today` string.
+ *
+ * @param {Object} state
+ * @param {string} userId
+ * @param {string} today - YYYY-MM-DD
+ * @returns {number} delta in lb (negative = lost weight)
+ */
+export function selectWeightDeltaWeek(state, userId, today) {
+  const entries = (state.weightHistory ?? []).filter(
+    (e) => e.userId === userId && e.deletedAt == null
+  );
+  if (entries.length === 0) return 0;
+
+  // Most recent on/before today
+  const onOrBefore = (cutoff) =>
+    entries
+      .filter((e) => e.date <= cutoff)
+      .reduce((best, e) => (!best || e.date > best.date ? e : best), null);
+
+  // One week ago date string arithmetic — avoid Date construction
+  const todayParts = today.split('-').map(Number); // [year, month, day]
+  const d = new Date(todayParts[0], todayParts[1] - 1, todayParts[2]);
+  d.setDate(d.getDate() - 7);
+  const weekAgo = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+
+  const current = onOrBefore(today);
+  const previous = onOrBefore(weekAgo);
+
+  if (!current || !previous) return 0;
+  return current.weight - previous.weight;
+}
+
 export function selectTodayCalorieRing(state, userId, date) {
   const target = state.profile?.dailyCalorieTarget ?? 2000;
   const plan = selectWeeklyPlan(state, userId);
