@@ -64,6 +64,178 @@ Cards · Chips · Buttons (filled / tonal / outlined / text / icon) · Switches 
 
 Every component has a **counterpart in `app/src/components/primitives/`** with the same name. Storybook (Phase 1.5) documents each.
 
+## 3.5 · Theme synthesis (from WrapBootstrap survey, 2026-05-03)
+
+A survey of 18 WrapBootstrap themes (located at `~/PROJECTS/Wrapbootstrap/`) was conducted to inform the HealthTracker visual system. Synthesis below; full report appended to [_workspace/scratch/observed-debt.md](_workspace/scratch/observed-debt.md) as item 8.
+
+**Adopted patterns (best-of-breed, not blind copy):**
+
+| Source | What we take |
+|---|---|
+| **Material-Admin** | Material Symbols (rounded, weight 400, fill 0) · `backdrop-filter: blur(0.75rem)` modal pattern · soft-shadow formula `0 5px 5px -3px rgba(0,0,0,.15)` · 4.4rem ↔ 18rem sidebar collapse · `theme-prop()` mixin for dark/light variants |
+| **Unify** | 6-step type scale (display-lg / headline / title / body / label / caption) · token naming (primary / secondary / success / warning / error) · 0.5rem baseline radius · card hover-shadow at 200ms |
+| **Boomerang** | Inverse color-pair model (every fg has explicit on-fg) · comprehensive dark-mode variable set · navbar hover/active state matrix |
+| **Sphere** | Parallel color+text-pair structure (replicable as CSS custom properties for taper/mood color coding) |
+| **Ace** | Multi-width sidebar pattern · transition timing philosophy (0.15s micro · 200ms macro · 600ms reveal) · scrollbar theming |
+
+**Themes skipped:** Clotheshop, Ericka, Flatland, Paperclip, Radmin, Slick, Summarize, Tales, Authenty, Mac (e-commerce / landing / outdated / non-dashboard).
+
+### Canonical token set (final, supersedes prior § 3 colors)
+
+```css
+:root {
+  /* MD3-aligned color tokens — dark-first */
+  --primary:       oklch(55% 0.15 262);   /* #1E88E5 */
+  --secondary:     oklch(67% 0.14 210);   /* #00BCD4 */
+  --success:       oklch(60% 0.12 142);   /* #4CAF50 */
+  --warning:       oklch(68% 0.12  48);   /* #FFA726 */
+  --error:         oklch(59% 0.16  14);   /* #EF5350 */
+  --surface:       #121212;
+  --surface-variant: #1E1E1E;
+  --on-surface:    rgba(255,255,255,0.87);
+  --on-surface-dim: rgba(255,255,255,0.60);
+  --on-surface-faint: rgba(255,255,255,0.38);
+  --border:        rgba(255,255,255,0.10);
+
+  /* Spacing — 4px base */
+  --spacing-unit: 4px;
+  --space-1: 4px; --space-2: 8px; --space-3: 12px; --space-4: 16px;
+  --space-6: 24px; --space-8: 32px; --space-12: 48px; --space-16: 64px;
+
+  /* Radius rhythm */
+  --radius-small:  0.5rem;   /* 8px  — chips, icon buttons, form inputs */
+  --radius-medium: 0.75rem;  /* 12px — cards, bottom sheets, modals */
+  --radius-large:  1rem;     /* 16px — large cards, drawers */
+  --radius-pill:   9999px;   /* FAB, accent badges */
+
+  /* Soft elevation (3 levels max) */
+  --elev-1: 0 2px 4px rgba(0,0,0,.12);
+  --elev-2: 0 5px 5px -3px rgba(0,0,0,.15);
+  --elev-3: 0 12px 16px -4px rgba(0,0,0,.25);
+
+  /* Transition timing */
+  --t-micro: 150ms cubic-bezier(0.2, 0.8, 0.2, 1);
+  --t-base:  200ms cubic-bezier(0.2, 0.8, 0.2, 1);
+  --t-slow:  600ms cubic-bezier(0.2, 0.8, 0.2, 1);
+
+  /* Typography */
+  --font-stack: -apple-system, BlinkMacSystemFont, "Segoe UI Variable", "Segoe UI", system-ui, Roboto, Helvetica, Arial, sans-serif;
+  --font-feature: "tnum" 1;
+
+  --text-display-lg: 3.5rem;   /* 56px */
+  --text-headline:   2rem;     /* 32px */
+  --text-title:      1.5rem;   /* 24px */
+  --text-body:       1rem;     /* 16px */
+  --text-label:      0.875rem; /* 14px */
+  --text-caption:    0.75rem;  /* 12px */
+}
+
+[data-theme="light"] {
+  --primary:       oklch(45% 0.18 262);   /* #1565C0 */
+  --secondary:     oklch(50% 0.18 210);
+  --success:       oklch(48% 0.14 142);
+  --warning:       oklch(56% 0.15  48);
+  --error:         oklch(45% 0.19  14);
+  --surface:       #FFFFFF;
+  --surface-variant: #F5F5F5;
+  --on-surface:    rgba(33,33,33,0.87);
+  --on-surface-dim: rgba(33,33,33,0.60);
+  --on-surface-faint: rgba(33,33,33,0.38);
+  --border:        rgba(0,0,0,0.10);
+
+  --elev-1: 0 2px 4px rgba(0,0,0,.06);
+  --elev-2: 0 5px 5px -3px rgba(0,0,0,.10);
+  --elev-3: 0 12px 16px -4px rgba(0,0,0,.16);
+}
+```
+
+### Glass treatment (non-negotiable scope)
+
+- ✅ Modal/dialog backdrop · `backdrop-filter: blur(0.75rem)` + `rgba(0,0,0,.30)` overlay
+- ✅ Always-on profile banner only · `backdrop-filter: blur(28px) saturate(160%)` + soft white border
+- ❌ Cards, sidebars, lists, tabs — **never glass**. Solid `--surface-variant` for contrast.
+
+### Iconography (final)
+
+- **Material Symbols rounded variant** (weight 400, fill 0) — variable-font import, ~40 glyphs only, < 50 KB.
+- No FontAwesome, no Lucide — single icon library to avoid mixing.
+
+### Typography (final, no custom font import)
+
+System stack only (Material-Admin model). Zero web-font load = faster LCP, no CLS. `font-feature-settings: "tnum" 1` on `body` for tabular numerals on every metric.
+
+### Card pattern (canonical)
+
+```css
+.card {
+  padding: var(--space-4);
+  border-radius: var(--radius-medium);
+  border: 1px solid var(--border);
+  background: var(--surface-variant);
+  box-shadow: var(--elev-1);
+  transition: box-shadow var(--t-base);
+}
+.card:hover { box-shadow: var(--elev-2); }
+.card.elevated { padding: var(--space-6); }
+```
+
+### Button hierarchy (5 variants)
+
+| Variant | Background | Foreground | Border | Use |
+|---|---|---|---|---|
+| **Filled** | `var(--primary)` | `white` | none | Primary action (Complete Day, Save) |
+| **Tonal** | `color-mix(in oklch, var(--primary) 20%, transparent)` | `var(--primary)` | none | Secondary action (Log weight, Add meal) |
+| **Outlined** | transparent | `var(--primary)` | `1px solid var(--primary)` | Destructive secondary (Unlock day) |
+| **Text** | transparent | `var(--primary)` | none | Tertiary (Cancel, Dismiss) |
+| **Icon** | transparent (hover: `--primary` @ 8%) | `var(--on-surface)` | none | Nav, density, in-card actions |
+
+All: `padding: 0.75rem 1.5rem`, `border-radius: var(--radius-small)`, `font-weight: 500`, `font-size: var(--text-label)`, `transition: all var(--t-base)`.
+
+### Risks logged (must verify before P1 lands)
+
+1. **Dark-first cascade discipline** — define both variants in `:root` + `[data-theme="light"]` block; never override per-component.
+2. **WCAG-AA contrast verification** — every adopted color pair must hit ≥ 4.5:1 for text via WebAIM checker before merge.
+3. **Glass scope creep** — comment `⚠️ Glass restricted to backdrop + banner only` in `tokens.css`.
+4. **Icon library lock-in** — Material Symbols only; ban FontAwesome / Lucide imports in lint config.
+
+### Deferred design decisions (open — 2026-05-03)
+
+A polished React mockup was reviewed on 2026-05-03; eight strengths were adopted into canon (see § 3.6, § 6.1, § 6.4, § 7, § 11.5). Two divergences from this canon are **deferred** pending explicit user decision and **must not** be applied to tokens or shell until resolved:
+
+1. **Primary color: teal vs. blue.** The mockup uses `#14b8a6` (teal) end-to-end as primary. Canon currently locks `--primary: oklch(55% 0.15 262)` (blue, ~`#1E88E5`). Switching primary touches every interactive surface; defer until the user chooses. Until then: keep blue, render mockup screenshots with the documented divergence.
+2. **Decorative background gradients.** The mockup paints subtle radial gradients (teal / orange / green at 5–12 % alpha) behind the app shell. Canon today is flat `--surface` / `--surface-variant`. This conflicts with § 3.5's "subtle backgrounds, high-contrast foreground text" rule and the no-glass-on-shell discipline. Defer.
+
+Both must be resolved (yes / no with rationale) before P1 token migration lands.
+
+## 3.6 · Panel header convention (libTag)
+
+Every dashboard panel header in § 6.4 surfaces its **source library or service path** as a small uppercase tag in the top-right of the panel header. This makes the Unified Library Pattern (§ 11.5) visible in the UI and is the single most important affordance that signals to the user which curated collection drives the panel.
+
+```css
+.panel-head .lib-tag {
+  font-size: 10px;                       /* text-[10px] */
+  text-transform: uppercase;
+  letter-spacing: 0.15em;                /* tracking-widest */
+  background: rgba(255,255,255,0.05);    /* bg-white/5 */
+  color: var(--on-surface-faint);
+  padding: 3px 9px;
+  border-radius: var(--radius-pill);
+}
+```
+
+Examples (canonical strings — copy these exactly when authoring panels):
+
+| Panel | libTag |
+|---|---|
+| Spirituality / Prayers | `~/shared-services/prayer-times` |
+| Workout | `workoutLibrary.routines · title field` |
+| Cannabis | `cannabisProducts · session planner` |
+| Food | `meals library · weekly auto-plan` |
+| Sweet Tooth | `sweetToothItems · friction confirm` |
+| Working from | `workLocations · session timer` |
+
+Cross-reference: § 11.5.7.
+
 ## 4 · App Shell + Responsive Navigation
 
 | Breakpoint | Range | Navigation |
@@ -97,24 +269,92 @@ History is reachable from the date-strip of every routine view (week navigation 
 Dashboard composition (top to bottom on mobile; multi-pane on desktop):
 
 ### 6.1 Profile + Weight banner *(always visible)*
-Avatar · name · brief metadata (height, age, IF window, taper week) · 5 metrics (current weight, vs last wk, goal, Δ to goal, BMI) · "+ Log weight" pill.
+Avatar · name · brief metadata (height, age, IF window, taper week) · 4 metrics (current weight, vs last wk, goal, Δ to goal — BMI moved to Profile route) · **calorie ring cluster** (rightmost) · "+ Log weight" pill.
+
+**Calorie ring cluster.** A 72×72 ring rendered with `conic-gradient` from `--primary` (filled portion) to `--surface-faint` (remaining), with an inset 6 px-margin disc using the banner's glass treatment (`backdrop-filter: blur(20px)` + low-alpha surface) and the **percentage centered in tabular numerals** (e.g., "16%"). Adjacent label cluster shows `Calories today` (caption, dim) · `320 / 2000` (title, on-surface) · `1680 remaining` (caption, success-tinted).
+
+```css
+.banner-ring {
+  position: relative; width: 72px; height: 72px;
+  border-radius: 50%;
+  background: conic-gradient(var(--primary) 0deg var(--ring-deg, 0deg),
+                             var(--on-surface-faint) var(--ring-deg, 0deg) 360deg);
+  display: flex; align-items: center; justify-content: center;
+}
+.banner-ring::before {
+  content: ''; position: absolute; inset: 6px; border-radius: 50%;
+  background: color-mix(in oklch, var(--surface) 60%, transparent);
+  backdrop-filter: blur(20px);
+}
+.banner-ring .pct { position: relative; font-feature-settings: "tnum" 1; font-weight: 800; }
+```
+
+The ring is the **single canonical surface for the calorie progress signal** — § 6.3 no longer carries it.
 
 ### 6.2 Date header + week strip
 Today's date · prev/next day arrows · 7-chip week strip with today highlighted in `primary` gradient · range hint ("Sun → Sat").
 
-### 6.3 Daily aggregate summary tiles
-Compact tiles for: **Calories** · **Protein** · **Carbs** · **Fat** · **Workouts** · **Weight Δ** · **Cannabis (mg)** · **Mood** *(Phase 1.5)*. Each tile is value + trend + target.
+**Mobile fallback (≤ 599 px).** When horizontal space is constrained, the 7-chip strip MAY collapse to a single-day display flanked by prev/next arrows (the variant shown in the 2026-05-03 mockup). The 7-chip strip remains canonical on tablet and up. Implementations on mobile must still expose direct-jump within the ±1-week window via tap-and-hold or a sheet.
+
+### 6.3 Summary chip strip *(rewritten 2026-05-03 post-scope cut)*
+
+The legacy 8-tile aggregate row (`Calories · Protein · Carbs · Fat · Workouts · Weight Δ · Cannabis (mg) · Mood`) is **removed**. Macros (protein / carbs / fat) left scope with commit `4629266`; calories now live in the § 6.1 banner ring.
+
+What remains is a **compact summary chip strip** rendered between the banner and the accordion — small, glanceable, single-row on mobile, never the focal point:
+
+| Chip | Value format | Target / context |
+|---|---|---|
+| **Workouts** | `1 ✓ · 1 ▶` | done / in-progress count vs weekly schedule (HT-CORE-001 decision 7) |
+| **Weight Δ** | `▼ 0.6 lb` | vs last week, success/error coloring on direction |
+| **Cannabis** | `15 / 73 mg` | today vs taper-day cap |
+| **Mood** *(Phase 1.5)* | emoji + 1–5 | from Notes section |
+
+Each chip is a tonal pill (`--surface-variant` background, `--radius-pill`, `padding: 6px 14px`, `font-size: var(--text-caption)`), label dim, value on-surface, optional trend glyph. No charts. No tile cards. The strip is purely a status snapshot — drilldown happens inside the matching accordion panel.
 
 ### 6.4 Accordion sections — exactly one expanded at a time
-Collapsed headers show summary chips (e.g., "Food · 320/2000 cal · BREAKFAST done"). Sections:
 
-1. **Prayers** — 5-tile horizontal grid (Fajr / Dhuhr / Asr / Maghrib / Isha) with scheduled times
-2. **Workout** — 3 track tiles (Walk / Kickboxing / Weights), today's recommendation highlighted
-3. **Cannabis** — split: Limits (metric strip + progress bar) ←→ Sessions (3 planned tiles, back-scheduled from bedtime)
-4. **Food** — fasting state · allowed-during-fast counters · feeding window meals · daily calorie sum vs target
-5. **Sweet Tooth** — discouraging visual treatment · 4 indulgence counters · 14-day streak strip · friction-confirm modal
-6. **Working from** — location picker · session timer
-7. **Notes** — free-text journal entry per day *(Phase 1.5)*
+The accordion **single-open invariant** is canon (mobile-first cognitive load, scroll discipline). Mockups or marketing screenshots that show every panel expanded are review affordances only — production renders one expanded panel and the rest collapsed with summary chips (e.g., "Food · 320/2000 cal · BREAKFAST done"). Every panel header carries its libTag (§ 3.6).
+
+1. **Prayers** — 5-tile horizontal grid (Fajr / Dhuhr / Asr / Maghrib / Isha) with scheduled times. libTag: `~/shared-services/prayer-times`.
+
+2. **Workout** — three-chip selection row (Walk / Kickboxing / Weights). Tapping `Weights` reveals an **inline routine-picker dropdown** with each routine showing `title · meta` (e.g., "Chest & Triceps — 6 exercises · ~45 min") and an `+ Add` button per row; the picker is bordered tonal and collapses on selection. Below the chips, **session tiles render in a 2-col grid** (1-col on mobile) showing each session's state:
+   - **Completed:** `--success` 10 % tint background, `✓` badge, volume + timing meta (e.g., "Volume 4,820 lb · 8:30–9:15 am · done").
+   - **In-progress:** `--warning` border, `▶` badge, "started 4:10 pm" meta, "In progress" right-side caption.
+   - All tiles end with a chevron-right affordance to drill into MyNetDiary detail.
+
+   Hard caps (e.g., max 2 weight sessions/day) render as a red-bordered notice that disables the picker until tomorrow. libTag: `workoutLibrary.routines · title field`.
+
+3. **Cannabis** — sessions render in a **2-col session card grid** (1-col on mobile). Each card has three rows:
+   - **Top row:** time (e.g., `2:30 pm`, on-surface, weight 700) + **form-badge pill** (`EDIBLE` / `VAPE` / `FLOWER`, uppercase caption, surface-variant bg, radius-pill).
+   - **Middle row:** product icon (36×36, surface bg, radius 9 px) + product name + dose meta line (e.g., "½ piece · 25 mg · ⭐⭐⭐").
+   - **Bottom row:** tonal `Log session` pill button (radius-pill, primary tonal — primary at 12 % bg, primary border at 35 % alpha).
+
+   Below the grid, the algorithm-transparency footer (§ 7) shows: `favorites-weighted · onset back-scheduled from 8 pm bedtime · variety constraint (no same product back-to-back)`. libTag: `cannabisProducts · session planner`.
+
+4. **Food** — top of panel shows the **IF state alert strip** (only during fasting state):
+   - Background: `color-mix(in oklch, var(--warning) 10%, var(--surface-variant))` with `--warning` border at 30 % alpha; padding `10px 14px`; radius-medium.
+   - Left side: `FASTING` badge (`--warning` solid bg, near-black text, weight 700, uppercase caption, radius-pill) + countdown (`Window opens in 2h 14m`).
+   - Right side: `14:32 since last meal · 96% 7-day adherence` (caption, dim, `strong` for the metric).
+   - When `state === 'feeding-window'`: the strip flips to `--success`-tinted with `FEEDING WINDOW · closes in Xh Ym`.
+   - When `state === 'eating-window-passed'`: hidden; meal rows simply dim.
+
+   Below the strip, meals render in a **4-column grid** per row (`grid-template-columns: 36px 1fr 110px 32px`, 12 px gap, 12 px padding, radius-medium) with three visual states:
+
+   | State | Treatment | Slot label | Sub-line |
+   |---|---|---|---|
+   | (a) eaten pre-window | `--success` 10 % tint background, `✓` filled check (success bg) | `Breakfast (pre-window)` | "eaten 8:30 am · before fast started" |
+   | (b) feeding-window pending | solid `--surface-variant`, `○` outlined check | `Lunch · feeding window` | scheduled time |
+   | (c) post-window | 50 % opacity (dimmed), outlined check | `Snack · post-window` | "window closed at 6 pm" |
+
+   Cell layout: `[36 px icon] [1fr name + slot + time stack] [110 px cal-input] [32 px check]`. The cal input is an inline number field with `cal` suffix; the check button is circular (32×32, radius-pill, **filled `--primary` when ✓**, outlined `--on-surface-dim` when pending).
+
+   Below the meal list: algorithm-transparency footer — `Each calorie input sums into the profile-banner ring. Weekly plan auto-generated every Sunday from favorites; tap meal to swap.` libTag: `meals library · weekly auto-plan`.
+
+5. **Sweet Tooth** — discouraging visual treatment · 4 indulgence counters · 14-day streak strip · friction-confirm modal. **Stays in spec** (the 2026-05-03 mockup omitted this panel; canon retains it). libTag: `sweetToothItems · friction confirm`.
+
+6. **Working from** — location picker · session timer. **Stays in spec.** libTag: `workLocations · session timer`.
+
+7. **Notes** — free-text journal entry per day *(Phase 1.5)*. **Stays in spec.**
 
 ### 6.5 Day-complete footer
 Centered `primary` filled pill button: "✓ Complete Day" → confirmation modal → locks the day. Locked banner shows summary + "⚠️ Unlock (logged as violation)" outlined button.
@@ -130,6 +370,32 @@ Centered `primary` filled pill button: "✓ Complete Day" → confirmation modal
 - **Snackbars** for minor confirmations ("+1 water"); auto-dismiss 4 s.
 - **Inline alerts** for important issues (fasting-window violations, dose-cap blocks).
 - **Avoid excessive modals** — bottom sheets on mobile, side panels on desktop.
+
+### 7.1 Algorithm-transparency footers *(adopted 2026-05-03)*
+
+Every panel that runs a **non-trivial algorithm** (recommendation, back-scheduling, auto-plan, weighted selection, hard caps) shows a small italic note at the bottom of the panel that explains the logic in one line. This is non-negotiable — the user must always understand *why* the system suggested what it suggested.
+
+```css
+.panel-algo-note {
+  font-size: 10.5px;
+  color: var(--on-surface-faint);
+  text-align: center;
+  font-style: italic;
+  margin-top: 12px;          /* mt-3 */
+  line-height: 1.5;
+}
+```
+
+Canonical footer copy (use verbatim — these strings are part of the spec):
+
+| Panel | Footer text |
+|---|---|
+| Cannabis | `favorites-weighted · onset back-scheduled from 8 pm bedtime · variety constraint (no same product back-to-back)` |
+| Food | `Each calorie input sums into the profile-banner ring. Weekly plan auto-generated every Sunday from favorites; tap meal to swap.` |
+| Workout (when recommendation visible) | `Most-behind track surfaces first · weekly count drives chip ordering · routines from workoutLibrary.routines (title · category · estDurationMin)` |
+| Sweet Tooth | `14-day streak resets on any indulgence · color intensity scales with frequency` |
+
+Panels without a recommendation engine (Prayers, Working from, Notes) do **not** carry an algorithm footer.
 
 ## 8 · Responsive Behavior
 
@@ -317,6 +583,21 @@ All slices share `schemaVersion` + migration registration (HT-CORE-009). Audit f
 | `sweetToothItems` | Today Sweet Tooth card | discouraged: true (always), categoryColor: 'red' |
 
 Eight libraries today; the pattern accommodates new libraries without core changes.
+
+### 11.5.7 Library-to-panel surfacing (libTag)
+
+The Unified Library Pattern is invisible to the user unless we surface it. **Every dashboard panel header in § 6.4 shows a libTag** that names the library or service driving that panel (see § 3.6 for the visual spec). The libTag is not decorative — it's the user-facing seam between curated data (libraries) and daily checklist consumption.
+
+| Panel (§ 6.4) | libTag string | Source library |
+|---|---|---|
+| Prayers | `~/shared-services/prayer-times` | external service (decision 2) |
+| Workout | `workoutLibrary.routines · title field` | `workoutRoutines` |
+| Cannabis | `cannabisProducts · session planner` | `cannabisProducts` |
+| Food | `meals library · weekly auto-plan` | `meals` |
+| Sweet Tooth | `sweetToothItems · friction confirm` | `sweetToothItems` |
+| Working from | `workLocations · session timer` | `workLocations` |
+
+If a future panel does not source from a library, it is by definition **not a daily-checklist panel** and belongs on a different route — this is an HT-CORE-003 invariant.
 
 ## 12 · Data Model
 
