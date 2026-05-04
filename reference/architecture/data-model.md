@@ -48,7 +48,7 @@ type PersistedRoot = {
 };
 ```
 
-> **Phase 0 scope change (2026-05-03):** `foodSlice` is removed. Daily nutrition is no longer tracked in HealthTracker — MyNetDiary is the system of record. The meal planner stores reference macros (per MyNetDiary) and computes scaled macros at consumption time via `totalWeightWithPlate − emptyPlateWeight` for the user's consistent-plate workflow. See [`feature-roadmap.md`](feature-roadmap.md) §Phase 1 for the planner UX.
+> **Phase 0 scope change (2026-05-03):** `foodSlice` is removed. Daily nutrition is no longer tracked in HealthTracker — MyNetDiary is the system of record. The meal planner stores reference macros (per MyNetDiary) and computes scaled macros at consumption time via `plateWeight − emptyPlateWeight` for the user's consistent-plate workflow (the `plateWeight` field on `MealPlanSlot` was named `totalWeightWithPlate` pre-2026-05-04). See [`feature-roadmap.md`](feature-roadmap.md) §Phase 1 for the planner UX.
 
 ## Slice schemas (current target — Phase 0 lands these)
 
@@ -56,7 +56,7 @@ type PersistedRoot = {
 
 The food log table is being retired. Existing user data is exported to JSON via Profile → "Export legacy food logs" (Phase 0 commit B-legacy), then the table is dropped via migration v1→v2.
 
-**Replacement model:** consumption is captured on `MealPlanSlot` (see below) — `eaten: boolean`, `eatenAt: string | null`, `totalWeightWithPlate: number | null`. Macros are computed on demand via `data/calculators/macroMath.js`.
+**Replacement model:** consumption is captured on `MealPlanSlot` (see below) — `eaten: boolean`, `eatenAt: string | null`, `plateWeight: number | null` (was `totalWeightWithPlate` pre-2026-05-04). Macros are computed on demand via `data/calculators/macroMath.js`.
 
 Munchies tracking stays on `cannabisSlice.sessions[].munchiesTriggered` + `munchiesLevel` (self-contained; no food-log cross-reference).
 
@@ -140,6 +140,8 @@ type CannabisSession = AuditFields & {
 
 ### mealSlice.inventory[] : MealInventoryItem
 
+> **Seed pack and CSV importer contract:** see [`reference/product/meal-library-seed.md`](../product/meal-library-seed.md) (30-row starter pack, MyNetDiary CSV column map, idempotent upsert rules, conflict resolution). The schema descriptor in `app/src/data/library/schemas/meals.ts` binds to the type below.
+
 ```ts
 type MealInventoryItem = AuditFields & {
   name: string;
@@ -165,25 +167,21 @@ type MealInventoryItem = AuditFields & {
 
 > **Plate-weight scaling math** (in `data/calculators/macroMath.js`):
 > ```
-> food_weight = max(0, totalWeightWithPlate − profile.plateDefaults[category])
+> food_weight = max(0, plateWeight − profile.plateDefaults[category])
 > scaled.calories = refCalories × (food_weight / referenceWeight)
 > // … same ratio for protein/carbs/fat
 > ```
+> The `plateWeight` field on `MealPlanSlot` is the user-entered total mass on the plate (food + plate). The shorthand formula `refCalories × plateWeight / referenceWeight` used in `DESIGN-REQUIREMENTS.md` § 6.4 / `meal-library-seed.md` § preface is illustrative; the actual derivation always subtracts `profile.plateDefaults[category]` first inside `macroMath.js` before scaling. Renamed from `totalWeightWithPlate` (architect pass 2026-05-04) — same field, shorter canonical name; v_legacy → v3 migration coerces.
 
 ### mealSlice.weeklyPlan : MealPlan
 
+> **Seed pack and CSV importer contract:** see [`reference/product/meal-library-seed.md`](../product/meal-library-seed.md). `MealPlan` is the per-domain plan blob consumed by the Food panel (§ 6.4) and `/plan` (§ 6.6). Authoring is performed by `WeeklyPlanGenerator` (see `reference/architecture/architecture.md` § WeeklyPlanGenerator service); cross-domain envelope is `WeeklyPlan` below.
+
 ```ts
 type MealPlan = AuditFields & {
-  startDate: string;                    // ISO date (Mon)
+  startDate: string;                    // ISO date (Sun) — week begins Sunday per Decision #5/#24
   days: {
-    [date: string]: {
-      breakfast: MealPlanSlot;
-      lunch: MealPlanSlot;
-      dinner: MealPlanSlot;
-      snack: MealPlanSlot;
-      shakes: MealPlanSlot[];           // 0..N shakes per day, flex-add
-      locked: boolean;                  // user-locked from regen
-    };
+    [date: string]: MealPlanDay;
   };
   algorithmConfig: {
     favoriteWeight: number;             // 1.0..3.0; favorites preferred in rotation
@@ -192,16 +190,62 @@ type MealPlan = AuditFields & {
   };
 };
 
+type MealPlanDay = {
+  breakfast: MealPlanSlot;
+  lunch: MealPlanSlot;
+  dinner: MealPlanSlot;
+  snack: MealPlanSlot;
+  shakes: MealPlanSlot[];               // 0..N shakes per day, flex-add
+  locked: boolean;                      // user-locked from regen (mirrors WeeklyPlan.locks[])
+};
+
 type MealPlanSlot = {
   mealInventoryId: string | null;       // null = no meal planned
   eaten: boolean;
   eatenAt: string | null;               // ISO timestamp; used for fasting-window adherence
-  totalWeightWithPlate: number | null;  // grams; user enters at check-off
+  plateWeight: number | null;           // grams; user-entered total mass on the plate (food + plate); was `totalWeightWithPlate` pre-2026-05-04 rename
   notes: string;
 };
 ```
 
 > Shopping-list builder (Phase 1) is on-demand — a button on the Weekly Plan view. Aggregates each meal's `ingredients` across the week, scaled by category plate weight × number of plates.
+
+### mealSlice.weeklyPlan : WeeklyPlan (cross-domain envelope)
+
+`WeeklyPlan` is the cross-domain plan blob produced by `WeeklyPlanGenerator` (decision #24). It composes per-domain `*PlanDay` shapes into a single weekly object the `/plan` route renders. Persistence is split across slices (`mealPlanSlice`, `workoutPlanSlice`, plus derived cannabis at read-time); this envelope is a *view-time* compose, not a separate persisted slice.
+
+```ts
+type WeeklyPlan = {
+  startDate: string;                    // ISO date (Sun)
+  days: {
+    [date: string]: {
+      meals:    MealPlanDay;            // from mealPlanSlice
+      workout:  WorkoutPlanDay;         // from workoutPlanSlice (P1.D)
+      cannabis: CannabisPlanDay;        // derived at read-time via getDailyCannabisPlan()
+    };
+  };
+  locks: string[];                      // ISO date list — locked rows survive regeneration
+  algorithmConfig: {
+    meal:     MealPlan['algorithmConfig'];
+    workout:  WorkoutPlanAlgorithmConfig;     // weekly counts, fitness gating
+    cannabis: CannabisPlanAlgorithmConfig;    // taper week, bedtime, ceiling
+  };
+};
+
+type WorkoutPlanDay = {
+  routineId: string | null;             // → workoutRoutines.id; null = rest day
+  type: 'walk' | 'kickboxing' | 'weights' | 'rest';
+  estDurationMin: number | null;
+  locked: boolean;
+};
+
+type CannabisPlanDay = {
+  sessions: { time: string; productId: string; doseMg: number }[];  // back-scheduled from bedtime
+  taperCeilingMg: number;               // computed from taper formula (decisions #1, #4)
+};
+```
+
+`WorkoutPlanAlgorithmConfig` and `CannabisPlanAlgorithmConfig` shapes are defined alongside their slices when those land in P1.D / P0 respectively.
 
 ### todoSlice.items[] : Todo (Phase 3 schema, scaffolded Phase 0)
 
@@ -329,7 +373,7 @@ export const migrations = [
       //   7. Add mealSlice.weeklyPlanHistory = [].
       //   8. MealInventoryItem: drop {servingSize, calories, protein, carbs, fat, fiber, sodium}; require {referenceWeight, referenceUnit, refCalories, refProtein, refCarbs, refFat}; add {tags, prepNotes, mynetdiaryUrl}.
       //   9. Coerce existing MealInventoryItem entries: missing reference fields → set to 100g + previously-stored macros (lossless if old fields present).
-      //  10. Convert MealPlan.days[date].{breakfast,lunch,dinner,snack} from string|null to MealPlanSlot{mealInventoryId, eaten:false, eatenAt:null, totalWeightWithPlate:null, notes:''}.
+      //  10. Convert MealPlan.days[date].{breakfast,lunch,dinner,snack} from string|null to MealPlanSlot{mealInventoryId, eaten:false, eatenAt:null, plateWeight:null, notes:''}. Any existing slot with the legacy `totalWeightWithPlate` key is renamed in place to `plateWeight` (architect rename 2026-05-04, semantically identical).
       //  11. Initialize MealPlan.days[date].shakes = [].
       //  12. Drop MealPlan.algorithmConfig.macroTargets; keep favoriteWeight + repeatGapDays; add categoryConstraint:true.
     } },

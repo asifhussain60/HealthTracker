@@ -162,4 +162,4 @@ definition_of_done:
   - All enforcement_gates passed
   - Sweep catalogue closed
   - Regression suite green
-  - Handoff for next phase written to _workspace/handoffs/
+  - Handoff for next phase written to _workspace/plan/
