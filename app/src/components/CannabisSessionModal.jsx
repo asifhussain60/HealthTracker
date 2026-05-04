@@ -129,7 +129,10 @@ export function CannabisSessionModal({ onClose, planSession = null, isExtra = fa
   const handleSubmit = () => {
     if (!form.productId || !form.amount) return;
 
-    const firstMealLogged = useStore.getState().getTodayFoodLogs().length > 0;
+    // getTodayFoodLogs removed per Decision #13 (D13); first-meal check will
+    // be re-implemented against mealPlanSlice in Phase 1.E (E5).
+    // Temporarily treat as "meal logged" so the warning is suppressed until P1.E.
+    const firstMealLogged = true; // stub until P1.E replaces with mealPlanSlice
     if (!firstMealLogged) {
       addToast('⚠ Hard rule: No cannabis before your first meal of the day.', 'warning');
     }

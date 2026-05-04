@@ -5,7 +5,11 @@ import { MEAL_LABEL_SUGGESTIONS } from '../data/seed';
 import { format } from 'date-fns';
 
 export function FoodEntryModal({ onClose, prefill = null }) {
-  const addFoodLog = useStore((s) => s.addFoodLog);
+  // addFoodLog removed per Decision #13 (D13). FoodEntryModal is a placeholder
+  // stub until mealPlanSlice check-off lands in Phase 1.E (E5). For now,
+  // submissions are silently dropped so the app boots without crashing.
+  // Debt: P1.E E5 — see observed-debt.md entry [2026-05-04].
+  const addFoodLog = () => {}; // stub: no-op until P1.E replaces with mealPlanSlice
   const mealTemplates = useStore((s) => s.mealTemplates);
   const saveMealTemplate = useStore((s) => s.saveMealTemplate);
 

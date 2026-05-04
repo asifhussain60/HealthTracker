@@ -36,7 +36,9 @@ function ChartCard({ title, children, empty }) {
 export function HistoryView() {
   const [range, setRange] = useState(7);
   const weightHistory = useStore((s) => s.weightHistory);
-  const foodLogs = useStore((s) => s.foodLogs);
+  // foodLogs removed per Decision #13 (D13). Nutrition chart is a placeholder
+  // until mealPlanSlice calorie sums land in Phase 1.E (E5).
+  const foodLogs = [];
   const cannabisLogs = useStore((s) => s.cannabisLogs);
   const workoutLogs = useStore((s) => s.workoutLogs);
   const photos = useStore((s) => s.photos);

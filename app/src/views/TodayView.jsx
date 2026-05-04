@@ -49,15 +49,16 @@ export function TodayView() {
   const todayStr = format(new Date(), 'yyyy-MM-dd');
   const demoMode = useStore((s) => s.demoMode);
   const profile = useStore((s) => s.profile);
-  const allFoodLogs = useStore((s) => s.foodLogs);
   const allCannabisLogs = useStore((s) => s.cannabisLogs);
   const allWorkoutLogs = useStore((s) => s.workoutLogs);
   const inventory = useStore((s) => s.inventory);
-  const deleteFoodLog = useStore((s) => s.deleteFoodLog);
 
+  // foodLogs removed per Decision #13 (D13) — food tracking delegated to MyNetDiary.
+  // Demo mode still shows demo food data for visual completeness (B4 scope).
+  // Full replacement lands in Phase 1.E (E5) via mealPlanSlice.
   const foodLogs = demoMode
     ? DEMO_FOOD_LOGS.map((e) => ({ ...e, date: todayStr }))
-    : allFoodLogs.filter((e) => e.date === todayStr);
+    : [];
 
   const cannabisLogs = demoMode
     ? DEMO_CANNABIS_LOGS.map((e) => ({ ...e, date: todayStr }))
@@ -237,9 +238,7 @@ export function TodayView() {
                   )}
                   {entry.notes && <div className="v2-meal-notes">{entry.notes}</div>}
                 </div>
-                {!demoMode && (
-                  <button className="btn-icon btn-icon--delete" onClick={() => deleteFoodLog(entry.id)}>✕</button>
-                )}
+                {/* delete button removed: foodLogs replaced by mealPlanSlice in P1.E */}
               </div>
             ))}
           </div>
