@@ -6,8 +6,11 @@
  * No Date.now() / new Date() — callers inject date when needed.
  *
  * Memoization: single-input memo with reference-equality check (no reselect dependency).
- * B10 debt: mealInventory and mealPlan slice keys are placeholder shapes;
- *   the v_legacy → v3 migration will populate them. Selectors return [] / null gracefully.
+ * Open debt (P1.D D15): mealInventory + mealPlan slice keys are not yet renamed from
+ *   the legacy mealTemplates shape; the rename + library-pattern migration is reserved
+ *   for the meal-library seed commit. Selectors default-guard so the app does not crash
+ *   in the meantime. See _workspace/scratch/observed-debt.md "Tracker → Planner refactor
+ *   debt (2026-05-04)" entry, deadline P1.D D15.
  */
 
 // ── Memo helper ───────────────────────────────────────────────────────────────

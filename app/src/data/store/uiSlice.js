@@ -1,13 +1,14 @@
 /**
  * uiSlice.js
  *
- * Owns: demoMode, toasts, featureFlags, activeView, photos
+ * Owns: demoMode, toasts, featureFlags, activeView, photos.
  *
- * B11 note: featureFlags and activeView are placeholders per data-model.md §UiState.
- * Full wiring (URL ?ff= override, activeView routing) lands in B11.
+ * featureFlags is wired by useFeature() (lib/useFeature.js) with URL ?ff= override
+ * (B11 — shipped). activeView is reserved per data-model.md §UiState; current routing
+ * uses local React state in App.jsx and will migrate here when route persistence lands.
  *
- * photos is kept here as it has no dedicated slice in data-model.md v_legacy shape.
- * It will be reviewed in B10 (v_legacy → v3 migration).
+ * photos has no dedicated slice in data-model.md; deferred to P1.D when the profile
+ * editor lands (see observed-debt.md B4 / 2026-05-04 photos entry, deadline P1.D).
  */
 
 let toastId = 0;
@@ -15,8 +16,8 @@ let toastId = 0;
 export const uiSliceInitial = {
   demoMode: false,
   toasts: [],         // Toast[] — { id, message, type }
-  featureFlags: {},   // Record<string, boolean> — placeholder per UiState spec
-  activeView: null,   // string | null — placeholder; full wiring in B11
+  featureFlags: {},   // Record<string, boolean> — read by useFeature() (B11)
+  activeView: null,   // string | null — reserved per UiState spec; routing currently in App.jsx
   photos: [],         // Photo[] — { id, date, weight, viewType, dataUrl, notes }
 };
 

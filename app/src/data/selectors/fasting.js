@@ -6,8 +6,9 @@
  * No Date.now() / new Date() — callers inject `now` as ISO 8601 string.
  *
  * Composes fastingMath calculators. Meal slot data is read from mealPlan.
- * B10 debt: mealPlan and mealInventory shapes are placeholder; selectors
- *   gracefully return sensible defaults when those keys are absent.
+ * Open debt (P1.D D15): mealPlan + mealInventory keys are not yet renamed from
+ *   the legacy mealTemplates shape; selectors default-guard so the app does not
+ *   crash in the meantime. See observed-debt.md, deadline P1.D D15.
  */
 
 import { currentState, windowAdherence } from '../calculators/fastingMath.js';
