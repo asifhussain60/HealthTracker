@@ -8,7 +8,7 @@
 
 id: ht-core-rules
 version: "1.0"
-last_updated: "2026-05-03"
+last_updated: "2026-05-04"  # P0 close-out D6 — reviewed; no new rule discovered
 status: active
 authority: framework.md
 

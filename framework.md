@@ -1,7 +1,7 @@
 # HealthTracker Framework
 
 **Version:** 1.0
-**Last updated:** 2026-05-04 (solo-user scope locked)
+**Last updated:** 2026-05-04 (P0 close-out D6 doc-sync — sub-phases A/B/C all ✅; close-out D1–D5 landed)
 **Status:** active
 
 This document is the central governance contract for the HealthTracker repo. It lists the agents, file ownership, rules of engagement, and cross-references to the active execution plan. Update this file when phases land, agents change, or governance rules evolve.
@@ -170,7 +170,7 @@ Never both. Never neither.
 
 `_workspace/plan/program-roadmap.md` is the single source of truth for the program — universal phase shape (PF → build → close-out → handoff), refactor + cleanup cadence at four levels each, and the 6-phase roadmap (P0..P5). Per-phase commit maps live in `_workspace/plan/phase-N-*.md`.
 
-**Active:** P0 (Refactor + Scaffolding). Sub-phases A → D, with sub-phase D re-aligned 2026-05-04 to the canonical 7-commit close-out recipe (D1, D3, D4, D5, D6, D7a, D7b; D2 retired).
+**Active:** P0 (Refactor + Scaffolding) — sub-phases A, B, C all ✅; sub-phase D close-out in progress per the canonical 7-commit recipe (D1 ✅, D3 ✅, D4 ✅, D5 ✅, D6 in this commit, D7a + D7b pending; D2 retired). Phase 1 master plan exists at `_workspace/plan/phase-1-master-plan.md` and will be activated when D7b lands the `phase-0-complete` tag.
 
 ## DoR Hard Gate
 

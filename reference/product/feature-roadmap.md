@@ -25,18 +25,18 @@ Each phase ends with a mandatory close-out sub-phase (7 commits) per `program-ro
 
 ---
 
-## Phase 0 — Refactor + scaffolding (active)
+## Phase 0 — Refactor + scaffolding (close-out in progress)
 
 Lift the legacy SPA onto the architecture-of-record (slices, calculators, selectors, repositories, audit fields, schemaVersion) without changing any user-facing behavior.
 
-**Build sub-phases (active):**
-- Sub-phase A — Governance scaffold (✅ shipped 2026-05-03)
-- Sub-phase B — Code refactor (in progress; B1–B5 ✅ as of 2026-05-04)
-- Sub-phase C — Component decomposition
+**Build sub-phases (all ✅ as of 2026-05-04):**
+- Sub-phase A — Governance scaffold (✅ 2026-05-03; framework + agents + skills)
+- Sub-phase B — Code refactor (✅ 2026-05-04; B1–B12, B15 — slice split, calculators, selectors, StorageAdapter, repos, single forward migration v_legacy → v3, preflight script, adapter stubs. B13 + B14 retired per the DoR convergence rewrite.)
+- Sub-phase C — Component decomposition (✅ 2026-05-04; C1–C8 — 8 primitives, TodayView card decomposition, route registry, MealsView/TodosView shells, CannabisProductScorecard extraction.)
 
-**Close-out sub-phase D** — 7-commit close-out per `program-roadmap.md` § 1.
+**Close-out sub-phase D — 7-commit close-out per `program-roadmap.md` § 1 (in progress).** Commits: D1 refactor (✅), D3 debt resolution (✅), D4 sweep close (✅), D5 audit + challenge (✅), D6 doc sync (this commit), D7a perf baseline, D7b tag + handoff. D2 retired (Phase 1 master plan already exists).
 
-**User-visible deliverable:** none (architecture-only).
+**User-visible deliverable:** none (architecture-only). 605 tests across 54 test files; preflight clean; bundle 196.85 KB gz.
 
 ---
 

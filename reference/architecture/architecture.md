@@ -27,7 +27,7 @@ A **solo-user** React SPA today; a **solo-user PWA with optional cloud-backup + 
 │  data/migrations/        schema-version migrations          │
 ├─────────────────────────────────────────────────────────────┤
 │  data/adapters/          StorageAdapter (Local | Supabase)  │
-│  contexts/               AuthContext, FeatureFlagsContext   │
+│  data/auth/              CURRENT_USER_ID = 'me' constant    │
 └─────────────────────────────────────────────────────────────┘
 ```
 
