@@ -56,6 +56,7 @@ generateWeeklyPlan({
 - **Writes:** `mealPlanSlice` and `workoutPlanSlice` only. Cannabis day-plans are delegated to the existing `getDailyCannabisPlan()` calculator (no slice write — the calculator output is folded into `WeeklyPlan.days[date].cannabis` at read time).
 - **Never writes logs.** No `foodLogs`, no `mealLogsSlice`, no `workoutLogs`. The plan blob *is* the consumption surface (decision #24).
 - **Honors `locks[]`** — locked day-rows survive regeneration unchanged.
+- **Regen-immutability of consumed slots (PF-12 invariant).** `WeeklyPlanGenerator` MUST NOT overwrite any `MealPlanSlot` where `eaten===true`. An eaten slot is implicitly locked — independently of, and on top of, the explicit per-day `MealPlanDay.locked` and `WeeklyPlan.locks[]` mechanisms. Overwriting an eaten slot is an HT-CORE-008 audit-trail violation: the consumed `mealInventoryId`, `eatenAt`, `plateWeight`, and `notes` are observed history and cannot be silently rotated. The same rule applies to `WorkoutPlanDay` once a workout-completion field lands (P1.E E3) — extend at that time.
 
 **Strategy-pattern boundary.** `WeeklyPlanGenerator` composes three pluggable strategies, each a pure function (calculators tier):
 

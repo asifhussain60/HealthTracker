@@ -1,6 +1,6 @@
 # HealthTracker — Data Model
 
-**Status:** active · **Owner:** architect · **Last updated:** 2026-05-03
+**Status:** active · **Owner:** architect · **Last updated:** 2026-05-04 (PF-12: regen-immutability of eaten slots; canonical `DayClosure` with snapshot `schemaVersion`)
 
 This document is the canonical schema reference. Slices conform to it. Migrations enforce it. The auditor's Pass 4 (Brittleness) checks for drift.
 
@@ -208,6 +208,8 @@ type MealPlanSlot = {
 };
 ```
 
+> **Regen-immutability of consumed slots (PF-12 invariant).** `WeeklyPlanGenerator` MUST NOT overwrite a `MealPlanSlot` where `eaten===true`. Any such slot is implicitly locked, independently of the day-level `MealPlanDay.locked` flag and the week-level `WeeklyPlan.locks[]`. The eaten slot's `mealInventoryId`, `eatenAt`, `plateWeight`, and `notes` are observed history; rotating them would corrupt the audit trail (HT-CORE-008) and break the variance selectors enumerated in `_workspace/plan/phase-1-master-plan.md` §8. UX-side, `<FoodPanel>` blocks meal-swap on eaten slots with a snackbar instructing the user to unmark eaten before swapping. See `architecture.md` § WeeklyPlanGenerator service for the writer-side rule.
+
 > Shopping-list builder (Phase 1) is on-demand — a button on the Weekly Plan view. Aggregates each meal's `ingredients` across the week, scaled by category plate weight × number of plates.
 
 ### mealSlice.weeklyPlan : WeeklyPlan (cross-domain envelope)
@@ -246,6 +248,42 @@ type CannabisPlanDay = {
 ```
 
 `WorkoutPlanAlgorithmConfig` and `CannabisPlanAlgorithmConfig` shapes are defined alongside their slices when those land in P1.D / P0 respectively.
+
+### dayCloseSlice.closures[] : DayClosure (Phase 1, P1.F)
+
+`DayClosure` finalizes a day. Once closed, all selectors that read the day return read-only values; mutations are rejected unless an `UnlockEvent` is appended (and even then, the original `closedAt` snapshot is immutable — see PF-12 (b) below).
+
+```ts
+type DayClosure = AuditFields & {
+  date: string;                         // ISO date (local)
+  closedAt: string;                     // ISO timestamp
+  snapshot: DayClosureSnapshot;         // frozen view of every slice on the day
+  unlockEvents: UnlockEvent[];          // append-only; never deletable
+};
+
+type DayClosureSnapshot = {
+  schemaVersion: number;                // PF-12 (b): the snapshot carries its OWN version stamp
+  meals:    MealPlanDay;                // mealPlanSlice.days[date] at closedAt
+  workout:  WorkoutPlanDay;             // workoutPlanSlice.days[date]
+  cannabis: CannabisPlanDay;            // derived day-plan
+  prayer?:  PrayerLog;                  // prayerSlice entry for date
+  weight?:  WeightEntry;                // last weight on or before date
+  fasting?: { state: 'open' | 'opens-in' | 'closed-since'; computedAt: string };
+  sweetTooth?: SweetSlip[];             // append-only entries on date
+  workSessions?: WorkSession[];         // workSessionsSlice entries on date
+};
+
+type UnlockEvent = AuditFields & {
+  unlockedAt: string;                   // ISO timestamp
+  unlockedBy: string;                   // userId
+  reason: string;                       // free-text rationale
+  diffSummary: string;                  // human-readable summary of what changed after unlock
+};
+```
+
+> **Snapshot schemaVersion (PF-12 (b)).** `DayClosureSnapshot.schemaVersion` is set to `PersistedRoot.schemaVersion` at the moment of closure and **never re-migrated**. Future store-shape migrations interpret historical snapshots through their original version, never by re-shaping in place. This applies HT-CORE-009 (Schema-Versioned Persistence) to historical projections, not just the live store. Selectors that read `DayClosure.snapshot` MUST switch on `snapshot.schemaVersion` if the shape they consume has changed across versions.
+>
+> **Append-only invariant.** `unlockEvents[]` is append-only. The `closedAt` timestamp and `snapshot` blob are never mutated. Re-closing a previously unlocked day appends a new `UnlockEvent` with `diffSummary` describing the delta — it does not overwrite the original snapshot.
 
 ### todoSlice.items[] : Todo (Phase 3 schema, scaffolded Phase 0)
 
