@@ -6,7 +6,7 @@
  * Architecture:
  *   - Single forward migration: v_legacy → v3
  *   - Idempotent: running runMigrations() on an already-v3 state is a no-op
- *   - AC-P0-B10
+ *   - AC-P0-B10 / AC-P1D-D15
  *
  * The migration number here is 3 because this is Phase 0, commit B10.
  * The schemaVersion matches the AuditFields.schemaVersion on every record.
@@ -15,6 +15,8 @@
  * HT-CORE-009: every persisted blob carries schemaVersion.
  * HT-CORE-010: userId always 'me' under solo-user scope.
  */
+
+import { MEAL_SEED_30 } from '../library/seed/MEAL_SEED_30.js';
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 
@@ -255,6 +257,21 @@ function migrateLegacyToV3(state) {
   };
   const dailyCannabisPlan  = withoutFood.dailyCannabisPlan  ?? { plans: {} };
 
+  // ── Step 6: Seed mealLibrary[] (D15) ─────────────────────────────────────
+  // Only seed if the meals slice is currently empty (don't overwrite user meals).
+  // Each seed row is wrapped through backfillAuditFields for audit compliance.
+  const existingMeals = withoutFood.meals ?? [];
+  let meals;
+  if (existingMeals.length === 0) {
+    meals = MEAL_SEED_30.map(backfillAuditFields);
+  } else {
+    meals = backfillArray(existingMeals);
+  }
+
+  // ── Step 7: Initialize mealPlan slices ────────────────────────────────────
+  const mealPlanSlice  = withoutFood.mealPlanSlice  ?? { weeklyPlan: null, weeklyPlanHistory: [] };
+  const workoutPlanSlice = withoutFood.workoutPlanSlice ?? { weeklyPlan: null, weeklyPlanHistory: [] };
+
   // ── Step 8: Set top-level schemaVersion: 3 ───────────────────────────────
   return {
     ...withoutFood,
@@ -277,6 +294,11 @@ function migrateLegacyToV3(state) {
     dayCloseSlice,
     workoutLibrarySlice,
     dailyCannabisPlan,
+    // Meal library (step 6)
+    meals,
+    // Meal plan + workout plan slices (step 7)
+    mealPlanSlice,
+    workoutPlanSlice,
     // Top-level schemaVersion (step 8)
     schemaVersion: CURRENT_SCHEMA_VERSION,
   };
