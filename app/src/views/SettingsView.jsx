@@ -10,6 +10,7 @@
  */
 import { useState } from 'react';
 import { useStore } from '../data/store/index.js';
+import { applyTheme } from '../lib/applyTheme.js';
 
 export function SettingsView() {
   const featureFlags = useStore((s) => s.featureFlags ?? {});
@@ -26,6 +27,7 @@ export function SettingsView() {
     if (typeof setTheme === 'function') {
       setTheme(next);
     }
+    applyTheme(next);
   }
 
   function handleExport() {
