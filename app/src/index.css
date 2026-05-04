@@ -693,6 +693,25 @@ body {
 .cp-modal-plan-detail { font-size: 13px; color: var(--text); font-weight: 600; margin-bottom: 2px; }
 .cp-modal-plan-window { font-size: 12px; color: var(--text-dimmer); }
 
+/* ── Skeleton placeholder (C1 primitive) ── */
+.skeleton {
+  background: var(--surface3);
+  border-radius: var(--radius-sm);
+  display: block;
+}
+@keyframes shimmer {
+  0%   { opacity: 0.6; }
+  50%  { opacity: 1; }
+  100% { opacity: 0.6; }
+}
+.skeleton--animate { animation: shimmer 1.4s ease-in-out infinite; }
+
+/* ── EmptyState variants (C1 primitive) ── */
+.empty-state-icon   { font-size: 28px; margin-bottom: 8px; }
+.empty-state-heading { font-size: 14px; font-weight: 600; color: var(--text-dim); }
+.empty-state-body   { font-size: 13px; color: var(--text-dimmer); margin-top: 4px; }
+.empty-state-cta    { margin-top: 12px; }
+
 /* ── Extra session modal warning ── */
 .cp-modal-extra-warn {
   background: var(--red-bg);
