@@ -24,6 +24,7 @@ export const cannabisDevicesSchema = defineLibrarySchema({
     { key: 'favoriteStars', label: 'Stars', type: 'stars' },
   ],
   categories: ['vaporizer', 'pipe', 'bong', 'pen', 'other'],
+  categoryField: 'deviceType',
   sortOptions: [
     { key: 'name', label: 'Name', direction: 'asc' },
     { key: 'favoriteStars', label: 'Stars', direction: 'desc' },

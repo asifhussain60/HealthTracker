@@ -55,6 +55,7 @@ export const cannabisProductsSchema = defineLibrarySchema({
     { key: 'favoriteStars', label: 'Stars', type: 'stars' },
   ],
   categories: ['flower', 'capsule', 'tincture', 'edible', 'concentrate', 'infused-preroll'],
+  categoryField: 'form',
   sortOptions: [
     { key: 'favoriteStars', label: 'Stars', direction: 'desc' },
     { key: 'name', label: 'Name', direction: 'asc' },
