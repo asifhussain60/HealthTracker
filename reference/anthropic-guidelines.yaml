@@ -4,11 +4,11 @@
 # Distilled from the public Anthropic Engineering blog (anthropic.com/engineering).
 # Each principle is testable / observable. The challenger.agent.md cites these
 # IDs in its verdicts (e.g., "[ANT-001] BLOCK because ...").
-# Refresh via /sync-guidelines. Last refresh: 2026-05-03.
+# Refresh via /sync-guidelines. Last refresh: 2026-05-04.
 # ============================================================================
 
 meta:
-  generated_at: "2026-05-03"
+  generated_at: "2026-05-04"
   refresh_command: "/sync-guidelines"
   authority: framework.md
   sources:
@@ -60,6 +60,22 @@ meta:
       url: https://www.anthropic.com/engineering/advanced-tool-use
       published: "2025-11-24"
       summary: Dynamic tool discovery scales beyond context-stuffing every definition
+    - id: claude-code-best-practices
+      url: https://code.claude.com/docs/en/best-practices
+      published: "2025 (current — 308 from anthropic.com/engineering/claude-code-best-practices)"
+      summary: Operational best practices for Claude Code — verification, plan-first, CLAUDE.md hygiene, subagents, parallel sessions
+    - id: claude-code-sandboxing
+      url: https://www.anthropic.com/engineering/claude-code-sandboxing
+      published: "2025"
+      summary: OS-level isolation (bubblewrap/seatbelt) plus network proxying as the real safety boundary
+    - id: harness-design-long-running-apps
+      url: https://www.anthropic.com/engineering/harness-design-long-running-apps
+      published: "2026"
+      summary: Generator/evaluator separation, context resets vs compaction, harness pruning as models improve
+    - id: postmortem-three-issues
+      url: https://www.anthropic.com/engineering/a-postmortem-of-three-recent-issues
+      published: "2025-09"
+      summary: Continuous evals, workarounds masking root causes, infrastructure-change traceability
 
 # ============================================================================
 # Categories
@@ -103,6 +119,20 @@ categories:
         - Coupling business logic to a particular thinking depth or context window
       check: "Will this still work when the next Claude version is dropped in?"
 
+    - id: ANT-089
+      principle: Strip scaffolding when models improve — re-test what is load-bearing
+      detail: >
+        Harness components encode assumptions about model weakness. As models
+        improve, that scaffolding becomes friction rather than support.
+        Periodically remove components one at a time and verify performance
+        still holds; keep only what genuinely drives quality. Sharper
+        operational corollary to ANT-003.
+      sources: [harness-design-long-running-apps]
+      anti_patterns:
+        - Carrying forward a guardrail just because "it has always been there"
+        - Adding new scaffolding without retiring stale scaffolding
+      check: "Have we stress-tested which harness pieces are still load-bearing on the current model?"
+
   context_engineering:
     - id: ANT-010
       principle: Context is finite — engineer the configuration most likely to yield desired behavior
@@ -120,11 +150,16 @@ categories:
       detail: >
         The default context should be minimal. Specialists/skills are loaded
         per intent. The CORTEX/Journal pattern of "default ~200 tokens; load
-        ~1-2k per intent" is a useful baseline.
-      sources: [effective-context-engineering, agent-skills]
+        ~1-2k per intent" is a useful baseline. Boundary rule: domain knowledge
+        relevant *sometimes* belongs in .claude/skills/<name>/SKILL.md (loaded
+        on demand), not in CLAUDE.md (loaded every session). Anything that
+        applies to *every* conversation belongs in CLAUDE.md; everything else
+        is a skill.
+      sources: [effective-context-engineering, agent-skills, claude-code-best-practices]
       anti_patterns:
         - Importing every agent file unconditionally
         - Including full reference docs when a citation would do
+        - Putting domain-specific workflows into CLAUDE.md instead of a skill
       check: "Does the agent file load resources only when the intent matches?"
 
     - id: ANT-012
@@ -133,11 +168,32 @@ categories:
         Long-running agents work in discrete sessions; each begins with no
         memory of the prior. Persist state in handoff documents, commit maps,
         append-only logs. The handoff is the canonical "what to do next."
-      sources: [effective-harnesses]
+        Layering with ANT-086: durable state lives in *files* (which survive
+        context resets); the *working* context window itself is reset
+        proactively between unrelated tasks. The two practices reinforce —
+        files preserve continuity across resets, and resets keep the active
+        window clean.
+      sources: [effective-harnesses, harness-design-long-running-apps]
       anti_patterns:
         - Relying on "the agent will remember" between conversations
         - Writing decisions into chat instead of into _workspace/ files
       check: "Could a fresh session resume from the files alone?"
+
+    - id: ANT-086
+      principle: Course-correct early; /clear between unrelated tasks
+      detail: >
+        After two failed corrections on the same issue, the working context is
+        polluted with failed approaches and Claude's behavior degrades. Run
+        `/clear` and write a sharper prompt incorporating what was learned —
+        a clean session almost always outperforms a long session with
+        accumulated corrections. Same principle applies between unrelated
+        tasks: don't carry breakfast's context into dinner's conversation.
+      sources: [claude-code-best-practices]
+      anti_patterns:
+        - 'Kitchen-sink session — multiple unrelated tasks in one conversation'
+        - Repeating the same correction more than twice instead of resetting
+        - 'Infinite exploration — open-ended investigation without scope'
+      check: "Has Claude been corrected on the same point twice? If yes, /clear and reprompt."
 
   tool_use:
     - id: ANT-020
@@ -194,6 +250,36 @@ categories:
       sources: [demystifying-evals]
       check: "Does the test strategy span unit + integration + regression + UX review?"
 
+    - id: ANT-080
+      principle: Verification first — give the agent a way to check itself
+      detail: >
+        Provide tests, screenshots, expected outputs, lint commands, or any
+        deterministic signal Claude can use to verify its own work mid-task.
+        Claude Code best-practices calls this "the single highest-leverage
+        thing." This is stronger than ANT-030 (project-level evals); ANT-080
+        is about the *runtime feedback loop* inside a single task. Without it,
+        you become the only feedback loop — every mistake costs your attention.
+      sources: [claude-code-best-practices]
+      anti_patterns:
+        - Asking for an implementation with no tests, screenshot diff, or check command
+        - '"Looks right" as the success criterion'
+        - Suppressing the error instead of fixing the root cause
+      check: "What deterministic signal will tell Claude it's done? If none, add one before starting."
+
+    - id: ANT-091
+      principle: Continuous evals on production beat one-shot deployment gates
+      detail: >
+        Some failures only surface under real traffic distribution and live
+        load patterns. Build sensitive evals that can reliably distinguish
+        "working" from "subtly broken" and run them continuously in production,
+        not just at the deployment gate. Sharpens ANT-030 from "have evals" to
+        "run them where they actually catch the bugs that matter."
+      sources: [postmortem-three-issues]
+      anti_patterns:
+        - Treating CI green as proof that production is healthy
+        - Relying on noisy benchmarks that can't separate "working" from "degraded"
+      check: "Do we have a production-running eval that would notice if quality silently degraded?"
+
   workflows_and_orchestration:
     - id: ANT-040
       principle: Multi-agent — parallel for breadth, sequential for depth
@@ -215,6 +301,22 @@ categories:
         each other's work. Design for these explicitly.
       sources: [multi-agent-research]
       check: "Is there a single coordinator with the canonical view of state?"
+
+    - id: ANT-088
+      principle: Separate generator from evaluator — self-evaluation skews positive
+      detail: >
+        The agent that produced the work is the wrong agent to grade it,
+        especially for subjective quality. Use a Writer/Reviewer pattern with
+        fresh contexts: one agent implements, a separate agent reviews. The
+        reviewer must not be the writer — even with explicit instructions to
+        be critical, self-evaluation reliably skews positive. Validates the
+        architect / auditor / challenger split already in framework.md.
+      sources: [harness-design-long-running-apps, claude-code-best-practices]
+      anti_patterns:
+        - Same agent implements and signs off on its own work
+        - Asking the writer "is this good?" instead of routing to a reviewer
+        - Running the auditor in the same context window as the executor
+      check: "Is the reviewer in a separate context from the writer?"
 
   agent_skills:
     - id: ANT-050
@@ -239,17 +341,144 @@ categories:
       check: "If the task needs reasoning space, prefer extended thinking."
 
   safety_and_review:
+    - id: ANT-087
+      principle: Permission prompts are not a security boundary
+      detail: >
+        Approval fatigue defeats permission prompts as a safety mechanism —
+        users click through after the tenth dialog. Real isolation comes from
+        OS-level sandboxing (bubblewrap on Linux, seatbelt on macOS), network
+        traffic routed through a controlled proxy, and credentials kept
+        outside the sandbox entirely. Validate at the boundary, not inside;
+        a compromised process inside the sandbox should not be able to
+        determine what resources it can reach.
+      sources: [claude-code-sandboxing]
+      anti_patterns:
+        - Treating "the user clicked yes" as a security guarantee
+        - Storing tokens or signing keys inside the sandbox
+        - All-or-nothing access models when granular allow/deny is possible
+      check: "If the agent were compromised, what would still keep credentials and the host filesystem safe?"
+
     - id: ANT-070
       principle: Auto-mode classifiers reduce fatigue without silently bypassing safety
       detail: >
         Approval fatigue (93% approval rate) leads to inattentive approvals.
         Classifiers can auto-approve safe actions while preserving prompts
-        for risky ones. Never silently disable safety prompts.
-      sources: [claude-code-auto-mode]
+        for risky ones. Never silently disable safety prompts. Operational
+        additions for unattended runs: (a) for `claude -p` batch jobs, scope
+        permissions narrowly with `--allowedTools` rather than widening
+        defaults; (b) auto-mode aborts in non-interactive runs after repeated
+        classifier blocks — design batch jobs to fail loudly rather than
+        catching and retrying around the abort.
+      sources: [claude-code-auto-mode, claude-code-best-practices]
       anti_patterns:
         - Using --dangerously-skip-permissions in production
         - Wholesale disabling permission prompts via settings
+        - Running `claude -p` in CI without `--allowedTools` scoping
+        - Catching auto-mode aborts and retrying instead of failing loudly
       check: "Are risky actions still gated, even if routine ones are auto-approved?"
+
+  claude_code_workflow:
+    - id: ANT-081
+      principle: Four-phase rhythm — Explore → Plan → Implement → Commit
+      detail: >
+        For non-trivial changes, separate research from execution. Plan mode
+        for exploration and plan drafting; switch out of plan mode only to
+        implement against a written plan; commit with a descriptive message
+        as a discrete final step. Skip planning only when the diff can be
+        described in one sentence (typo, log line, single rename). Maps onto
+        HT-CORE-001 (Architecture-First) but adds the operational cadence.
+      sources: [claude-code-best-practices]
+      anti_patterns:
+        - Jumping straight to implementation on a multi-file change
+        - Planning a one-line typo fix
+        - Committing without writing the plan to a file first
+      check: "Has Claude entered plan mode for any change touching more than one file?"
+
+    - id: ANT-082
+      principle: Specific context beats vague intent
+      detail: >
+        Reference exact files with `@`, point to existing patterns to follow
+        ("HotDogWidget.php is a good example"), describe symptoms rather than
+        wishes ("login fails after session timeout" beats "fix the login
+        bug"), and scope the request (which file, which scenario, which
+        edge case). Vague prompts are useful only for open-ended exploration
+        — never for implementation.
+      sources: [claude-code-best-practices]
+      anti_patterns:
+        - '"make the dashboard look better" with no reference, no constraints'
+        - '"add tests for foo.py" with no scenario or edge cases named'
+        - '"fix the bug" without describing the symptom'
+      check: "Does this prompt name a file, a symptom, and what 'fixed' looks like?"
+
+    - id: ANT-083
+      principle: CLAUDE.md hygiene — short, prunable, specific
+      detail: >
+        Bloated CLAUDE.md files cause Claude to ignore real instructions
+        because the rules get lost in noise. Apply the prune test to every
+        line: "Would removing this cause Claude to make a mistake?" If no,
+        cut it. Move sometimes-relevant content to skills (loaded on demand);
+        move must-happen-every-time content to hooks (deterministic). What
+        stays in CLAUDE.md is genuinely cross-cutting and conversation-wide.
+      sources: [claude-code-best-practices]
+      anti_patterns:
+        - Listing standard language conventions Claude already knows
+        - File-by-file codebase descriptions in CLAUDE.md
+        - Long tutorials or explanations Claude could derive from reading code
+        - Letting CLAUDE.md grow without periodic pruning passes
+      check: "For every line in CLAUDE.md: would removing it cause a real mistake?"
+
+    - id: ANT-084
+      principle: Hooks are deterministic; CLAUDE.md is advisory
+      detail: >
+        If a behavior MUST happen with zero exceptions, encode it as a hook
+        in `.claude/settings.json` — not as a sentence in CLAUDE.md. Claude
+        can ignore prose; hooks are executed by the harness and cannot be
+        skipped. Use hooks for: post-edit linting/typechecking, blocking
+        writes to protected paths, mandatory test runs after specific
+        operations.
+      sources: [claude-code-best-practices]
+      anti_patterns:
+        - '"ALWAYS run typecheck after edits" sitting in CLAUDE.md prose'
+        - Trusting CLAUDE.md to prevent writes to migrations/ or generated/
+        - Auditing for hook-eligible rules but never converting them
+      check: "Is there any 'always do X' or 'never do Y' rule in CLAUDE.md that should be a hook?"
+
+    - id: ANT-085
+      principle: Use subagents to keep the main context clean during investigation
+      detail: >
+        When research requires reading many files, dispatch a subagent so the
+        exploration runs in a separate context window. The subagent reads
+        widely and reports back a summary; the main conversation stays
+        focused on implementation. Same pattern applies to verification —
+        a fresh-context reviewer won't be biased toward code it just wrote.
+      sources: [claude-code-best-practices]
+      anti_patterns:
+        - Doing repo-wide grepping in the main thread before implementing
+        - Letting "investigation" balloon main-context tokens for the whole task
+        - Using the same context for write + review
+      check: "Is this exploration scoped enough for the main thread, or does it need a subagent?"
+
+# ============================================================================
+# Reliability & root-cause discipline
+# ============================================================================
+  reliability:
+    - id: ANT-090
+      principle: Workarounds can mask root causes — fix the underlying bug
+      detail: >
+        A patch that quiets a symptom may hide a deeper bug that resurfaces
+        later (sometimes far later, when the patch is removed). Always
+        identify the root cause before shipping the workaround. If a
+        workaround is unavoidable, log the root cause as debt with a
+        deadline; never let the workaround live indefinitely as if it were
+        the fix. Anthropic's own postmortem describes this exact failure
+        mode — a December 2024 patch masked a deeper compiler bug that
+        only surfaced when the patch was later removed.
+      sources: [postmortem-three-issues]
+      anti_patterns:
+        - Closing a bug because the symptom went away, without confirming root cause
+        - '"We''ll fix it properly later" without a tracked deadline'
+        - Suppressing an error message instead of understanding what triggered it
+      check: "Do we know the root cause, and is the workaround tracked with a removal deadline?"
 
 # ============================================================================
 # Contradictions Surfaced
@@ -271,6 +500,27 @@ contradictions:
       (CORE rules, gates, phase template) and skip the rest (78-phase registry,
       multi-tier orchestrator hierarchy, MCP runtime). Documented in framework.md.
 
+  - description: >
+      Persistent state (ANT-012) vs. proactive context resets (ANT-086).
+    sources_in_conflict: [effective-harnesses, harness-design-long-running-apps, claude-code-best-practices]
+    reconciliation: >
+      These layer rather than conflict. Durable state lives in *files*
+      (handoffs, audit trail, commit maps) which survive context resets;
+      the *working* context window is reset proactively between unrelated
+      tasks via /clear. Files preserve continuity across resets; resets
+      keep the active window clean. Both ANT-012 and ANT-086 carry this
+      reconciliation in their detail blocks.
+
+  - description: >
+      CLAUDE.md hygiene (ANT-083) vs. current HealthTracker CLAUDE.md size.
+    sources_in_conflict: [claude-code-best-practices, "HealthTracker CLAUDE.md"]
+    reconciliation: >
+      Routed to architect — not a YAML edit. The current CLAUDE.md leans
+      long (~80 lines of substantive prose). Architect should run a prune
+      pass against the ANT-083 test ("would removing this line cause a real
+      mistake?") and migrate any sometimes-relevant content into skills.
+      Tracked as architectural follow-up; not blocking this sync.
+
 # ============================================================================
 # Coverage gaps (be honest about what we don't have)
 # ============================================================================
@@ -278,3 +528,4 @@ gaps:
   - "No first-party Anthropic guidance for React/SPA frontend patterns specifically."
   - "Limited published guidance on multi-tenant data isolation (Phase 2 work)."
   - "Auto-mode classifier detail is minimal; treat as informational, not actionable."
+  - "Reviewed but not promoted to rules (low transferability to HealthTracker SPA): contextual-retrieval (RAG-specific; we have no retrieval pipeline), AI-resistant-technical-evaluations (hiring eval design), desktop-extensions (Claude Desktop installer manifests)."
