@@ -57,7 +57,7 @@ export function exportLibrary({ items, schema }) {
  * @param {Object}       [options.options] - Reserved for future options.
  * @returns {{ added: number, skipped: number, errors: string[] }}
  */
-export function importLibrary({ jsonOrCsv, schema, repo }) {
+export function importLibrary({ jsonOrCsv, schema: _schema, repo }) {
   // ── Parse ────────────────────────────────────────────────────────────────
   let envelope;
   try {

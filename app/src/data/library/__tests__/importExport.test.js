@@ -66,13 +66,11 @@ describe('exportLibrary', () => {
   });
 
   it('exported JSON contains schemaName matching the library name', () => {
-    const store = createMemoryStore({ widgets: [] });
     const parsed = JSON.parse(exportLibrary({ items: [], schema: widgetSchema }));
     expect(parsed.schemaName).toBe('WidgetLibrary');
   });
 
   it('exported JSON contains exportedAt timestamp', () => {
-    const store = createMemoryStore({ widgets: [] });
     const parsed = JSON.parse(exportLibrary({ items: [], schema: widgetSchema }));
     expect(parsed.exportedAt).toBeDefined();
   });

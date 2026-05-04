@@ -16,7 +16,6 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { createLibraryRepo } from '../LibraryRepo.js';
 import { fastingSafeItemsSchema } from '../schemas/fastingSafeItems.js';
 import { exportLibrary, importLibrary } from '../importExport.js';
-import { useStore } from '../../store/index.js';
 import { runMigrations } from '../../migrations/index.js';
 
 // ── In-memory store factory ───────────────────────────────────────────────────
