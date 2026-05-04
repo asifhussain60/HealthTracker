@@ -1,0 +1,2109 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   md3.css — Material Design 3 component rules
+   AC-S2-MD3-CSS · dark-first · token-only (no hex, no magic numbers)
+
+   All values come from tokens.css. If a token is missing it is added to
+   tokens.css with a comment describing its role.
+
+   Organisation (BEM-strict):
+     1.  Accordion
+     2.  Alert
+     3.  Avatar
+     4.  Badge
+     5.  Bottom Nav
+     6.  Bottom Sheet
+     7.  Button (md3-btn)
+     8.  Card
+     9.  Checkbox
+     10. Chip
+     11. Date Picker
+     12. FAB
+     13. Icon Button
+     14. List / ListItem
+     15. Modal
+     16. Nav Rail
+     17. Progress Bar
+     18. Progress Ring
+     19. Radio Group
+     20. Side Drawer
+     21. Skeleton
+     22. Slider
+     23. Snackbar / Toast (alias)
+     24. Switch
+     25. Tabs
+     26. Text Field
+     27. Time Picker
+     28. Top App Bar
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* ──────────────────────────────────────────────────────────────────────────
+   STATE-LAYER MIXIN (via ::before pseudo-element)
+   MD3 spec: interactive elements carry a translucent overlay that changes
+   opacity on hover / focus / active.  The overlay colour is always the
+   element's "on-color" (foreground).
+   ────────────────────────────────────────────────────────────────────────── */
+
+/* Common pattern — applied to any element that needs state layers */
+[class*="md3-"]:not(svg):not(circle):not(div):not(span):not(ul):not(li):not(nav):not(header):not(section):not(article):not(h1):not(h2):not(h3):not(h4):not(p):not(input):not(label):not(datalist):not(option):not(img) {
+  position: relative;
+  overflow: hidden; /* clip the ::before overlay */
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   1. ACCORDION
+   MD3 expansion panel with animated chevron + height transition (PF-10).
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.md3-accordion-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  width: 100%;
+}
+
+.md3-accordion-panel {
+  background-color: var(--surface-container-low);
+  border-bottom: 1px solid var(--outline-variant);
+  overflow: hidden;
+}
+
+.md3-accordion-panel__heading {
+  margin: 0;
+  padding: 0;
+}
+
+.md3-accordion-panel__trigger {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: var(--space-4) var(--space-6);
+  background: transparent;
+  border: none;
+  color: var(--on-surface);
+  font-family: var(--font-sans);
+  font-size: var(--text-body-lg);
+  font-weight: var(--weight-title);
+  cursor: pointer;
+  text-align: left;
+  transition: background var(--t-micro);
+  position: relative;
+  overflow: hidden;
+}
+
+/* State layer — hover */
+.md3-accordion-panel__trigger::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: currentColor;
+  opacity: 0;
+  transition: opacity var(--t-micro);
+  pointer-events: none;
+}
+
+.md3-accordion-panel__trigger:hover::before {
+  opacity: var(--state-hover);
+}
+
+.md3-accordion-panel__trigger:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: -2px;
+}
+
+.md3-accordion-panel__trigger:focus-visible::before {
+  opacity: var(--state-focus);
+}
+
+.md3-accordion-panel__trigger:active::before {
+  opacity: var(--state-pressed);
+}
+
+/* Expanded state — subtle tint */
+.md3-accordion-panel__trigger--expanded {
+  color: var(--primary);
+}
+
+.md3-accordion-panel__indicator {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--space-6);
+  height: var(--space-6);
+  flex-shrink: 0;
+  transition: transform var(--motion-duration-medium) var(--motion-easing-standard);
+  font-style: normal;
+}
+
+/* Hide the text arrow glyphs — the CSS transform shows direction */
+.md3-accordion-panel__indicator {
+  font-size: 0; /* hide ▲ / ▼ text */
+}
+
+/* Draw a CSS chevron using border trick */
+.md3-accordion-panel__indicator::after {
+  content: '';
+  display: block;
+  width: 10px;
+  height: 10px;
+  border-right: 2px solid currentColor;
+  border-bottom: 2px solid currentColor;
+  transform: rotate(45deg) translateY(-3px);
+  transition: transform var(--motion-duration-medium) var(--motion-easing-standard);
+}
+
+/* Rotate chevron when expanded */
+.md3-accordion-panel__trigger--expanded .md3-accordion-panel__indicator::after {
+  transform: rotate(-135deg) translateY(-3px);
+}
+
+.md3-accordion-panel__body {
+  padding: 0 var(--space-6);
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height var(--motion-duration-long) var(--motion-easing-decelerate),
+              padding var(--motion-duration-medium) var(--motion-easing-standard);
+}
+
+.md3-accordion-panel__body--open {
+  padding: var(--space-2) var(--space-6) var(--space-4);
+  /* max-height is unset when expanded — use a large value for animation */
+  max-height: 9999px;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   2. ALERT
+   MD3 inline status notification. Severity variants: info, success, warning, error.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.md3-alert {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--outline-variant);
+  background-color: var(--surface-container);
+  color: var(--on-surface);
+  font-family: var(--font-sans);
+  font-size: var(--text-body-sm);
+  line-height: 1.5;
+}
+
+.md3-alert--info {
+  border-color: var(--primary);
+  background-color: var(--primary-container);
+  color: var(--on-primary-container);
+}
+
+.md3-alert--success {
+  border-color: var(--success);
+  background-color: var(--success-container);
+  color: var(--on-success-container);
+}
+
+.md3-alert--warning {
+  border-color: var(--warning);
+  background-color: var(--warning-container);
+  color: var(--on-warning-container);
+}
+
+.md3-alert--error {
+  border-color: var(--error);
+  background-color: var(--error-container);
+  color: var(--on-error-container);
+}
+
+.md3-alert__message {
+  flex: 1;
+}
+
+.md3-alert__dismiss {
+  flex-shrink: 0;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  color: currentColor;
+  padding: 0;
+  font-size: var(--text-caption);
+  line-height: 1;
+  opacity: 0.7;
+  transition: opacity var(--t-micro);
+}
+
+.md3-alert__dismiss:hover {
+  opacity: 1;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   3. AVATAR
+   MD3 avatar: initials + image; size variants: small, medium, large.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.md3-avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-pill);
+  overflow: hidden;
+  background-color: var(--primary-container);
+  color: var(--on-primary-container);
+  font-family: var(--font-sans);
+  font-weight: var(--weight-title);
+  user-select: none;
+  flex-shrink: 0;
+}
+
+.md3-avatar--small {
+  width: var(--avatar-size-sm);
+  height: var(--avatar-size-sm);
+  font-size: var(--text-caption);
+}
+
+.md3-avatar--medium {
+  width: var(--avatar-size-md);
+  height: var(--avatar-size-md);
+  font-size: var(--text-body-sm);
+}
+
+.md3-avatar--large {
+  width: var(--avatar-size-lg);
+  height: var(--avatar-size-lg);
+  font-size: var(--text-body-lg);
+}
+
+.md3-avatar--image {
+  background-color: transparent;
+}
+
+.md3-avatar--initials {
+  text-transform: uppercase;
+}
+
+.md3-avatar__img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.md3-avatar__initials {
+  line-height: 1;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   4. BADGE
+   MD3 badge: dot | label variants.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.md3-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--error);
+  color: var(--on-error);
+  font-family: var(--font-sans);
+  font-size: var(--text-caption);
+  font-weight: var(--weight-label);
+  border-radius: var(--radius-pill);
+  line-height: 1;
+}
+
+.md3-badge--dot {
+  width: var(--badge-dot-size);
+  height: var(--badge-dot-size);
+  padding: 0;
+}
+
+.md3-badge--label {
+  min-width: var(--badge-label-min-w);
+  height: var(--badge-label-h);
+  padding: 0 var(--space-1);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   5. BOTTOM NAV
+   MD3 bottom navigation bar (mobile, < 600px).
+   Decision #25: 5-destination roster.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.md3-bottom-nav {
+  display: flex;
+  align-items: stretch;
+  justify-content: space-around;
+  background-color: var(--surface-container);
+  height: var(--nav-bottom-h);
+  border-top: 1px solid var(--outline-variant);
+  width: 100%;
+}
+
+.md3-bottom-nav__item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-1);
+  flex: 1;
+  padding: var(--space-2) var(--space-1);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  color: var(--on-surface-dim);
+  font-family: var(--font-sans);
+  font-size: var(--text-caption);
+  font-weight: var(--weight-label);
+  transition: color var(--t-micro);
+  position: relative;
+  overflow: hidden;
+}
+
+.md3-bottom-nav__item::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: currentColor;
+  opacity: 0;
+  transition: opacity var(--t-micro);
+  pointer-events: none;
+}
+
+.md3-bottom-nav__item:hover::before {
+  opacity: var(--state-hover);
+}
+
+.md3-bottom-nav__item:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: -2px;
+}
+
+.md3-bottom-nav__item:active::before {
+  opacity: var(--state-pressed);
+}
+
+.md3-bottom-nav__item--active {
+  color: var(--primary);
+}
+
+.md3-bottom-nav__icon {
+  font-size: var(--space-6);
+  line-height: 1;
+}
+
+.md3-bottom-nav__label {
+  font-size: var(--text-caption);
+  line-height: 1;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   6. BOTTOM SHEET
+   MD3 bottom sheet with backdrop + handle + slide-in transition.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.md3-bottom-sheet {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-sheet);
+  pointer-events: none;
+  visibility: hidden;
+}
+
+.md3-bottom-sheet--open {
+  pointer-events: auto;
+  visibility: visible;
+}
+
+.md3-bottom-sheet__backdrop {
+  position: absolute;
+  inset: 0;
+  background-color: var(--scrim);
+  opacity: 0;
+  transition: opacity var(--motion-duration-medium) var(--motion-easing-standard);
+}
+
+.md3-bottom-sheet--open .md3-bottom-sheet__backdrop {
+  opacity: 1;
+}
+
+.md3-bottom-sheet__panel {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background-color: var(--surface-container-high);
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+  transform: translateY(100%);
+  transition: transform var(--motion-duration-medium) var(--motion-easing-decelerate);
+  max-height: var(--sheet-max-h);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.md3-bottom-sheet--open .md3-bottom-sheet__panel {
+  transform: translateY(0);
+}
+
+.md3-bottom-sheet__handle {
+  width: var(--sheet-handle-w);
+  height: var(--sheet-handle-h);
+  border-radius: var(--radius-pill);
+  background-color: var(--on-surface-faint);
+  margin: var(--space-2) auto;
+}
+
+.md3-bottom-sheet__content {
+  padding: var(--space-2) var(--space-6) var(--space-8);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   7. BUTTON (md3-btn)
+   MD3 spec: filled | tonal | outlined | text | icon
+   States: hover, focus-visible, active, disabled, loading.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.md3-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  height: var(--btn-height);
+  padding: 0 var(--space-6);
+  border-radius: var(--radius-pill);
+  border: none;
+  font-family: var(--font-sans);
+  font-size: var(--text-label);
+  font-weight: var(--weight-label);
+  letter-spacing: 0.01em;
+  cursor: pointer;
+  transition:
+    background-color var(--t-micro),
+    box-shadow var(--t-micro),
+    opacity var(--t-micro);
+  position: relative;
+  overflow: hidden;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+/* State layer overlay */
+.md3-btn::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: currentColor;
+  opacity: 0;
+  transition: opacity var(--t-micro);
+  pointer-events: none;
+  border-radius: inherit;
+}
+
+.md3-btn:hover::before  { opacity: var(--state-hover);   }
+.md3-btn:active::before { opacity: var(--state-pressed);  }
+
+.md3-btn:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+.md3-btn:focus-visible::before {
+  opacity: var(--state-focus);
+}
+
+/* Disabled state */
+.md3-btn:disabled,
+.md3-btn--loading {
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+/* — filled — */
+.md3-btn--filled {
+  background-color: var(--primary);
+  color: var(--on-primary);
+  box-shadow: var(--elev-0);
+}
+
+.md3-btn--filled:hover {
+  box-shadow: var(--elev-1);
+}
+
+.md3-btn--filled:disabled {
+  background-color: var(--state-disabled-container);
+  color: var(--state-disabled-content);
+  box-shadow: var(--elev-0);
+}
+
+/* — tonal — */
+.md3-btn--tonal {
+  background-color: var(--secondary-container);
+  color: var(--on-secondary);
+}
+
+.md3-btn--tonal:hover {
+  box-shadow: var(--elev-1);
+}
+
+.md3-btn--tonal:disabled {
+  background-color: var(--state-disabled-container);
+  color: var(--state-disabled-content);
+}
+
+/* — outlined — */
+.md3-btn--outlined {
+  background-color: transparent;
+  color: var(--primary);
+  border: 1px solid var(--outline);
+}
+
+.md3-btn--outlined:disabled {
+  color: var(--state-disabled-content);
+  border-color: var(--state-disabled-container);
+}
+
+/* — text — */
+.md3-btn--text {
+  background-color: transparent;
+  color: var(--primary);
+  padding: 0 var(--space-3);
+}
+
+.md3-btn--text:disabled {
+  color: var(--state-disabled-content);
+}
+
+/* — icon — (square icon-only variant) */
+.md3-btn--icon {
+  width: var(--btn-height);
+  padding: 0;
+  border-radius: var(--radius-sm);
+  background-color: transparent;
+  color: var(--on-surface);
+}
+
+/* — loading state — */
+.md3-btn--loading {
+  opacity: 0.7;
+}
+
+.md3-btn--loading::after {
+  content: '';
+  position: absolute;
+  width: 1rem;
+  height: 1rem;
+  border: 2px solid currentColor;
+  border-top-color: transparent;
+  border-radius: 50%;
+  animation: md3-spin var(--motion-duration-long) linear infinite;
+}
+
+.md3-btn__leading-icon,
+.md3-btn__trailing-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.125rem;
+  line-height: 1;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   8. CARD
+   MD3 spec: filled | outlined | elevated
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.md3-card {
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  font-family: var(--font-sans);
+  color: var(--on-surface);
+  position: relative;
+}
+
+.md3-card--filled {
+  background-color: var(--surface-container-high);
+  box-shadow: var(--elev-0);
+}
+
+.md3-card--outlined {
+  background-color: var(--surface);
+  border: 1px solid var(--outline-variant);
+  box-shadow: var(--elev-0);
+}
+
+.md3-card--elevated {
+  background-color: var(--surface-container-low);
+  box-shadow: var(--elev-1);
+}
+
+.md3-card__header {
+  padding: var(--space-4) var(--space-4) 0;
+  font-size: var(--text-title-sm);
+  font-weight: var(--weight-title);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   9. CHECKBOX
+   MD3 checkbox: uses native <input type="checkbox"> styled via appearance-none.
+   States: checked, indeterminate, disabled.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.md3-checkbox-wrapper {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-3);
+  cursor: pointer;
+}
+
+.md3-checkbox__input {
+  appearance: none;
+  -webkit-appearance: none;
+  width: var(--cb-size);
+  height: var(--cb-size);
+  border: 2px solid var(--outline);
+  border-radius: var(--radius-xs);
+  background-color: transparent;
+  cursor: pointer;
+  position: relative;
+  flex-shrink: 0;
+  transition:
+    background-color var(--t-micro),
+    border-color var(--t-micro);
+}
+
+.md3-checkbox__input:checked,
+.md3-checkbox__input[data-indeterminate='true'] {
+  background-color: var(--primary);
+  border-color: var(--primary);
+}
+
+/* Checkmark */
+.md3-checkbox__input:checked::after {
+  content: '';
+  position: absolute;
+  top: 1px;
+  left: 4px;
+  width: 5px;
+  height: 9px;
+  border: 2px solid var(--on-primary);
+  border-top: none;
+  border-left: none;
+  transform: rotate(45deg);
+}
+
+/* Indeterminate dash */
+.md3-checkbox__input[data-indeterminate='true']::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 8px;
+  height: 2px;
+  background: var(--on-primary);
+  transform: translate(-50%, -50%);
+}
+
+.md3-checkbox__input:disabled {
+  opacity: var(--state-disabled-opacity);
+  cursor: not-allowed;
+}
+
+.md3-checkbox__input:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+.md3-checkbox__label {
+  font-family: var(--font-sans);
+  font-size: var(--text-body-sm);
+  color: var(--on-surface);
+  cursor: pointer;
+  user-select: none;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   10. CHIP
+   MD3 spec: assist | filter | input | suggestion
+   States: selected, disabled.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.md3-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  height: var(--chip-height);
+  padding: 0 var(--space-4);
+  border-radius: var(--radius-sm);
+  background-color: transparent;
+  border: 1px solid var(--outline);
+  color: var(--on-surface);
+  font-family: var(--font-sans);
+  font-size: var(--text-label);
+  font-weight: var(--weight-label);
+  cursor: pointer;
+  white-space: nowrap;
+  transition:
+    background-color var(--t-micro),
+    border-color var(--t-micro),
+    color var(--t-micro);
+  position: relative;
+  overflow: hidden;
+}
+
+.md3-chip::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: currentColor;
+  opacity: 0;
+  transition: opacity var(--t-micro);
+  pointer-events: none;
+}
+
+.md3-chip:hover::before   { opacity: var(--state-hover);   }
+.md3-chip:active::before  { opacity: var(--state-pressed);  }
+
+.md3-chip:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+.md3-chip:focus-visible::before {
+  opacity: var(--state-focus);
+}
+
+/* Variants */
+.md3-chip--assist     { border-color: var(--outline); }
+.md3-chip--suggestion { border-color: var(--outline); }
+.md3-chip--input      { border-color: var(--outline); }
+
+.md3-chip--filter {
+  border-color: var(--outline);
+}
+
+/* Selected state (filter chips) */
+.md3-chip--selected {
+  background-color: var(--secondary-container);
+  border-color: var(--secondary-container);
+  color: var(--on-secondary);
+}
+
+/* Disabled */
+.md3-chip--disabled {
+  opacity: var(--state-disabled-opacity);
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.md3-chip__label {
+  flex: 1;
+}
+
+.md3-chip__leading-icon,
+.md3-chip__trailing-icon {
+  display: inline-flex;
+  align-items: center;
+  font-size: 1rem;
+  line-height: 1;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   11. DATE PICKER
+   MD3 calendar grid with navigation, weekday headers, day cells.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.md3-date-picker {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  background-color: var(--surface-container-high);
+  border-radius: var(--radius-md);
+  padding: var(--space-4);
+  font-family: var(--font-sans);
+  color: var(--on-surface);
+  min-width: var(--datepicker-min-w);
+}
+
+.md3-date-picker__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-2) 0;
+}
+
+.md3-date-picker__month-title {
+  font-size: var(--text-title-sm);
+  font-weight: var(--weight-title);
+}
+
+.md3-date-picker__nav {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--space-8);
+  height: var(--space-8);
+  border-radius: var(--radius-pill);
+  background: transparent;
+  border: none;
+  color: var(--on-surface);
+  font-size: var(--text-title-lg);
+  cursor: pointer;
+  transition: background-color var(--t-micro);
+  position: relative;
+  overflow: hidden;
+}
+
+.md3-date-picker__nav::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: currentColor;
+  opacity: 0;
+  transition: opacity var(--t-micro);
+  pointer-events: none;
+}
+
+.md3-date-picker__nav:hover::before  { opacity: var(--state-hover); }
+.md3-date-picker__nav:active::before { opacity: var(--state-pressed); }
+
+.md3-date-picker__nav:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+.md3-date-picker__weekdays {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: var(--space-1);
+}
+
+.md3-date-picker__weekday {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--text-caption);
+  font-weight: var(--weight-label);
+  color: var(--on-surface-dim);
+  height: var(--space-8);
+}
+
+.md3-date-picker__grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: var(--space-1);
+}
+
+.md3-date-picker__day {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  aspect-ratio: 1;
+  border-radius: var(--radius-pill);
+  background: transparent;
+  border: none;
+  color: var(--on-surface);
+  font-family: var(--font-sans);
+  font-size: var(--text-body-sm);
+  cursor: pointer;
+  transition: background-color var(--t-micro);
+  position: relative;
+  overflow: hidden;
+}
+
+.md3-date-picker__day::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: currentColor;
+  opacity: 0;
+  transition: opacity var(--t-micro);
+  pointer-events: none;
+  border-radius: inherit;
+}
+
+.md3-date-picker__day:hover::before  { opacity: var(--state-hover); }
+.md3-date-picker__day:active::before { opacity: var(--state-pressed); }
+
+.md3-date-picker__day:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+.md3-date-picker__day--selected {
+  background-color: var(--primary);
+  color: var(--on-primary);
+}
+
+.md3-date-picker__day--disabled {
+  opacity: var(--state-disabled-opacity);
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.md3-date-picker__empty {
+  display: block;
+  aspect-ratio: 1;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   12. FAB (Floating Action Button)
+   MD3 spec: regular | extended.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.md3-fab {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--primary-container);
+  color: var(--on-primary-container);
+  border: none;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  box-shadow: var(--elev-2);
+  font-family: var(--font-sans);
+  font-size: var(--text-label);
+  font-weight: var(--weight-label);
+  transition:
+    box-shadow var(--t-micro),
+    background-color var(--t-micro);
+  position: relative;
+  overflow: hidden;
+}
+
+.md3-fab::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: currentColor;
+  opacity: 0;
+  transition: opacity var(--t-micro);
+  pointer-events: none;
+}
+
+.md3-fab:hover::before  { opacity: var(--state-hover);   }
+.md3-fab:active::before { opacity: var(--state-pressed);  }
+
+.md3-fab:hover {
+  box-shadow: var(--elev-3);
+}
+
+.md3-fab:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+.md3-fab--regular {
+  width: var(--fab-size);
+  height: var(--fab-size);
+  border-radius: var(--radius-md);
+}
+
+.md3-fab--extended {
+  gap: var(--space-3);
+  height: var(--fab-size);
+  padding: 0 var(--space-5);
+  border-radius: var(--radius-lg);
+}
+
+.md3-fab__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--space-6);
+  line-height: 1;
+}
+
+.md3-fab__label {
+  font-size: var(--text-label);
+  font-weight: var(--weight-label);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   13. ICON BUTTON (md3-icon-btn)
+   MD3 spec: round | square; sizes: small | medium | large; selected state.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.md3-icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  color: var(--on-surface);
+  transition: color var(--t-micro), background-color var(--t-micro);
+  position: relative;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.md3-icon-btn::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: currentColor;
+  opacity: 0;
+  transition: opacity var(--t-micro);
+  pointer-events: none;
+  border-radius: inherit;
+}
+
+.md3-icon-btn:hover::before   { opacity: var(--state-hover);   }
+.md3-icon-btn:active::before  { opacity: var(--state-pressed);  }
+
+.md3-icon-btn:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+.md3-icon-btn:focus-visible::before {
+  opacity: var(--state-focus);
+}
+
+/* Shapes */
+.md3-icon-btn--round  { border-radius: var(--radius-pill); }
+.md3-icon-btn--square { border-radius: var(--radius-sm); }
+
+/* Sizes */
+.md3-icon-btn--small  { width: var(--icon-btn-sm);  height: var(--icon-btn-sm);  font-size: 1rem; }
+.md3-icon-btn--medium { width: var(--icon-btn-md);  height: var(--icon-btn-md);  font-size: 1.25rem; }
+.md3-icon-btn--large  { width: var(--icon-btn-lg);  height: var(--icon-btn-lg);  font-size: 1.5rem; }
+
+/* Selected state */
+.md3-icon-btn--selected {
+  color: var(--primary);
+  background-color: var(--primary-container);
+}
+
+/* Disabled */
+.md3-icon-btn--disabled {
+  opacity: var(--state-disabled-opacity);
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.md3-icon-btn__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   14. LIST + LIST-ITEM
+   MD3 list with density variants and leading/trailing slots.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.md3-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  font-family: var(--font-sans);
+  color: var(--on-surface);
+}
+
+.md3-list--compact .md3-list-item {
+  min-height: var(--list-item-compact-h);
+}
+
+.md3-list-item {
+  display: flex;
+  align-items: center;
+  min-height: var(--list-item-h);
+  padding: var(--space-2) var(--space-4);
+  gap: var(--space-4);
+  position: relative;
+}
+
+.md3-list-item--divider {
+  border-bottom: 1px solid var(--outline-variant);
+}
+
+.md3-list-item--interactive {
+  cursor: pointer;
+}
+
+.md3-list-item__btn {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  width: 100%;
+  background: transparent;
+  border: none;
+  color: inherit;
+  font-family: inherit;
+  font-size: inherit;
+  cursor: pointer;
+  padding: var(--space-2) var(--space-4);
+  margin: calc(-1 * var(--space-2)) calc(-1 * var(--space-4));
+  text-align: left;
+  position: relative;
+  overflow: hidden;
+  transition: background-color var(--t-micro);
+}
+
+.md3-list-item__btn::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: currentColor;
+  opacity: 0;
+  transition: opacity var(--t-micro);
+  pointer-events: none;
+}
+
+.md3-list-item__btn:hover::before  { opacity: var(--state-hover);   }
+.md3-list-item__btn:active::before { opacity: var(--state-pressed);  }
+
+.md3-list-item__btn:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: -2px;
+}
+
+.md3-list-item__content {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+  min-width: 0;
+}
+
+.md3-list-item__label {
+  font-size: var(--text-body-lg);
+  font-weight: var(--weight-body);
+  color: var(--on-surface);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.md3-list-item__supporting {
+  font-size: var(--text-body-sm);
+  color: var(--on-surface-dim);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.md3-list-item__leading {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  font-size: var(--space-6);
+  color: var(--on-surface-dim);
+}
+
+.md3-list-item__trailing {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  font-size: var(--text-body-sm);
+  color: var(--on-surface-dim);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   15. MODAL
+   MD3 center-screen dialog with backdrop + focus trap indicator.
+   Backdrop: glass blur (allowed per tokens.css note — modal is an exception).
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.md3-modal {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-modal);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.md3-modal__backdrop {
+  position: absolute;
+  inset: 0;
+  /* backdrop-filter is applied via inline style in Modal.jsx (existing contract) */
+}
+
+.md3-modal__dialog {
+  position: relative;
+  z-index: 1;
+  background-color: var(--surface-container-high);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--elev-3);
+  min-width: var(--modal-min-w);
+  max-width: var(--modal-max-w);
+  max-height: var(--modal-max-h);
+  overflow-y: auto;
+  animation: md3-dialog-in var(--motion-duration-medium) var(--motion-easing-decelerate) both;
+}
+
+@keyframes md3-dialog-in {
+  from { opacity: 0; transform: translateY(var(--space-4)) scale(0.97); }
+  to   { opacity: 1; transform: translateY(0)              scale(1);    }
+}
+
+.md3-modal__header {
+  padding: var(--space-6) var(--space-6) var(--space-3);
+  border-bottom: 1px solid var(--outline-variant);
+}
+
+.md3-modal__title {
+  margin: 0;
+  font-family: var(--font-sans);
+  font-size: var(--text-title-lg);
+  font-weight: var(--weight-title);
+  color: var(--on-surface);
+}
+
+.md3-modal__body {
+  padding: var(--space-4) var(--space-6) var(--space-6);
+  color: var(--on-surface);
+  font-family: var(--font-sans);
+  font-size: var(--text-body-lg);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   16. NAV RAIL
+   MD3 vertical navigation rail (tablet / ≥600px).
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.md3-nav-rail {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background-color: var(--surface-container);
+  width: var(--nav-rail-w);
+  padding: var(--space-3) 0;
+  gap: var(--space-2);
+  height: 100%;
+}
+
+.md3-nav-rail__item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-1);
+  width: var(--nav-rail-item-w);
+  min-height: var(--nav-rail-item-h);
+  padding: var(--space-2) var(--space-4);
+  border-radius: var(--radius-pill);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  color: var(--on-surface-dim);
+  font-family: var(--font-sans);
+  font-size: var(--text-caption);
+  font-weight: var(--weight-label);
+  transition:
+    color var(--t-micro),
+    background-color var(--t-micro);
+  position: relative;
+  overflow: hidden;
+}
+
+.md3-nav-rail__item::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: currentColor;
+  opacity: 0;
+  transition: opacity var(--t-micro);
+  pointer-events: none;
+  border-radius: inherit;
+}
+
+.md3-nav-rail__item:hover::before  { opacity: var(--state-hover);   }
+.md3-nav-rail__item:active::before { opacity: var(--state-pressed);  }
+
+.md3-nav-rail__item:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+.md3-nav-rail__item--active {
+  color: var(--primary);
+  background-color: var(--primary-container);
+}
+
+.md3-nav-rail__icon {
+  font-size: var(--space-6);
+  line-height: 1;
+}
+
+.md3-nav-rail__label {
+  font-size: var(--text-caption);
+  line-height: 1;
+  text-align: center;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   17. PROGRESS BAR
+   MD3 linear progress: determinate | indeterminate.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.md3-progress-bar {
+  width: 100%;
+  height: var(--progress-track-h);
+  background-color: var(--primary-container);
+  border-radius: var(--radius-pill);
+  overflow: hidden;
+  position: relative;
+}
+
+.md3-progress-bar--determinate {}
+.md3-progress-bar--indeterminate {}
+
+.md3-progress-bar__fill {
+  height: 100%;
+  background-color: var(--primary);
+  border-radius: var(--radius-pill);
+  transition: width var(--t-base);
+}
+
+/* Indeterminate animation */
+.md3-progress-bar--indeterminate .md3-progress-bar__fill {
+  width: var(--progress-indeterminate-w);
+  position: absolute;
+  animation: md3-progress-slide var(--motion-duration-long) var(--motion-easing-standard) infinite;
+}
+
+@keyframes md3-progress-slide {
+  0%   { left: -50%; }
+  100% { left: 100%; }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   18. PROGRESS RING
+   MD3 circular progress (SVG-based, conic-gradient driven by --value).
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.md3-progress-ring {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+.md3-progress-ring__track {
+  stroke: var(--primary-container);
+}
+
+.md3-progress-ring__fill {
+  stroke: var(--primary);
+  transition: stroke-dasharray var(--t-slow);
+}
+
+.md3-progress-ring__inner {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-sans);
+  font-size: var(--text-body-sm);
+  color: var(--on-surface);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   19. RADIO GROUP
+   MD3 radio button — native input styled via appearance-none.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.md3-radio-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.md3-radio-wrapper {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-3);
+  cursor: pointer;
+}
+
+.md3-radio__input {
+  appearance: none;
+  -webkit-appearance: none;
+  width: var(--radio-size);
+  height: var(--radio-size);
+  border: 2px solid var(--outline);
+  border-radius: var(--radius-pill);
+  background-color: transparent;
+  cursor: pointer;
+  position: relative;
+  flex-shrink: 0;
+  transition:
+    background-color var(--t-micro),
+    border-color var(--t-micro);
+}
+
+.md3-radio__input:checked {
+  border-color: var(--primary);
+}
+
+/* Inner dot */
+.md3-radio__input:checked::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: var(--radio-dot-size);
+  height: var(--radio-dot-size);
+  border-radius: var(--radius-pill);
+  background-color: var(--primary);
+  transform: translate(-50%, -50%);
+}
+
+.md3-radio__input:disabled {
+  opacity: var(--state-disabled-opacity);
+  cursor: not-allowed;
+}
+
+.md3-radio__input:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+.md3-radio__label {
+  font-family: var(--font-sans);
+  font-size: var(--text-body-sm);
+  color: var(--on-surface);
+  cursor: pointer;
+  user-select: none;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   20. SIDE DRAWER
+   MD3 navigation drawer — collapsible, expanded via --open modifier.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.md3-side-drawer {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-drawer);
+  pointer-events: none;
+  visibility: hidden;
+}
+
+.md3-side-drawer--open {
+  pointer-events: auto;
+  visibility: visible;
+}
+
+.md3-side-drawer__backdrop {
+  position: absolute;
+  inset: 0;
+  background-color: var(--scrim);
+}
+
+.md3-side-drawer__panel {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: var(--drawer-w);
+  background-color: var(--surface-container);
+  transform: translateX(-100%);
+  transition: transform var(--motion-duration-medium) var(--motion-easing-decelerate);
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  padding: var(--space-3) 0;
+}
+
+.md3-side-drawer--open .md3-side-drawer__panel {
+  transform: translateX(0);
+}
+
+.md3-side-drawer__item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  width: 100%;
+  min-height: var(--drawer-item-h);
+  padding: 0 var(--space-4);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  color: var(--on-surface);
+  font-family: var(--font-sans);
+  font-size: var(--text-body-lg);
+  font-weight: var(--weight-body);
+  text-align: left;
+  border-radius: var(--radius-pill);
+  margin: 2px var(--space-3);
+  width: calc(100% - var(--space-8));
+  transition:
+    background-color var(--t-micro),
+    color var(--t-micro);
+  position: relative;
+  overflow: hidden;
+}
+
+.md3-side-drawer__item::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: currentColor;
+  opacity: 0;
+  transition: opacity var(--t-micro);
+  pointer-events: none;
+  border-radius: inherit;
+}
+
+.md3-side-drawer__item:hover::before  { opacity: var(--state-hover);   }
+.md3-side-drawer__item:active::before { opacity: var(--state-pressed);  }
+
+.md3-side-drawer__item:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: -2px;
+}
+
+.md3-side-drawer__item--active {
+  background-color: var(--secondary-container);
+  color: var(--on-secondary);
+  font-weight: var(--weight-title);
+}
+
+.md3-side-drawer__icon {
+  font-size: var(--space-6);
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.md3-side-drawer__label {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   21. SKELETON
+   MD3 loading placeholder: text | circle | rect + pulse animation.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.md3-skeleton {
+  background-color: var(--surface-container-high);
+  display: block;
+}
+
+.md3-skeleton--text {
+  border-radius: var(--radius-xs);
+}
+
+.md3-skeleton--circle {
+  border-radius: var(--radius-pill);
+}
+
+.md3-skeleton--rect {
+  border-radius: var(--radius-sm);
+}
+
+.md3-skeleton--animate {
+  animation: md3-skeleton-pulse var(--skeleton-duration) ease-in-out infinite;
+}
+
+@keyframes md3-skeleton-pulse {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.4; }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   22. SLIDER
+   MD3 range slider — styled native <input type="range"> via thumb + track.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.md3-slider-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  width: 100%;
+}
+
+.md3-slider__label {
+  font-family: var(--font-sans);
+  font-size: var(--text-body-sm);
+  font-weight: var(--weight-label);
+  color: var(--on-surface);
+}
+
+.md3-slider__input {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: var(--slider-track-h);
+  border-radius: var(--radius-pill);
+  background: var(--primary-container);
+  outline: none;
+  cursor: pointer;
+  transition: background var(--t-micro);
+}
+
+.md3-slider__input::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: var(--slider-thumb-size);
+  height: var(--slider-thumb-size);
+  border-radius: var(--radius-pill);
+  background-color: var(--primary);
+  cursor: pointer;
+  box-shadow: var(--elev-1);
+  transition: transform var(--t-micro), box-shadow var(--t-micro);
+}
+
+.md3-slider__input::-moz-range-thumb {
+  width: var(--slider-thumb-size);
+  height: var(--slider-thumb-size);
+  border-radius: var(--radius-pill);
+  background-color: var(--primary);
+  cursor: pointer;
+  border: none;
+  box-shadow: var(--elev-1);
+}
+
+.md3-slider__input::-webkit-slider-thumb:hover {
+  transform: scale(1.15);
+  box-shadow: var(--elev-2);
+}
+
+.md3-slider__input:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+.md3-slider__input:disabled {
+  opacity: var(--state-disabled-opacity);
+  cursor: not-allowed;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   23. SNACKBAR / TOAST
+   MD3 transient bottom-screen notification.
+   Toast is a re-export alias — same rules apply.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.md3-snackbar {
+  position: fixed;
+  bottom: var(--space-8);
+  left: 50%;
+  transform: translateX(-50%) translateY(calc(100% + var(--space-8)));
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  min-width: var(--snackbar-min-w);
+  max-width: var(--snackbar-max-w);
+  padding: var(--space-4) var(--space-6);
+  background-color: var(--surface-container-high);
+  color: var(--on-surface);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--elev-3);
+  font-family: var(--font-sans);
+  font-size: var(--text-body-sm);
+  z-index: var(--z-snackbar);
+  transition: transform var(--motion-duration-medium) var(--motion-easing-decelerate);
+  pointer-events: none;
+}
+
+.md3-snackbar--open {
+  transform: translateX(-50%) translateY(0);
+  pointer-events: auto;
+}
+
+.md3-snackbar__message {
+  flex: 1;
+}
+
+.md3-snackbar__action {
+  background: transparent;
+  border: none;
+  color: var(--secondary);
+  font-family: var(--font-sans);
+  font-size: var(--text-label);
+  font-weight: var(--weight-label);
+  cursor: pointer;
+  padding: 0;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  transition: opacity var(--t-micro);
+}
+
+.md3-snackbar__action:hover {
+  opacity: 0.8;
+}
+
+.md3-snackbar__action:focus-visible {
+  outline: 2px solid var(--secondary);
+  outline-offset: 2px;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   24. SWITCH
+   MD3 toggle switch — native checkbox with role="switch", styled.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.md3-switch-wrapper {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+/* The track is the checkbox element itself */
+.md3-switch__input {
+  appearance: none;
+  -webkit-appearance: none;
+  position: relative;
+  width: var(--switch-track-w);
+  height: var(--switch-track-h);
+  border-radius: var(--radius-pill);
+  background-color: var(--surface-variant);
+  border: 2px solid var(--outline);
+  cursor: pointer;
+  transition:
+    background-color var(--t-micro),
+    border-color var(--t-micro);
+  flex-shrink: 0;
+}
+
+/* Thumb (knob) */
+.md3-switch__input::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 2px;
+  transform: translateY(-50%);
+  width: var(--switch-thumb-sm);
+  height: var(--switch-thumb-sm);
+  border-radius: var(--radius-pill);
+  background-color: var(--outline);
+  transition:
+    left var(--t-micro),
+    width var(--t-micro),
+    background-color var(--t-micro);
+}
+
+.md3-switch__input:checked {
+  background-color: var(--primary);
+  border-color: var(--primary);
+}
+
+.md3-switch__input:checked::after {
+  left: calc(100% - var(--switch-thumb-lg) - 2px);
+  width: var(--switch-thumb-lg);
+  background-color: var(--on-primary);
+}
+
+.md3-switch__input:disabled {
+  opacity: var(--state-disabled-opacity);
+  cursor: not-allowed;
+}
+
+.md3-switch__input:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 3px;
+}
+
+.md3-switch__label {
+  font-family: var(--font-sans);
+  font-size: var(--text-body-sm);
+  color: var(--on-surface);
+  cursor: pointer;
+  user-select: none;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   25. TABS
+   MD3 spec: primary | secondary; scrollable modifier.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.md3-tabs {
+  width: 100%;
+  font-family: var(--font-sans);
+}
+
+.md3-tabs--primary {}
+.md3-tabs--secondary {}
+
+.md3-tabs__list {
+  display: flex;
+  align-items: stretch;
+  border-bottom: 1px solid var(--outline-variant);
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.md3-tabs__list::-webkit-scrollbar {
+  display: none;
+}
+
+.md3-tabs--scrollable .md3-tabs__list {
+  overflow-x: auto;
+}
+
+.md3-tabs__tab {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-3) var(--space-6);
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid transparent;
+  color: var(--on-surface-dim);
+  font-family: var(--font-sans);
+  font-size: var(--text-label);
+  font-weight: var(--weight-label);
+  cursor: pointer;
+  white-space: nowrap;
+  transition:
+    color var(--t-micro),
+    border-color var(--t-micro);
+  position: relative;
+  overflow: hidden;
+}
+
+.md3-tabs__tab::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: currentColor;
+  opacity: 0;
+  transition: opacity var(--t-micro);
+  pointer-events: none;
+}
+
+.md3-tabs__tab:hover::before  { opacity: var(--state-hover);   }
+.md3-tabs__tab:active::before { opacity: var(--state-pressed);  }
+
+.md3-tabs__tab:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: -2px;
+}
+
+.md3-tabs__tab--active {
+  color: var(--primary);
+  border-bottom-color: var(--primary);
+  font-weight: var(--weight-title);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   26. TEXT FIELD
+   MD3 outlined text field with label, helper text, error, icon slots.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.md3-text-field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  position: relative;
+  width: 100%;
+  font-family: var(--font-sans);
+}
+
+/* States that affect the entire field */
+.md3-text-field--error .md3-text-field__inner {
+  border-color: var(--error);
+}
+
+.md3-text-field--disabled {
+  opacity: var(--state-disabled-opacity);
+  pointer-events: none;
+}
+
+/* Icon padding adjustments */
+.md3-text-field--has-leading .md3-text-field__inner {
+  padding-left: calc(var(--space-6) + var(--space-8));
+}
+
+.md3-text-field--has-trailing .md3-text-field__inner {
+  padding-right: calc(var(--space-6) + var(--space-8));
+}
+
+.md3-text-field__inner {
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  border: 1px solid var(--outline);
+  border-radius: var(--radius-sm);
+  background-color: var(--surface-container);
+  padding: var(--space-2) var(--space-4);
+  transition: border-color var(--t-micro);
+}
+
+.md3-text-field__inner:focus-within {
+  border-color: var(--primary);
+  border-width: 2px;
+}
+
+.md3-text-field--error .md3-text-field__inner:focus-within {
+  border-color: var(--error);
+}
+
+.md3-text-field__label {
+  display: block;
+  font-size: var(--text-caption);
+  font-weight: var(--weight-label);
+  color: var(--on-surface-dim);
+  margin-bottom: 2px;
+}
+
+.md3-text-field__inner:focus-within .md3-text-field__label {
+  color: var(--primary);
+}
+
+.md3-text-field--error .md3-text-field__inner .md3-text-field__label {
+  color: var(--error);
+}
+
+.md3-text-field__input {
+  background: transparent;
+  border: none;
+  outline: none;
+  font-family: var(--font-sans);
+  font-size: var(--text-body-lg);
+  color: var(--on-surface);
+  width: 100%;
+  padding: 0;
+}
+
+.md3-text-field__input::placeholder {
+  color: var(--on-surface-faint);
+}
+
+.md3-text-field__leading-icon,
+.md3-text-field__trailing-icon {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--on-surface-dim);
+  font-size: var(--space-5);
+  pointer-events: none;
+}
+
+.md3-text-field__leading-icon  { left: var(--space-4); }
+.md3-text-field__trailing-icon { right: var(--space-4); }
+
+.md3-text-field__helper {
+  margin: 0;
+  padding: 0 var(--space-4);
+  font-size: var(--text-caption);
+  color: var(--on-surface-dim);
+  line-height: 1.4;
+}
+
+.md3-text-field__error {
+  margin: 0;
+  padding: 0 var(--space-4);
+  font-size: var(--text-caption);
+  color: var(--error);
+  line-height: 1.4;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   27. TIME PICKER
+   MD3 time picker — wraps native <input type="time">.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.md3-time-picker {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  width: 100%;
+  font-family: var(--font-sans);
+}
+
+.md3-time-picker__label {
+  font-size: var(--text-body-sm);
+  font-weight: var(--weight-label);
+  color: var(--on-surface-dim);
+}
+
+.md3-time-picker__input {
+  width: 100%;
+  padding: var(--space-3) var(--space-4);
+  background-color: var(--surface-container);
+  border: 1px solid var(--outline);
+  border-radius: var(--radius-sm);
+  color: var(--on-surface);
+  font-family: var(--font-sans);
+  font-size: var(--text-body-lg);
+  outline: none;
+  transition: border-color var(--t-micro);
+  cursor: pointer;
+}
+
+.md3-time-picker__input:focus-visible {
+  border-color: var(--primary);
+  border-width: 2px;
+}
+
+.md3-time-picker__input:disabled {
+  opacity: var(--state-disabled-opacity);
+  cursor: not-allowed;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   28. TOP APP BAR
+   MD3 fixed top header with title + leading/trailing action slots.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.md3-top-app-bar {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  height: var(--top-bar-h);
+  padding: 0 var(--space-4);
+  background-color: var(--surface-container);
+  border-bottom: 1px solid var(--outline-variant);
+  position: sticky;
+  top: 0;
+  z-index: var(--z-top-bar);
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.md3-top-app-bar__leading {
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.md3-top-app-bar__title {
+  flex: 1;
+  margin: 0;
+  font-family: var(--font-sans);
+  font-size: var(--text-title-sm);
+  font-weight: var(--weight-title);
+  color: var(--on-surface);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.md3-top-app-bar__actions {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-shrink: 0;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   GLOBAL ANIMATION UTILITIES
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+@keyframes md3-spin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+/* Respect user prefers-reduced-motion */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

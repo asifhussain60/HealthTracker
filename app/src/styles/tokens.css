@@ -201,6 +201,121 @@
   --sidebar-w: 200px;
 }
 
+/* ── Component-specific size tokens (AC-S2-MD3-CSS) ── */
+:root {
+  /* Avatar — AC-S2: avatar size variants */
+  --avatar-size-sm:  32px;
+  --avatar-size-md:  40px;
+  --avatar-size-lg:  56px;
+
+  /* Badge */
+  --badge-dot-size:     8px;
+  --badge-label-min-w: 16px;
+  --badge-label-h:     16px;
+
+  /* Button */
+  --btn-height: 40px;
+
+  /* Chip */
+  --chip-height: 32px;
+
+  /* Checkbox + Radio — touch targets */
+  --cb-size:        18px;
+  --radio-size:     20px;
+  --radio-dot-size:  8px;
+
+  /* Date Picker */
+  --datepicker-min-w: 280px;
+
+  /* FAB */
+  --fab-size: 56px;
+
+  /* Icon Button */
+  --icon-btn-sm: 32px;
+  --icon-btn-md: 40px;
+  --icon-btn-lg: 48px;
+
+  /* List */
+  --list-item-h:        56px;
+  --list-item-compact-h: 40px;
+
+  /* Modal */
+  --modal-min-w: 280px;
+  --modal-max-w: 560px;
+  --modal-max-h: 80vh;
+
+  /* Navigation */
+  --nav-bottom-h:     80px;
+  --nav-rail-w:       80px;
+  --nav-rail-item-w:  72px;
+  --nav-rail-item-h:  56px;
+  --drawer-w:        256px;
+  --drawer-item-h:    56px;
+  --top-bar-h:        64px;
+
+  /* Progress */
+  --progress-track-h:        4px;
+  --progress-indeterminate-w: 40%;
+
+  /* Sheet */
+  --sheet-max-h:   90vh;
+  --sheet-handle-w: 32px;
+  --sheet-handle-h:  4px;
+
+  /* Skeleton */
+  --skeleton-duration: 1.5s;
+
+  /* Slider */
+  --slider-track-h:   4px;
+  --slider-thumb-size: 20px;
+
+  /* Snackbar */
+  --snackbar-min-w: 288px;
+  --snackbar-max-w: 568px;
+
+  /* Switch — AC-S2: track + thumb sizes */
+  --switch-track-w:  52px;
+  --switch-track-h:  32px;
+  --switch-thumb-sm: 16px;   /* unchecked thumb */
+  --switch-thumb-lg: 24px;   /* checked thumb */
+
+  /* Z-index scale — AC-S2 */
+  --z-top-bar:   10;
+  --z-drawer:   200;
+  --z-sheet:    300;
+  --z-modal:    400;
+  --z-snackbar: 500;
+
+  /* Scrim (modal / drawer backdrop) */
+  --scrim: rgba(0, 0, 0, 0.42);
+
+  /* Disabled state helpers */
+  --state-disabled-opacity:   0.38;
+  --state-disabled-content:   rgba(255, 255, 255, 0.38);
+  --state-disabled-container: rgba(255, 255, 255, 0.12);
+
+  /* Semantic containers (alert variants) — AC-S2 */
+  --success-container:    oklch(28% 0.09 142);
+  --on-success-container: oklch(88% 0.07 142);
+  --warning-container:    oklch(28% 0.08  48);
+  --on-warning-container: oklch(88% 0.07  48);
+  --on-error-container:   oklch(88% 0.07  14);
+}
+
+[data-theme="light"] {
+  /* Light-mode overrides for component tokens */
+  --state-disabled-content:   rgba(33, 33, 33, 0.38);
+  --state-disabled-container: rgba(33, 33, 33, 0.12);
+
+  --success-container:    oklch(88% 0.07 142);
+  --on-success-container: oklch(25% 0.10 142);
+  --warning-container:    oklch(88% 0.07  48);
+  --on-warning-container: oklch(25% 0.10  48);
+  --on-error-container:   oklch(25% 0.12  14);
+
+  --scrim: rgba(0, 0, 0, 0.32);
+}
+
 /* ── Tabular numerals utility class ── */
 .tabular-nums {
   font-variant-numeric: tabular-nums;
