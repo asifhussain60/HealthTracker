@@ -7,7 +7,7 @@
  * Click B again → B collapses (all closed). At no point are 2+ open simultaneously.
  */
 import { render, screen, fireEvent } from '@testing-library/react';
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { axe, toHaveNoViolations } from 'jest-axe';
 import { expect as vitestExpect } from 'vitest';
 vitestExpect.extend(toHaveNoViolations);
@@ -110,7 +110,7 @@ describe('AccordionGroup — PF-10 single-open invariant (B8)', () => {
   });
 
   it('clicking A expands A; B and C remain collapsed', () => {
-    const { btnA, btnB, btnC, container } = renderGroup();
+    const { btnA, btnB, btnC } = renderGroup();
     fireEvent.click(btnA());
     expect(btnA()).toHaveAttribute('aria-expanded', 'true');
     expect(btnB()).toHaveAttribute('aria-expanded', 'false');

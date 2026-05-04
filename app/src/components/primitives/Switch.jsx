@@ -7,6 +7,8 @@
  *
  * All colours via CSS variables — no hex in JSX.
  */
+import { useId } from 'react';
+
 export function Switch({
   label,
   id,
@@ -15,7 +17,8 @@ export function Switch({
   disabled = false,
   className = '',
 }) {
-  const switchId = id ?? `md3-switch-${Math.random().toString(36).slice(2)}`;
+  const generatedId = useId();
+  const switchId = id ?? `md3-switch-${generatedId}`;
 
   return (
     <div className={`md3-switch-wrapper ${className}`.trim()}>

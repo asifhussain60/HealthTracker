@@ -5,7 +5,7 @@
  * Focus trap testing uses jsdom — we test focus management basics.
  * Toast is an alias for Snackbar (tested via re-export).
  */
-import { render, screen, fireEvent, act } from '@testing-library/react';
+import { render, screen, fireEvent } from '@testing-library/react';
 import { describe, it, expect, vi } from 'vitest';
 import { axe, toHaveNoViolations } from 'jest-axe';
 import { expect as vitestExpect } from 'vitest';

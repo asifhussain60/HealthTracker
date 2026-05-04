@@ -7,8 +7,11 @@
  *
  * All colours via CSS variables — no hex in JSX.
  */
+import { useId } from 'react';
+
 export function TimePicker({ value, onChange, label, id, disabled = false, className = '' }) {
-  const inputId = id ?? `md3-time-${Math.random().toString(36).slice(2)}`;
+  const generatedId = useId();
+  const inputId = id ?? `md3-time-${generatedId}`;
 
   return (
     <div className={`md3-time-picker ${className}`.trim()}>

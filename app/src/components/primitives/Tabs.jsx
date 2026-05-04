@@ -7,8 +7,11 @@
  *
  * All colours via CSS variables — no hex in JSX.
  */
+import { useId } from 'react';
+
 export function Tabs({ variant = 'primary', tabs = [], activeId, onChange, scrollable = false, className = '' }) {
-  const tablistId = `md3-tablist-${Math.random().toString(36).slice(2)}`;
+  const generatedId = useId();
+  const tablistId = `md3-tablist-${generatedId}`;
 
   const classes = [
     'md3-tabs',

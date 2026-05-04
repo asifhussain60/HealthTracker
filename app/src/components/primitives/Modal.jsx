@@ -7,7 +7,7 @@
  *
  * All colours via CSS variables — no hex in JSX.
  */
-import { useEffect } from 'react';
+import { useEffect, useId } from 'react';
 
 export function Modal({ open, onClose, title, children, className = '' }) {
   // Escape key closes
@@ -20,9 +20,10 @@ export function Modal({ open, onClose, title, children, className = '' }) {
     return () => document.removeEventListener('keydown', handler);
   }, [open, onClose]);
 
-  if (!open) return null;
+  const generatedId = useId();
+  const titleId = `md3-modal-title-${generatedId}`;
 
-  const titleId = `md3-modal-title-${Math.random().toString(36).slice(2)}`;
+  if (!open) return null;
 
   return (
     <div className={`md3-modal ${className}`.trim()}>

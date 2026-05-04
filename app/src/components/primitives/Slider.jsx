@@ -5,6 +5,8 @@
  * Props: label, id, min, max, step, value, onChange, ticks (optional)
  * All colours via CSS variables — no hex in JSX.
  */
+import { useId } from 'react';
+
 export function Slider({
   label,
   id,
@@ -17,7 +19,8 @@ export function Slider({
   disabled = false,
   className = '',
 }) {
-  const sliderId = id ?? `md3-slider-${Math.random().toString(36).slice(2)}`;
+  const generatedId = useId();
+  const sliderId = id ?? `md3-slider-${generatedId}`;
   const listId = ticks ? `${sliderId}-ticks` : undefined;
 
   // Build tick marks if requested

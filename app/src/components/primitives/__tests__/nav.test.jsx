@@ -6,7 +6,7 @@
  * Adaptive nav: BottomNav <600 / NavRail 600-904 / SideDrawer ≥905.
  */
 import { render, screen, fireEvent } from '@testing-library/react';
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { axe, toHaveNoViolations } from 'jest-axe';
 import { expect as vitestExpect } from 'vitest';
 vitestExpect.extend(toHaveNoViolations);

@@ -5,7 +5,7 @@
  * States: checked | unchecked | indeterminate
  * All colours via CSS variables — no hex in JSX.
  */
-import { useRef, useEffect } from 'react';
+import { useRef, useEffect, useId } from 'react';
 
 export function Checkbox({
   label,
@@ -17,7 +17,8 @@ export function Checkbox({
   className = '',
 }) {
   const ref = useRef(null);
-  const checkId = id ?? `md3-cb-${Math.random().toString(36).slice(2)}`;
+  const generatedId = useId();
+  const checkId = id ?? `md3-cb-${generatedId}`;
 
   useEffect(() => {
     if (ref.current) {

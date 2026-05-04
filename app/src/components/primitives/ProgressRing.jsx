@@ -7,12 +7,15 @@
  *
  * All colours via CSS variables — no hex in JSX.
  */
+import { useId } from 'react';
+
 export function ProgressRing({ value = 0, label, size = 90, stroke = 9, children, className = '' }) {
+  const generatedId = useId();
   const clamped = Math.min(1, Math.max(0, value));
   const r = (size - stroke) / 2;
   const circ = 2 * Math.PI * r;
   const dash = clamped * circ;
-  const titleId = `progress-ring-title-${Math.random().toString(36).slice(2)}`;
+  const titleId = `progress-ring-title-${generatedId}`;
 
   return (
     <div

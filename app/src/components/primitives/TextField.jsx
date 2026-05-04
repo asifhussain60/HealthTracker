@@ -7,6 +7,8 @@
  *
  * All colours via CSS variables — no hex in JSX.
  */
+import { useId } from 'react';
+
 export function TextField({
   variant = 'text',
   label,
@@ -31,7 +33,8 @@ export function TextField({
     date: 'date',
   }[variant] ?? 'text';
 
-  const fieldId = id ?? `md3-tf-${Math.random().toString(36).slice(2)}`;
+  const generatedId = useId();
+  const fieldId = id ?? `md3-tf-${generatedId}`;
   const helperId = `${fieldId}-helper`;
   const errorId = `${fieldId}-error`;
 
