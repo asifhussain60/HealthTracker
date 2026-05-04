@@ -375,6 +375,256 @@ const Chip = ({ label, meta, selected, onClick, theme = 'teal', badge }) => {
   );
 };
 
+// --- Time helpers ---
+
+const fmtClock = (mins) => {
+  const h = Math.floor(mins / 60);
+  const m = mins % 60;
+  const period = h >= 12 ? 'pm' : 'am';
+  const h12 = ((h + 11) % 12) + 1;
+  return `${h12}:${String(m).padStart(2, '0')} ${period}`;
+};
+
+const fmtDur = (mins) => {
+  const m = Math.max(0, Math.round(mins));
+  if (m === 0) return '0m';
+  const h = Math.floor(m / 60);
+  const rem = m % 60;
+  return h > 0 ? (rem > 0 ? `${h}h ${rem}m` : `${h}h`) : `${rem}m`;
+};
+
+// --- Cannabis: day-progress (twin donut rings) ---
+
+// Discrete segmented donut — N segments fill independently as sessions are logged.
+const SegmentedDonut = ({ segments, total, size = 92, strokeWidth = 9, gap = 6, fillColor = '#10b981' }) => {
+  if (total <= 0) return null;
+  const radius = (size - strokeWidth) / 2;
+  const circumference = 2 * Math.PI * radius;
+  const segLen = Math.max(0, (circumference - gap * total) / total);
+  const center = size / 2;
+  return (
+    <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} className="-rotate-90">
+      {Array.from({ length: total }).map((_, i) => {
+        const filled = i < segments;
+        const offset = -(i * (segLen + gap));
+        return (
+          <circle
+            key={i}
+            cx={center}
+            cy={center}
+            r={radius}
+            fill="none"
+            stroke={filled ? fillColor : '#1e293b'}
+            strokeWidth={strokeWidth}
+            strokeDasharray={`${segLen} ${circumference}`}
+            strokeDashoffset={offset}
+            strokeLinecap="round"
+            style={{ transition: 'stroke 600ms ease' }}
+          />
+        );
+      })}
+    </svg>
+  );
+};
+
+// Continuous donut — single arc, fill % corresponds to value.
+const ProgressDonut = ({ pct, size = 92, strokeWidth = 9, color = '#10b981' }) => {
+  const radius = (size - strokeWidth) / 2;
+  const circumference = 2 * Math.PI * radius;
+  const filled = Math.max(0, Math.min(100, pct)) / 100 * circumference;
+  const center = size / 2;
+  return (
+    <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} className="-rotate-90">
+      <circle cx={center} cy={center} r={radius} fill="none" stroke="#1e293b" strokeWidth={strokeWidth} />
+      <circle
+        cx={center}
+        cy={center}
+        r={radius}
+        fill="none"
+        stroke={color}
+        strokeWidth={strokeWidth}
+        strokeDasharray={`${filled} ${circumference}`}
+        strokeLinecap="round"
+        style={{ transition: 'stroke-dasharray 700ms ease-out, stroke 400ms ease' }}
+      />
+    </svg>
+  );
+};
+
+const CannabisDayProgress = ({ logged, planned, mgUsed, mgCap, taper }) => {
+  const isComplete = planned > 0 && logged >= planned;
+  const mgPct = mgCap > 0 ? Math.min(100, (mgUsed / mgCap) * 100) : 0;
+  const mgLeft = Math.max(0, mgCap - mgUsed);
+  const mgHex =
+    mgPct < 60 ? '#10b981'
+    : mgPct < 90 ? '#f59e0b'
+    : '#ef4444';
+  const mgTextCls =
+    mgPct < 60 ? 'text-emerald-300'
+    : mgPct < 90 ? 'text-amber-300'
+    : 'text-red-300';
+
+  return (
+    <div className="mb-4 rounded-xl bg-slate-950/60 border border-slate-800 p-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-2 md:divide-x md:divide-slate-800">
+        {/* Left ring — Today's plan */}
+        <div className="flex items-center gap-4 md:pr-3">
+          <div className={`relative flex-shrink-0 transition-all ${isComplete ? 'drop-shadow-[0_0_14px_rgba(52,211,153,0.45)]' : ''}`}>
+            <SegmentedDonut segments={logged} total={planned} size={92} strokeWidth={9} gap={10} fillColor="#10b981" />
+            <div className="absolute inset-0 flex flex-col items-center justify-center leading-none">
+              {isComplete ? (
+                <>
+                  <span className="text-[22px] text-emerald-300 leading-none mb-0.5">✓</span>
+                  <span className="text-[9px] text-emerald-300 font-bold uppercase tracking-widest">Done</span>
+                </>
+              ) : (
+                <>
+                  <span className="text-[22px] font-bold tabular-nums text-slate-100 leading-none">
+                    {logged}<span className="text-slate-500 text-[13px] font-medium">/{planned}</span>
+                  </span>
+                  <span className="text-[9px] text-slate-500 uppercase tracking-widest mt-1">Sessions</span>
+                </>
+              )}
+            </div>
+          </div>
+          <div className="min-w-0 flex flex-col gap-1">
+            <span className="text-[10px] text-slate-400 uppercase tracking-widest font-semibold">Today's plan</span>
+            {taper && (
+              <span className="inline-block self-start px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-300 border border-emerald-500/20 text-[10px] font-semibold tabular-nums">
+                Taper wk {taper.week}/{taper.total}
+              </span>
+            )}
+            <div className={`text-[12.5px] font-semibold ${isComplete ? 'text-emerald-300' : 'text-slate-200'}`}>
+              {isComplete
+                ? 'Plan complete'
+                : `${planned - logged} session${planned - logged === 1 ? '' : 's'} left`}
+            </div>
+            <div className="text-[10px] text-slate-500 tabular-nums">
+              {logged} of {planned} logged
+            </div>
+          </div>
+        </div>
+
+        {/* Right ring — Taper headroom */}
+        <div className="flex items-center gap-4 md:pl-3">
+          <div className="relative flex-shrink-0">
+            <ProgressDonut pct={mgPct} size={92} strokeWidth={9} color={mgHex} />
+            <div className="absolute inset-0 flex flex-col items-center justify-center leading-none">
+              <span className={`text-[22px] font-bold tabular-nums leading-none ${mgTextCls}`}>{mgUsed}</span>
+              <span className="text-[9px] text-slate-500 uppercase tracking-widest mt-1">mg used</span>
+            </div>
+          </div>
+          <div className="min-w-0 flex flex-col gap-1">
+            <span className="text-[10px] text-slate-400 uppercase tracking-widest font-semibold">Taper headroom</span>
+            <span className="inline-block self-start px-2 py-0.5 rounded-full bg-slate-800 text-slate-400 border border-slate-700 text-[10px] font-semibold tabular-nums">
+              Cap {mgCap} mg
+            </span>
+            <div className={`text-[12.5px] font-semibold tabular-nums ${mgTextCls}`}>
+              {mgLeft} mg left
+            </div>
+            {taper && (
+              <div className="text-[10px] text-slate-500 tabular-nums">
+                Drops {Math.abs(taper.weeklyDelta)} mg/wk
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// --- Cannabis: per-session card with cooldown state ---
+
+const CannabisSessionCard = ({ session, state, onLog, onUnlog }) => {
+  const isLogged = state.status === 'logged';
+  const isCooldown = state.status === 'cooldown';
+  const isReady = state.status === 'ready';
+
+  const surface = isLogged
+    ? 'bg-emerald-500/[0.06] border-emerald-500/40'
+    : isCooldown
+      ? 'bg-slate-900/60 border-slate-800 opacity-70'
+      : isReady
+        ? 'bg-emerald-500/[0.04] border-emerald-500/30 shadow-[0_0_24px_-8px_rgba(52,211,153,0.35)]'
+        : 'bg-slate-900/60 border-slate-800';
+
+  const pill = isLogged
+    ? { label: `Logged ${state.loggedAt}`, cls: 'bg-emerald-500/15 text-emerald-300 border-emerald-500/30' }
+    : isCooldown
+      ? { label: `Ready at ${state.earliestAt}`, cls: 'bg-amber-500/15 text-amber-300 border-amber-500/30' }
+      : isReady
+        ? { label: 'Ready to log', cls: 'bg-emerald-500/15 text-emerald-300 border-emerald-500/30' }
+        : { label: `Scheduled ${session.scheduledTime}`, cls: 'bg-slate-800 text-slate-400 border-slate-700' };
+
+  return (
+    <div className={`relative rounded-xl border p-3.5 flex flex-col gap-2.5 transition-all duration-300 ${surface}`}>
+      {/* Top row — time + kind */}
+      <div className="flex items-center justify-between">
+        <div className="text-sm font-bold text-slate-100 tabular-nums">{session.scheduledTime}</div>
+        <span className="text-[10px] px-2 py-0.5 rounded-full bg-slate-900 text-slate-400 uppercase tracking-wider border border-slate-800">{session.kind}</span>
+      </div>
+
+      {/* Product */}
+      <div className="flex items-center gap-2.5">
+        <div className="w-9 h-9 bg-slate-900 rounded-[9px] flex items-center justify-center text-[17px] flex-shrink-0">
+          {session.emoji}
+        </div>
+        <div className="min-w-0">
+          <div className="text-[13.5px] font-semibold text-slate-100 truncate leading-tight">{session.productName}</div>
+          <div className="text-[11px] text-slate-400 truncate mt-0.5">
+            {session.portion} · {session.doseMg} mg · {'⭐'.repeat(session.stars)}
+          </div>
+        </div>
+      </div>
+
+      {/* Status pill */}
+      <div className={`self-start text-[10.5px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full border ${pill.cls}`}>
+        {pill.label}
+      </div>
+
+      {/* Cooldown progress (cooldown state only) */}
+      {isCooldown && (
+        <div className="mt-0.5">
+          <div className="flex items-center justify-between text-[10px] text-slate-500 mb-1.5 tabular-nums">
+            <span>Since last dose: <span className="text-slate-300 font-semibold">{state.sinceLast}</span></span>
+            <span>{state.cooldownRemaining} left</span>
+          </div>
+          <div className="h-1.5 rounded-full bg-slate-800 overflow-hidden">
+            <div
+              className="h-full bg-amber-500 rounded-full transition-[width] duration-700 ease-out"
+              style={{ width: `${state.cooldownPct}%` }}
+            />
+          </div>
+        </div>
+      )}
+
+      {/* Action button */}
+      {isLogged ? (
+        <button
+          onClick={onUnlog}
+          className="self-start mt-1 px-3.5 py-1.5 rounded-full bg-slate-900 text-slate-400 border border-slate-700 text-[11.5px] font-semibold hover:bg-slate-800 hover:text-slate-200 transition-colors"
+        >
+          ↺ Unlog
+        </button>
+      ) : (
+        <button
+          onClick={onLog}
+          className={`self-start mt-1 px-3.5 py-1.5 rounded-full text-[11.5px] font-semibold border transition-colors ${
+            isReady
+              ? 'bg-emerald-500 text-white border-emerald-400 hover:bg-emerald-400 shadow-[0_4px_14px_-2px_rgba(52,211,153,0.5)]'
+              : isCooldown
+                ? 'bg-amber-500/10 text-amber-300 border-amber-500/30 hover:bg-amber-500/15'
+                : 'bg-teal-500/10 text-teal-400 border-teal-500/30 hover:bg-teal-500/20'
+          }`}
+        >
+          Log session{isCooldown ? ' early' : ''}
+        </button>
+      )}
+    </div>
+  );
+};
+
 // --- Unified Workout Tile (Walk / Kickboxing / Weights / future workouts) ---
 
 const WORKOUT_ACCENTS = {
@@ -535,6 +785,95 @@ function App() {
   const [kickRounds, setKickRounds] = useState(5);
   // Kickboxing: each round = 2 min + 1 min rest between rounds (no rest after final round)
   const kickTotalMin = kickRounds > 0 ? kickRounds * 2 + Math.max(0, kickRounds - 1) : 0;
+
+  // Cannabis sessions (single source of truth for budget + cooldown + modal)
+  const [cannabisSessions, setCannabisSessions] = useState([
+    {
+      id: 'edible-1',
+      scheduledTime: '2:30 pm',
+      scheduledMin: 14 * 60 + 30,
+      kind: 'Edible',
+      productName: 'Peanut Buddha Buddha',
+      emoji: '🍫',
+      portion: '½ piece',
+      doseMg: 25,
+      stars: 3,
+      cooldownMin: 180, // 3 hr typical edible re-dose window
+      logged: true,
+      loggedAtMin: 14 * 60 + 30,
+    },
+    {
+      id: 'vape-1',
+      scheduledTime: '7:30 pm',
+      scheduledMin: 19 * 60 + 30,
+      kind: 'Vape',
+      productName: 'Indica Cart',
+      emoji: '💨',
+      portion: '2 puffs',
+      doseMg: 6,
+      stars: 2,
+      cooldownMin: 60, // 1 hr vape re-dose window
+      logged: false,
+    },
+  ]);
+  // Demo "now" — 3:45 pm so cooldown is mid-progress (1h 15m of 3h elapsed).
+  const cannabisNowMin = 15 * 60 + 45;
+  const [cannabisConfirmId, setCannabisConfirmId] = useState(null);
+
+  // Per-session derived state (cooldown / scheduled / ready / logged)
+  const computeCannabisState = (session) => {
+    if (session.logged) {
+      return { status: 'logged', loggedAt: fmtClock(session.loggedAtMin) };
+    }
+    const lastLogged = [...cannabisSessions]
+      .filter((s) => s.logged && s.loggedAtMin <= session.scheduledMin)
+      .sort((a, b) => b.loggedAtMin - a.loggedAtMin)[0];
+    const cooldownEnd = lastLogged ? lastLogged.loggedAtMin + lastLogged.cooldownMin : 0;
+    if (lastLogged && cannabisNowMin < cooldownEnd) {
+      const elapsed = cannabisNowMin - lastLogged.loggedAtMin;
+      const total = lastLogged.cooldownMin;
+      const pct = Math.min(100, Math.max(0, (elapsed / total) * 100));
+      return {
+        status: 'cooldown',
+        earliestAt: fmtClock(cooldownEnd),
+        sinceLast: fmtDur(elapsed),
+        cooldownRemaining: fmtDur(cooldownEnd - cannabisNowMin),
+        cooldownPct: pct,
+        recommendedSpacing: fmtDur(lastLogged.cooldownMin),
+        lastDoseProductName: lastLogged.productName,
+      };
+    }
+    if (cannabisNowMin < session.scheduledMin) {
+      return { status: 'scheduled' };
+    }
+    return { status: 'ready' };
+  };
+
+  const requestLogCannabis = (sessionId) => {
+    const s = cannabisSessions.find((x) => x.id === sessionId);
+    if (!s) return;
+    const st = computeCannabisState(s);
+    if (st.status === 'cooldown') {
+      setCannabisConfirmId(sessionId);
+      return;
+    }
+    commitLogCannabis(sessionId);
+  };
+  const commitLogCannabis = (sessionId) => {
+    setCannabisSessions((prev) => prev.map((s) => s.id === sessionId
+      ? { ...s, logged: true, loggedAtMin: cannabisNowMin }
+      : s));
+    setCannabisConfirmId(null);
+  };
+  const unlogCannabis = (sessionId) => {
+    setCannabisSessions((prev) => prev.map((s) => s.id === sessionId
+      ? { ...s, logged: false, loggedAtMin: undefined }
+      : s));
+  };
+  const cannabisConsumed = cannabisSessions.filter((s) => s.logged).reduce((sum, s) => sum + s.doseMg, 0);
+  const cannabisCap = 73;
+  const cannabisConfirmSession = cannabisSessions.find((s) => s.id === cannabisConfirmId);
+  const cannabisConfirmState = cannabisConfirmSession ? computeCannabisState(cannabisConfirmSession) : null;
 
   // Picker auto-collapse: only one picker open at a time, closes on outside-click or 2s idle
   const [openPicker, setOpenPicker] = useState(null); // 'walk' | 'kick' | null
@@ -1002,47 +1341,42 @@ function App() {
           <Panel
             icon="🌿"
             title="Cannabis"
-            subtitle="2 sessions · taper week 2 / 8 · 15 / 73 mg today"
-            libTag="cannabisProducts · session planner"
+            subtitle={(() => {
+              const loggedCount = cannabisSessions.filter((s) => s.logged).length;
+              const planned = cannabisSessions.length;
+              const isComplete = loggedCount >= planned;
+              return isComplete
+                ? `Plan complete · ${cannabisConsumed} mg today (${cannabisCap} mg cap)`
+                : `${loggedCount} of ${planned} logged · ${cannabisConsumed} mg today`;
+            })()}
+            libTag="cannabisProducts · taper-aware planner"
             accent="emerald"
           >
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-              <div className="bg-slate-800 rounded-xl p-3.5 flex flex-col gap-2">
-                <div className="flex items-center justify-between">
-                  <div className="text-sm font-bold text-slate-100">2:30 pm</div>
-                  <div className="text-[10px] px-2 py-1 rounded-full bg-slate-900 text-slate-400 uppercase tracking-wider">Edible</div>
-                </div>
-                <div className="flex items-center gap-2.5">
-                  <div className="w-9 h-9 bg-slate-900 rounded-[9px] flex items-center justify-center text-[17px] flex-shrink-0">🍫</div>
-                  <div>
-                    <div className="text-[13.5px] font-semibold text-slate-100">Peanut Buddha Buddha</div>
-                    <div className="text-[11px] text-slate-400 mt-0.5">½ piece · 25 mg · ⭐⭐⭐</div>
-                  </div>
-                </div>
-                <button className="self-start px-3.5 py-1.5 rounded-full bg-teal-500/10 text-teal-400 border border-teal-500/30 text-[11.5px] font-semibold hover:bg-teal-500/20 transition-colors">
-                  Log session
-                </button>
-              </div>
+            <CannabisDayProgress
+              logged={cannabisSessions.filter((s) => s.logged).length}
+              planned={cannabisSessions.length}
+              mgUsed={cannabisConsumed}
+              mgCap={cannabisCap}
+              taper={{ week: 2, total: 8, weeklyDelta: -6 }}
+            />
 
-              <div className="bg-slate-800 rounded-xl p-3.5 flex flex-col gap-2">
-                <div className="flex items-center justify-between">
-                  <div className="text-sm font-bold text-slate-100">7:30 pm</div>
-                  <div className="text-[10px] px-2 py-1 rounded-full bg-slate-900 text-slate-400 uppercase tracking-wider">Vape</div>
-                </div>
-                <div className="flex items-center gap-2.5">
-                  <div className="w-9 h-9 bg-slate-900 rounded-[9px] flex items-center justify-center text-[17px] flex-shrink-0">💨</div>
-                  <div>
-                    <div className="text-[13.5px] font-semibold text-slate-100">Indica Cart</div>
-                    <div className="text-[11px] text-slate-400 mt-0.5">2 puffs · ~6 mg · ⭐⭐</div>
-                  </div>
-                </div>
-                <button className="self-start px-3.5 py-1.5 rounded-full bg-teal-500/10 text-teal-400 border border-teal-500/30 text-[11.5px] font-semibold hover:bg-teal-500/20 transition-colors">
-                  Log session
-                </button>
-              </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              {cannabisSessions.map((s) => {
+                const state = computeCannabisState(s);
+                return (
+                  <CannabisSessionCard
+                    key={s.id}
+                    session={s}
+                    state={state}
+                    onLog={() => requestLogCannabis(s.id)}
+                    onUnlog={() => unlogCannabis(s.id)}
+                  />
+                );
+              })}
             </div>
-            <div className="text-[10.5px] text-slate-500 mt-3 text-center">
-              Algorithm: favorites-weighted · onset back-scheduled from 8 pm bedtime · variety constraint (no same product back-to-back)
+
+            <div className="text-[10.5px] text-slate-500 mt-3 text-center leading-relaxed">
+              Spacing guard: edible cooldown 3h, vape cooldown 1h · onset back-scheduled from 8 pm bedtime · variety constraint
             </div>
           </Panel>
 
@@ -1130,6 +1464,53 @@ function App() {
           </div>{/* /panels-rekey wrapper */}
         </main>
       </div>
+
+      {/* Cannabis early-log confirmation modal */}
+      {cannabisConfirmId && cannabisConfirmSession && cannabisConfirmState && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="cannabis-confirm-title"
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in"
+          onClick={() => setCannabisConfirmId(null)}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="max-w-sm w-full bg-slate-900 border border-slate-700 rounded-2xl p-5 shadow-[0_24px_60px_-12px_rgba(0,0,0,0.8)] animate-in fade-in slide-in-from-top-2"
+          >
+            <div className="flex items-start gap-3">
+              <div className="w-10 h-10 rounded-full bg-amber-500/15 border border-amber-500/30 flex items-center justify-center flex-shrink-0 text-amber-400 text-base">⚠</div>
+              <div className="flex-1 min-w-0">
+                <div id="cannabis-confirm-title" className="ht-display text-[17px] font-bold text-slate-100 leading-tight">Log dose early?</div>
+                <div className="text-[12px] text-slate-400 mt-1.5 leading-relaxed">
+                  Last dose ({cannabisConfirmState.lastDoseProductName}) was <span className="text-slate-200 font-semibold">{cannabisConfirmState.sinceLast}</span> ago.
+                  Recommended spacing is <span className="text-slate-200 font-semibold">{cannabisConfirmState.recommendedSpacing}</span>.
+                </div>
+              </div>
+            </div>
+
+            <div className="mt-4 p-3 rounded-lg bg-slate-950/60 border border-slate-800 text-[11px] text-slate-400 leading-relaxed">
+              Logging will add <span className="text-slate-200 font-semibold tabular-nums">{cannabisConfirmSession.doseMg} mg</span> to today's budget
+              ({cannabisConsumed} / {cannabisCap} mg → <span className="tabular-nums">{cannabisConsumed + cannabisConfirmSession.doseMg}</span> / {cannabisCap}).
+            </div>
+
+            <div className="flex gap-2 justify-end mt-4">
+              <button
+                onClick={() => setCannabisConfirmId(null)}
+                className="px-4 py-2 rounded-lg text-[12px] font-semibold text-slate-300 hover:bg-slate-800 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => commitLogCannabis(cannabisConfirmId)}
+                className="px-4 py-2 rounded-lg text-[12px] font-semibold bg-amber-500 text-amber-950 hover:bg-amber-400 transition-colors"
+              >
+                Log anyway
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
