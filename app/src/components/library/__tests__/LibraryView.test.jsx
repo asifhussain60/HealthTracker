@@ -4,7 +4,7 @@
  * Tests for <LibraryView> generic library editor.
  * Uses fastingSafeItemsSchema (already wired from P1.A) as the fixture schema.
  */
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect } from 'vitest';
 import { render, screen, fireEvent, within } from '@testing-library/react';
 import { LibraryView } from '../LibraryView.jsx';
 import { fastingSafeItemsSchema } from '../../../data/library/schemas/fastingSafeItems.js';

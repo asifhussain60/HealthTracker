@@ -30,7 +30,7 @@ import { LibraryImportDrop } from './LibraryImportDrop.jsx';
 
 // ── Modal wrapper ─────────────────────────────────────────────────────────────
 
-function ModalOverlay({ children, onClose }) {
+function ModalOverlay({ children }) {
   return (
     <div
       role="dialog"

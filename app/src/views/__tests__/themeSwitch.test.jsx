@@ -6,8 +6,8 @@
  *   - main.jsx applies class on html element on mount
  *   - Theme persists via store (mocked localStorage)
  */
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { render, screen, fireEvent, act } from '@testing-library/react';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { render, screen, fireEvent } from '@testing-library/react';
 import { MemoryRouter, Routes, Route } from 'react-router-dom';
 import { SettingsView } from '../SettingsView.jsx';
 import { useStore } from '../../data/store/index.js';
