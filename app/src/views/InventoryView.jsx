@@ -1,7 +1,16 @@
+/**
+ * InventoryView.jsx — Cannabis inventory view (renamed "Cannabis" in nav).
+ *
+ * AC-P0-C8
+ * ProductScorecard extracted to CannabisProductScorecard.jsx.
+ * useStore direct reads replaced with useCannabisRepo() per P1 audit finding.
+ */
 import { useState } from 'react';
 import { useStore } from '../data/store';
+import { useCannabisRepo } from '../data/repositories/useCannabisRepo';
 import { Modal } from '../components/Modal';
 import { DAY_NIGHT_LABELS } from '../data/seed';
+import { CannabisProductScorecard } from '../components/cards/CannabisProductScorecard';
 import { format } from 'date-fns';
 
 function RiskBadge({ level }) {
@@ -28,15 +37,15 @@ function getRemainingPct(item) {
 }
 
 function getBarColor(riskLevel) {
-  if (riskLevel === 'high') return 'var(--red)';
+  if (riskLevel === 'high')        return 'var(--red)';
   if (riskLevel === 'medium-high') return 'var(--orange)';
-  if (riskLevel === 'medium') return 'var(--yellow)';
+  if (riskLevel === 'medium')      return 'var(--yellow)';
   return 'var(--green)';
 }
 
 function LogUseModal({ product, onClose }) {
   const logInventoryUse = useStore((s) => s.logInventoryUse);
-  const addCannabisLog = useStore((s) => s.addCannabisLog);
+  const addCannabisLog  = useStore((s) => s.addCannabisLog);
   const [amount, setAmount] = useState('');
 
   const handleLog = () => {
@@ -84,99 +93,13 @@ function LogUseModal({ product, onClose }) {
   );
 }
 
-function ProductScorecard() {
-  const cannabisLogs = useStore((s) => s.cannabisLogs);
-  const inventory = useStore((s) => s.inventory);
-
-  const scorecardData = inventory.map((product) => {
-    const logs = cannabisLogs.filter((l) => l.productId === product.id);
-    if (logs.length === 0) return { product, logs: 0, verdict: 'No data' };
-
-    const avg = (key) => {
-      const vals = logs.map((l) => Number(l[key])).filter((v) => !isNaN(v) && v > 0);
-      return vals.length ? (vals.reduce((a, b) => a + b, 0) / vals.length).toFixed(1) : '—';
-    };
-
-    const medBenefit = avg('medicalBenefit');
-    const munchies = avg('munchiesLevel');
-    const productivity = avg('productivityScore');
-
-    const yesCount = logs.filter((l) => l.wouldUseAgain === 'Yes').length;
-    const wouldUseRate = `${yesCount}/${logs.length}`;
-
-    let verdict = 'Insufficient data';
-    if (logs.length >= 3) {
-      const mb = parseFloat(medBenefit);
-      const mu = parseFloat(munchies);
-      const pr = parseFloat(productivity);
-      if (!isNaN(mb) && !isNaN(mu) && !isNaN(pr)) {
-        if (mb >= 7 && pr >= 7 && mu <= 4) verdict = '✓ Keep';
-        else if (mb >= 5 || pr >= 5) verdict = '⚠ Limit';
-        else verdict = '✗ Avoid';
-      }
-    }
-
-    return { product, logs: logs.length, medBenefit, munchies, productivity, wouldUseRate, verdict };
-  });
-
-  return (
-    <div className="card" style={{ marginTop: 20 }}>
-      <div style={{ fontSize: 14, fontWeight: 700, marginBottom: 12 }}>Product Scorecard</div>
-      <div style={{ fontSize: 11, color: 'var(--text-dimmer)', marginBottom: 12 }}>
-        Verdict requires ≥ 3 sessions. Keep = medical benefit ≥7 AND productivity ≥7 AND munchies ≤4.
-      </div>
-      <div style={{ overflowX: 'auto' }}>
-        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
-          <thead>
-            <tr style={{ borderBottom: '1px solid var(--border)', color: 'var(--text-dimmer)' }}>
-              <th style={{ textAlign: 'left', padding: '6px 8px', fontWeight: 500 }}>Product</th>
-              <th style={{ textAlign: 'center', padding: '6px 8px', fontWeight: 500 }}>Sessions</th>
-              <th style={{ textAlign: 'center', padding: '6px 8px', fontWeight: 500 }}>Med Benefit</th>
-              <th style={{ textAlign: 'center', padding: '6px 8px', fontWeight: 500 }}>Productivity</th>
-              <th style={{ textAlign: 'center', padding: '6px 8px', fontWeight: 500 }}>Munchies</th>
-              <th style={{ textAlign: 'center', padding: '6px 8px', fontWeight: 500 }}>Use Again</th>
-              <th style={{ textAlign: 'center', padding: '6px 8px', fontWeight: 500 }}>Verdict</th>
-            </tr>
-          </thead>
-          <tbody>
-            {scorecardData.map(({ product, logs, medBenefit, munchies, productivity, wouldUseRate, verdict }) => {
-              const verdictColor = verdict?.startsWith('✓') ? 'var(--green)'
-                : verdict?.startsWith('⚠') ? 'var(--yellow)'
-                : verdict?.startsWith('✗') ? 'var(--red)'
-                : 'var(--text-dimmer)';
-              return (
-                <tr key={product.id} style={{ borderBottom: '1px solid var(--border)' }}>
-                  <td style={{ padding: '8px 8px' }}>
-                    <div style={{ fontWeight: 500 }}>{product.name}</div>
-                    <div style={{ fontSize: 10, color: 'var(--text-dimmer)' }}>{product.brand}</div>
-                  </td>
-                  <td style={{ textAlign: 'center', padding: '8px 8px', color: logs > 0 ? 'var(--teal)' : 'var(--text-dimmer)' }}>
-                    {logs}
-                  </td>
-                  <td style={{ textAlign: 'center', padding: '8px 8px' }}>{medBenefit ?? '—'}</td>
-                  <td style={{ textAlign: 'center', padding: '8px 8px' }}>{productivity ?? '—'}</td>
-                  <td style={{ textAlign: 'center', padding: '8px 8px', color: parseFloat(munchies) > 6 ? 'var(--yellow)' : undefined }}>
-                    {munchies ?? '—'}
-                  </td>
-                  <td style={{ textAlign: 'center', padding: '8px 8px' }}>{wouldUseRate ?? '—'}</td>
-                  <td style={{ textAlign: 'center', padding: '8px 8px', fontWeight: 600, color: verdictColor }}>
-                    {verdict}
-                  </td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
-      </div>
-    </div>
-  );
-}
-
 export function InventoryView() {
-  const inventory = useStore((s) => s.inventory);
+  const cannabisRepo  = useCannabisRepo();
+  const inventory     = cannabisRepo.listProducts();
+  const cannabisLogs  = cannabisRepo.listSessions();
   const [logTarget, setLogTarget] = useState(null);
 
-  const totalFlowerG = inventory
+  const totalFlowerG  = inventory
     .filter((p) => p.form === 'flower')
     .reduce((sum, p) => sum + p.remaining, 0);
 
@@ -243,10 +166,7 @@ export function InventoryView() {
           <div className="product-remaining-bar">
             <div
               className="product-remaining-fill"
-              style={{
-                width: `${getRemainingPct(product)}%`,
-                background: getBarColor(product.riskLevel),
-              }}
+              style={{ width: `${getRemainingPct(product)}%`, background: getBarColor(product.riskLevel) }}
             />
           </div>
 
@@ -277,7 +197,7 @@ export function InventoryView() {
         </div>
       ))}
 
-      <ProductScorecard />
+      <CannabisProductScorecard inventory={inventory} cannabisLogs={cannabisLogs} />
 
       {logTarget && <LogUseModal product={logTarget} onClose={() => setLogTarget(null)} />}
     </div>
