@@ -13,6 +13,8 @@
  *   debt (2026-05-04)" entry, deadline P1.D D15.
  */
 
+import { filterByUser } from './_internal/userScope.js';
+
 // ── Memo helper ───────────────────────────────────────────────────────────────
 
 function makeMemo(fn) {
@@ -33,14 +35,6 @@ function makeMemo(fn) {
     lastResult = fn(state, ...args);
     return lastResult;
   };
-}
-
-// ── Shared filter helper ──────────────────────────────────────────────────────
-
-function filterByUser(records, userId) {
-  return (records ?? []).filter(
-    (r) => r.userId === userId && r.deletedAt === null
-  );
 }
 
 // ── selectMealInventory ───────────────────────────────────────────────────────

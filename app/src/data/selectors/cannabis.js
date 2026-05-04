@@ -10,6 +10,7 @@
  */
 
 import { dailyThcTotal, thcCeilingStatus } from '../calculators/thcMath.js';
+import { filterByUser } from './_internal/userScope.js';
 
 // ── Memo helper ───────────────────────────────────────────────────────────────
 
@@ -39,21 +40,6 @@ function makeMemo(fn) {
     lastResult = fn(state, ...args);
     return lastResult;
   };
-}
-
-// ── Shared filter helper ──────────────────────────────────────────────────────
-
-/**
- * Filter records by userId and exclude soft-deleted entries.
- *
- * @param {Array} records
- * @param {string} userId
- * @returns {Array}
- */
-function filterByUser(records, userId) {
-  return (records ?? []).filter(
-    (r) => r.userId === userId && r.deletedAt === null
-  );
 }
 
 // ── selectCannabisProducts ────────────────────────────────────────────────────
