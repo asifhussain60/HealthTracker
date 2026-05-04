@@ -47,7 +47,7 @@ export function planWorkoutWeek({ dates, profile, routines, rng, lockedDates = [
       continue;
     }
 
-    let type = 'rest';
+    let type;
     let routineId = null;
     let estDurationMin = null;
 

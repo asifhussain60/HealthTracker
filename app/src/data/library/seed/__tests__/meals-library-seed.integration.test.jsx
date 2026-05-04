@@ -50,7 +50,6 @@ describe('meals-library-seed integration', () => {
   it('CSV import-drop upserts without duplicating', () => {
     // Start with 30 seeded items
     const seededItems = MEAL_SEED_30.map((m) => stampNewRecord(m));
-    const store = makeSeededStore(seededItems);
 
     // Import a 1-item CSV
     const { parseMyNetDiaryCsv } = require('../parseMyNetDiaryCsv.js');
