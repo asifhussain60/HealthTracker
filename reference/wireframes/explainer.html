@@ -4,6 +4,9 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>HealthTracker — Wireframe</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdn.tailwindcss.com"></script>
 <script>
   tailwind.config = {
@@ -36,6 +39,34 @@
   .slide-in-from-top-2 { animation-name: htFadeIn, htSlideTop; }
   @keyframes htFadeIn { from { opacity: 0 } to { opacity: 1 } }
   @keyframes htSlideTop { from { transform: translateY(-8px) } to { transform: translateY(0) } }
+
+  /* Staggered panel entrance — fires when date changes */
+  @keyframes htPanelIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  .ht-panel-enter {
+    animation: htPanelIn 420ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+  .ht-panel-enter:nth-child(1) { animation-delay: 40ms; }
+  .ht-panel-enter:nth-child(2) { animation-delay: 110ms; }
+  .ht-panel-enter:nth-child(3) { animation-delay: 180ms; }
+  .ht-panel-enter:nth-child(4) { animation-delay: 250ms; }
+  .ht-panel-enter:nth-child(5) { animation-delay: 320ms; }
+
+  /* Calendar dropdown */
+  @keyframes htCalIn {
+    from { opacity: 0; transform: translateY(-6px) scale(0.98); }
+    to   { opacity: 1; transform: translateY(0) scale(1); }
+  }
+  .ht-cal-enter { animation: htCalIn 200ms cubic-bezier(0.22, 1, 0.36, 1) both; transform-origin: top center; }
+
+  /* Display font for section headers */
+  .ht-display {
+    font-family: "Space Grotesk", -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+    letter-spacing: -0.02em;
+    font-feature-settings: "ss01", "ss02";
+  }
 </style>
 <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
 <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
@@ -45,7 +76,7 @@
 <div id="root"></div>
 
 <script type="text/babel" data-presets="react">
-const { useState } = React;
+const { useState, useEffect, useRef } = React;
 
 // --- Shared Components ---
 
@@ -62,52 +93,475 @@ const SidebarItem = ({ icon, label, active }) => (
   </button>
 );
 
-const Panel = ({ icon, title, subtitle, libTag, children }) => (
-  <section className="flex flex-col gap-4 p-5 rounded-[18px] bg-slate-900 border border-slate-800">
-    <div className="flex flex-wrap items-start justify-between gap-3">
-      <div className="flex items-center gap-4">
-        <div className="w-[48px] h-[48px] rounded-2xl bg-slate-800 border border-white/5 shadow-inner flex items-center justify-center text-2xl flex-shrink-0">
-          {icon}
+const Panel = ({ icon, title, subtitle, libTag, accent = 'teal', children }) => {
+  return (
+    <section className="ht-panel-enter relative flex flex-col gap-5 px-6 py-8 rounded-2xl bg-slate-950/60 ring-1 ring-inset ring-white/[0.03] transition-all duration-300">
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div className="flex items-center gap-4">
+          <div className="w-[48px] h-[48px] rounded-2xl bg-slate-800 border border-white/5 shadow-inner flex items-center justify-center text-2xl flex-shrink-0">
+            {icon}
+          </div>
+          <div>
+            <h1 className="ht-display text-2xl md:text-[26px] font-bold text-slate-100 m-0 leading-tight">{title}</h1>
+            <div className="text-xs text-slate-400 mt-1 font-medium">{subtitle}</div>
+          </div>
         </div>
-        <div>
-          <h1 className="text-xl md:text-2xl font-extrabold text-slate-100 tracking-tight m-0 leading-tight">{title}</h1>
-          <div className="text-xs text-slate-400 mt-1 font-medium">{subtitle}</div>
-        </div>
+        {libTag && (
+          <span className="text-[10px] text-slate-500 uppercase tracking-widest bg-white/5 px-2.5 py-1 rounded-full mt-1">
+            {libTag}
+          </span>
+        )}
       </div>
-      {libTag && (
-        <span className="text-[10px] text-slate-500 uppercase tracking-widest bg-white/5 px-2.5 py-1 rounded-full mt-1">
-          {libTag}
-        </span>
-      )}
-    </div>
-    <div className="pt-4 border-t border-slate-800">{children}</div>
-  </section>
-);
+      <div className="pt-5">{children}</div>
+    </section>
+  );
+};
 
-const Chip = ({ label, meta, selected, onClick }) => {
+// --- Day Header (governs all panels below) ---
+
+const DayHeader = ({
+  currentDate, dayOffset, dateLabel, dateRel,
+  onPrev, onNext, onToday, onPickDate,
+  calendarOpen, setCalendarOpen,
+}) => {
+  const dayNamesShort = ['S','M','T','W','T','F','S'];
+  const monthNames = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const days = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  const isToday = dayOffset === 0;
+
+  // Build the week strip: 7 days centered on the current date (Sun..Sat of currentDate's week)
+  const dow = currentDate.getDay();
+  const weekStart = new Date(currentDate.getTime() - dow * 86400000);
+  const weekDays = Array.from({ length: 7 }, (_, i) => {
+    const d = new Date(weekStart.getTime() + i * 86400000);
+    return d;
+  });
+  // Demo "completion dots" — random-looking but stable per day-of-month
+  const completionFor = (d) => {
+    const seed = d.getDate();
+    return {
+      prayer: seed % 5 >= 2,
+      workout: seed % 3 === 0,
+      cal: seed % 4 !== 1,
+      fast: seed % 2 === 0,
+    };
+  };
+
+  // Calendar dropdown month grid (driven by currentDate's month)
+  const calYear = currentDate.getFullYear();
+  const calMonth = currentDate.getMonth();
+  const monthDays = new Date(calYear, calMonth + 1, 0).getDate();
+  const firstDow = new Date(calYear, calMonth, 1).getDay();
+  const todayDom = 3; // demo: May 3 is "today"
+
+  return (
+    <section className="sticky top-0 z-20 -mx-7 px-7 pt-1 pb-3 bg-gradient-to-b from-[#020617] via-[#020617]/95 to-transparent backdrop-blur-md">
+      <div className="rounded-2xl bg-slate-900/90 border border-slate-800 shadow-[0_10px_30px_-12px_rgba(0,0,0,0.7)] backdrop-blur-xl overflow-hidden">
+
+        {/* Row 1 — Date + nav controls */}
+        <div className="flex items-center gap-3 px-4 py-3.5">
+          <div className="flex flex-col leading-tight min-w-0 flex-1">
+            <div className="flex items-center gap-2">
+              <span className="text-[11px] text-slate-400 uppercase tracking-[0.18em] font-semibold">
+                {currentDate.toLocaleDateString('en-US', { weekday: 'long' })}
+              </span>
+              {isToday && (
+                <span className="px-1.5 py-0.5 rounded-md text-[9.5px] font-bold uppercase tracking-wider bg-teal-500/15 text-teal-300 border border-teal-500/30">
+                  Today
+                </span>
+              )}
+            </div>
+            <div className="text-[22px] font-bold text-slate-100 tracking-tight tabular-nums">
+              {monthNames[calMonth]} {currentDate.getDate()}
+              <span className="text-slate-500 font-medium ml-1.5 text-[14px]">{calYear}</span>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-1.5">
+            {!isToday && (
+              <button
+                onClick={onToday}
+                className="px-3 py-2 rounded-xl text-[11px] font-semibold uppercase tracking-wider text-teal-300 bg-teal-500/10 border border-teal-500/30 hover:bg-teal-500/20 hover:border-teal-500/50 transition-all"
+              >
+                Today
+              </button>
+            )}
+            <div className="flex items-center bg-slate-800/60 border border-slate-700/60 rounded-xl">
+              <button
+                onClick={onPrev}
+                aria-label="Previous day"
+                className="w-9 h-9 flex items-center justify-center text-slate-400 hover:text-slate-100 hover:bg-slate-700/60 rounded-l-xl transition-colors"
+              >
+                ‹
+              </button>
+              <div className="w-px h-5 bg-slate-700/80" />
+              <button
+                onClick={onNext}
+                aria-label="Next day"
+                className="w-9 h-9 flex items-center justify-center text-slate-400 hover:text-slate-100 hover:bg-slate-700/60 rounded-r-xl transition-colors"
+              >
+                ›
+              </button>
+            </div>
+            <button
+              onClick={() => setCalendarOpen((v) => !v)}
+              aria-label="Open calendar"
+              aria-expanded={calendarOpen}
+              className={`w-9 h-9 flex items-center justify-center rounded-xl border transition-all ${
+                calendarOpen
+                  ? 'bg-teal-500/15 border-teal-500/40 text-teal-300'
+                  : 'bg-slate-800/60 border-slate-700/60 text-slate-400 hover:text-slate-100 hover:border-slate-600'
+              }`}
+            >
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <rect x="3" y="4" width="18" height="18" rx="2" />
+                <line x1="16" y1="2" x2="16" y2="6" />
+                <line x1="8" y1="2" x2="8" y2="6" />
+                <line x1="3" y1="10" x2="21" y2="10" />
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        {/* Row 2 — Week strip (tile-styled, current day enlarged) */}
+        <div className="flex items-stretch gap-2 px-4 pb-4">
+          {weekDays.map((d) => {
+            const offsetFromCurrent = Math.round((d.getTime() - currentDate.getTime()) / 86400000);
+            const isSelected = offsetFromCurrent === 0;
+            const todayDate = new Date(2026, 4, 3);
+            todayDate.setHours(0,0,0,0);
+            const dNorm = new Date(d); dNorm.setHours(0,0,0,0);
+            const isPast = dNorm.getTime() < todayDate.getTime();
+            const isFuture = dNorm.getTime() > todayDate.getTime();
+            const isWeekToday = dNorm.getTime() === todayDate.getTime();
+
+            // Base tile (matches Chip styling)
+            const base = "flex flex-col items-center justify-center rounded-2xl border-[1.5px] cursor-pointer transition-all flex-1";
+            let state = "";
+            if (isSelected) {
+              // Active / contrasting background — solid teal fill
+              state = "bg-teal-500 border-teal-400 text-white shadow-[0_8px_24px_-6px_rgba(20,184,166,0.55),inset_0_1px_0_rgba(255,255,255,0.2)] scale-[1.08] z-10 py-4 -my-1";
+            } else if (isWeekToday) {
+              state = "bg-teal-500/10 border-teal-500/60 text-teal-300 shadow-[inset_0_1px_0_rgba(255,255,255,0.06),0_4px_12px_-4px_rgba(20,184,166,0.25)] py-3";
+            } else if (isPast) {
+              state = "bg-slate-800/40 border-slate-800 text-slate-500 hover:border-slate-700 hover:text-slate-300 hover:bg-slate-800/70 py-3";
+            } else if (isFuture) {
+              state = "bg-transparent border-dashed border-slate-700/60 text-slate-400 hover:border-slate-600 hover:text-slate-200 hover:bg-slate-800/40 py-3";
+            }
+
+            const labelCls = isSelected
+              ? "text-[10px] uppercase tracking-wider font-bold text-white/80"
+              : isWeekToday
+                ? "text-[10px] uppercase tracking-wider font-bold text-teal-300/80"
+                : isPast
+                  ? "text-[10px] uppercase tracking-wider font-semibold text-slate-600"
+                  : "text-[10px] uppercase tracking-wider font-semibold text-slate-500";
+
+            const numCls = isSelected
+              ? "text-[20px] font-extrabold tabular-nums leading-none mt-1"
+              : "text-[15px] font-bold tabular-nums leading-none mt-1";
+
+            return (
+              <button
+                key={d.toISOString()}
+                onClick={() => onPickDate(d)}
+                aria-current={isSelected ? 'date' : undefined}
+                className={`${base} ${state}`}
+              >
+                <span className={labelCls}>
+                  {dayNamesShort[d.getDay()]}
+                </span>
+                <span className={numCls}>
+                  {d.getDate()}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Calendar dropdown */}
+        {calendarOpen && (
+          <div className="ht-cal-enter border-t border-slate-800 p-4 bg-slate-900/60">
+            <div className="flex items-center justify-between mb-3">
+              <button className="w-8 h-8 rounded-lg text-slate-400 hover:text-slate-100 hover:bg-slate-800 transition-colors">‹</button>
+              <div className="text-sm font-bold text-slate-100">{monthNames[calMonth]} {calYear}</div>
+              <button className="w-8 h-8 rounded-lg text-slate-400 hover:text-slate-100 hover:bg-slate-800 transition-colors">›</button>
+            </div>
+            <div className="grid grid-cols-7 gap-1 mb-2">
+              {days.map((d) => (
+                <div key={d} className="text-[10px] text-slate-500 text-center font-semibold uppercase tracking-wider py-1">{d}</div>
+              ))}
+            </div>
+            <div className="grid grid-cols-7 gap-1">
+              {Array.from({ length: firstDow }).map((_, i) => (
+                <div key={`pad-${i}`} />
+              ))}
+              {Array.from({ length: monthDays }, (_, i) => i + 1).map((d) => {
+                const dayDate = new Date(calYear, calMonth, d);
+                const isCalToday = d === todayDom && calMonth === 4;
+                const isSelectedDay = dayDate.toDateString() === currentDate.toDateString();
+                return (
+                  <button
+                    key={d}
+                    onClick={() => { onPickDate(dayDate); setCalendarOpen(false); }}
+                    className={`aspect-square rounded-lg text-[12px] font-medium tabular-nums transition-all ${
+                      isSelectedDay
+                        ? 'bg-teal-500 text-white font-bold shadow-[0_4px_12px_rgba(20,184,166,0.4)]'
+                        : isCalToday
+                          ? 'text-teal-300 font-bold border border-teal-500/40 hover:bg-teal-500/10'
+                          : 'text-slate-300 hover:bg-slate-800 hover:text-slate-100'
+                    }`}
+                  >
+                    {d}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
+      </div>
+    </section>
+  );
+};
+
+const Chip = ({ label, meta, selected, onClick, theme = 'teal', badge }) => {
   const baseStyles =
-    "flex flex-col items-center justify-center gap-0.5 p-3 min-w-[92px] rounded-2xl border-[1.5px] cursor-pointer transition-all";
-  const stateStyles = selected
-    ? "bg-teal-500/10 border-teal-500/60 text-teal-400 shadow-[inset_0_1px_0_rgba(255,255,255,0.06),_0_4px_12px_rgba(20,184,166,0.15)]"
-    : "bg-slate-800 border-transparent text-slate-400 hover:border-slate-700 hover:text-slate-200";
+    "relative flex flex-col items-center justify-center gap-0.5 p-3 min-w-[92px] rounded-2xl border-[1.5px] cursor-pointer transition-all";
+
+  const themes = {
+    teal: {
+      selected:
+        "bg-teal-500/10 border-teal-500/60 text-teal-400 shadow-[inset_0_1px_0_rgba(255,255,255,0.06),_0_4px_12px_rgba(20,184,166,0.15)]",
+      idle:
+        "bg-slate-800 border-transparent text-slate-400 hover:border-slate-700 hover:text-slate-200",
+      metaSelected: "text-teal-500/70",
+      metaIdle: "text-slate-500",
+    },
+    gold: {
+      selected:
+        "bg-gradient-to-br from-amber-400/15 to-yellow-600/10 border-amber-400/70 text-amber-300 shadow-[inset_0_1px_0_rgba(255,255,255,0.1),_0_0_24px_rgba(251,191,36,0.35),_0_4px_14px_-2px_rgba(217,119,6,0.4)]",
+      idle:
+        "bg-slate-900/50 border-slate-800 text-slate-600 opacity-60 hover:opacity-100 hover:border-amber-500/30 hover:text-amber-200/70 hover:bg-slate-800/60",
+      metaSelected: "text-amber-300/80",
+      metaIdle: "text-slate-600",
+    },
+  };
+
+  const t = themes[theme] || themes.teal;
+  const stateStyles = selected ? t.selected : t.idle;
+
+  const badgeColors = {
+    teal: "bg-teal-500 text-white shadow-[0_4px_14px_rgba(20,184,166,0.55)] hover:bg-teal-400 ring-2 ring-slate-900",
+    orange: "bg-orange-500 text-white shadow-[0_4px_14px_rgba(249,115,22,0.55)] hover:bg-orange-400 ring-2 ring-slate-900",
+  };
 
   return (
     <div className={`${baseStyles} ${stateStyles}`} onClick={onClick}>
       <span className="text-sm font-semibold leading-tight">{label}</span>
-      <span className={`text-[10px] ${selected ? 'text-teal-500/70' : 'text-slate-500'} mt-0.5`}>
+      <span className={`text-[10px] ${selected ? t.metaSelected : t.metaIdle} mt-0.5`}>
         {meta}
       </span>
+      {badge && (
+        <button
+          type="button"
+          onClick={(e) => { e.stopPropagation(); badge.onClick?.(); }}
+          aria-label={badge.ariaLabel || `Edit ${label} value`}
+          className={`absolute -top-2 -right-2 min-w-[28px] h-[22px] px-2 rounded-full text-[10.5px] font-bold tabular-nums leading-none flex items-center justify-center transition-all ${badgeColors[badge.color || 'teal']}`}
+        >
+          {badge.value}
+        </button>
+      )}
+    </div>
+  );
+};
+
+// --- Unified Workout Tile (Walk / Kickboxing / Weights / future workouts) ---
+
+const WORKOUT_ACCENTS = {
+  teal: {
+    surface: 'bg-teal-500/[0.06] border-teal-500/50',
+    glow: 'shadow-[0_8px_28px_-10px_rgba(20,184,166,0.45),inset_0_1px_0_rgba(255,255,255,0.04)]',
+    iconBg: 'bg-teal-500/15 border-teal-500/30',
+    text: 'text-teal-300',
+    textSoft: 'text-teal-300/70',
+    addBtn: 'border-teal-500/30 text-teal-300 hover:bg-teal-500/10 hover:border-teal-500/50',
+    selDot: 'bg-teal-500 border-teal-400',
+    statusDot: 'bg-teal-500 text-white',
+  },
+  orange: {
+    surface: 'bg-orange-500/[0.06] border-orange-500/50',
+    glow: 'shadow-[0_8px_28px_-10px_rgba(249,115,22,0.45),inset_0_1px_0_rgba(255,255,255,0.04)]',
+    iconBg: 'bg-orange-500/15 border-orange-500/30',
+    text: 'text-orange-300',
+    textSoft: 'text-orange-300/70',
+    addBtn: 'border-orange-500/30 text-orange-300 hover:bg-orange-500/10 hover:border-orange-500/50',
+    selDot: 'bg-orange-500 border-orange-400',
+    statusDot: 'bg-orange-500 text-white',
+  },
+  sky: {
+    surface: 'bg-sky-500/[0.06] border-sky-500/50',
+    glow: 'shadow-[0_8px_28px_-10px_rgba(14,165,233,0.45),inset_0_1px_0_rgba(255,255,255,0.04)]',
+    iconBg: 'bg-sky-500/15 border-sky-500/30',
+    text: 'text-sky-300',
+    textSoft: 'text-sky-300/70',
+    addBtn: 'border-sky-500/30 text-sky-300 hover:bg-sky-500/10 hover:border-sky-500/50',
+    selDot: 'bg-sky-500 border-sky-400',
+    statusDot: 'bg-sky-500 text-white',
+  },
+};
+
+const STATUS_STYLES = {
+  done:          { dot: 'bg-emerald-500 text-white',                                          glyph: '✓', label: 'text-emerald-400' },
+  'in-progress': { dot: 'bg-orange-500/20 border-2 border-orange-500 text-orange-400',        glyph: '▶', label: 'text-orange-400' },
+  logged:        { dot: 'bg-teal-500 text-white',                                             glyph: '✓', label: 'text-teal-400'    },
+  pending:       { dot: 'bg-slate-800 border border-slate-700 text-slate-500',                glyph: '○', label: 'text-slate-500'   },
+};
+
+const WorkoutItem = ({ primary, secondary, status = 'pending', statusLabel, onClick, onRemove }) => {
+  const s = STATUS_STYLES[status] || STATUS_STYLES.pending;
+  return (
+    <div
+      onClick={onClick}
+      className="group flex items-center gap-2.5 p-2.5 rounded-lg bg-slate-950/60 border border-slate-800 hover:border-slate-700 hover:bg-slate-900/80 cursor-pointer transition-all"
+    >
+      <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[11px] font-bold flex-shrink-0 ${s.dot}`}>{s.glyph}</div>
+      <div className="flex-1 min-w-0">
+        <div className="text-[12.5px] font-semibold text-slate-100 truncate leading-tight">{primary}</div>
+        {secondary && <div className="text-[10px] text-slate-500 truncate mt-0.5 leading-tight">{secondary}</div>}
+      </div>
+      {statusLabel && <div className={`text-[10px] font-semibold tabular-nums ${s.label} flex-shrink-0`}>{statusLabel}</div>}
+      {onRemove && (
+        <button
+          onClick={(e) => { e.stopPropagation(); onRemove(); }}
+          aria-label="Remove entry"
+          className="w-5 h-5 rounded-full bg-slate-900 border border-slate-700 flex items-center justify-center text-slate-500 opacity-0 group-hover:opacity-100 hover:border-red-500/50 hover:text-red-400 transition-all text-[13px] leading-none"
+        >−</button>
+      )}
+    </div>
+  );
+};
+
+const WorkoutTile = ({
+  icon,
+  label,
+  subtitle,
+  accent = 'teal',
+  selected,
+  onToggle,
+  items = [],
+  onItemClick,
+  onItemRemove,
+  addLabel = '+ Add',
+  onAdd,
+  emptyHint = 'No entries yet',
+}) => {
+  const a = WORKOUT_ACCENTS[accent] || WORKOUT_ACCENTS.teal;
+  return (
+    <div
+      className={`relative flex flex-col rounded-2xl border p-5 min-h-[240px] transition-all duration-300 ${
+        selected
+          ? `${a.surface} ${a.glow}`
+          : 'bg-slate-900/40 border-slate-800 hover:border-slate-700 hover:bg-slate-900/60'
+      }`}
+    >
+      {/* Header: icon + label + selection dot */}
+      <button onClick={onToggle} className="flex items-start gap-3 text-left w-full">
+        <div className={`w-14 h-14 rounded-2xl flex items-center justify-center text-[28px] flex-shrink-0 border transition-all ${
+          selected ? a.iconBg : 'bg-slate-800 border-white/5'
+        }`}>
+          {icon}
+        </div>
+        <div className="flex-1 min-w-0 pt-1">
+          <div className={`ht-display text-[18px] font-bold leading-tight tracking-tight ${selected ? 'text-slate-100' : 'text-slate-300'}`}>{label}</div>
+          <div className={`text-[11px] mt-1 leading-snug ${selected ? a.textSoft : 'text-slate-500'}`}>{subtitle}</div>
+        </div>
+        <div className={`w-5 h-5 rounded-full border-[1.5px] flex items-center justify-center flex-shrink-0 mt-1 transition-all ${
+          selected ? a.selDot : 'border-slate-600 bg-slate-900/60'
+        }`}>
+          {selected && <span className="text-white text-[10px] font-bold leading-none">✓</span>}
+        </div>
+      </button>
+
+      {/* Body: items + add affordance */}
+      {selected && (
+        <div className="flex flex-col gap-2 mt-4 flex-1">
+          {items.length === 0 ? (
+            <div className="text-[11px] text-slate-500 italic text-center py-3 border border-dashed border-slate-800 rounded-lg">
+              {emptyHint}
+            </div>
+          ) : (
+            items.map((it) => (
+              <WorkoutItem
+                key={it.id}
+                primary={it.primary}
+                secondary={it.secondary}
+                status={it.status}
+                statusLabel={it.statusLabel}
+                onClick={() => onItemClick?.(it)}
+                onRemove={onItemRemove ? () => onItemRemove(it.id) : undefined}
+              />
+            ))
+          )}
+          {onAdd && (
+            <button
+              onClick={onAdd}
+              className={`mt-auto w-full py-2.5 rounded-xl text-[12px] font-semibold border-[1.5px] border-dashed transition-colors ${a.addBtn}`}
+            >
+              {addLabel}
+            </button>
+          )}
+        </div>
+      )}
     </div>
   );
 };
 
 function App() {
   const [activeRoute, setActiveRoute] = useState('dashboard');
+  const [calendarOpen, setCalendarOpen] = useState(false);
+  const [dayOffset, setDayOffset] = useState(0); // 0 = today
+  const baseDate = new Date(2026, 4, 3); // May 3 2026 (Saturday)
+  const currentDate = new Date(baseDate.getTime() + dayOffset * 86400000);
+  const dayName = currentDate.toLocaleDateString('en-US', { weekday: 'long' });
+  const monthDay = currentDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+  const dateLabel = `${dayName} · ${monthDay}`;
+  const dateRel = dayOffset === 0 ? 'Today' : dayOffset === -1 ? 'Yesterday' : dayOffset === 1 ? 'Tomorrow' : monthDay;
   const [workoutSelection, setWorkoutSelection] = useState({
     walk: true,
-    kickboxing: false,
-    weights: false,
+    kickboxing: true,
+    weights: true,
   });
+  const [walkMinutes, setWalkMinutes] = useState(30);
+  const [kickRounds, setKickRounds] = useState(5);
+  // Kickboxing: each round = 2 min + 1 min rest between rounds (no rest after final round)
+  const kickTotalMin = kickRounds > 0 ? kickRounds * 2 + Math.max(0, kickRounds - 1) : 0;
+
+  // Picker auto-collapse: only one picker open at a time, closes on outside-click or 2s idle
+  const [openPicker, setOpenPicker] = useState(null); // 'walk' | 'kick' | null
+  const pickerWrapRef = useRef(null);
+  const idleTimerRef = useRef(null);
+  const resetIdleTimer = () => {
+    if (idleTimerRef.current) clearTimeout(idleTimerRef.current);
+    idleTimerRef.current = setTimeout(() => setOpenPicker(null), 2000);
+  };
+  useEffect(() => {
+    if (!openPicker) {
+      if (idleTimerRef.current) clearTimeout(idleTimerRef.current);
+      return;
+    }
+    resetIdleTimer();
+    const onDocDown = (e) => {
+      if (pickerWrapRef.current && !pickerWrapRef.current.contains(e.target)) {
+        setOpenPicker(null);
+      }
+    };
+    document.addEventListener('mousedown', onDocDown);
+    return () => {
+      document.removeEventListener('mousedown', onDocDown);
+      if (idleTimerRef.current) clearTimeout(idleTimerRef.current);
+    };
+  }, [openPicker]);
+  // Weights = single routine per day (one-of selection)
   const [sessions, setSessions] = useState([
     {
       id: 'chest-tris',
@@ -115,13 +569,6 @@ function App() {
       meta: '6 exercises · 8:30–9:15 am · done',
       status: 'done',
       statusLabel: 'Volume 4,820 lb',
-    },
-    {
-      id: 'core',
-      title: 'Core Burner',
-      meta: '5 exercises · started 4:10 pm',
-      status: 'in-progress',
-      statusLabel: 'In progress',
     },
   ]);
   const removeSession = (id) => setSessions((prev) => prev.filter((s) => s.id !== id));
@@ -167,65 +614,116 @@ function App() {
 
         {/* Main Dashboard View */}
         <main className="p-7 flex flex-col gap-5 overflow-y-auto z-10">
-          {/* V2 Glass Profile Banner */}
-          <section className="relative p-5 rounded-[18px] border border-white/10 flex items-center gap-5 flex-wrap bg-white/5 backdrop-blur-[28px]">
-            <div className="w-[52px] h-[52px] rounded-2xl bg-gradient-to-br from-teal-400 to-teal-600 text-white font-bold text-[17px] flex items-center justify-center flex-shrink-0 shadow-[0_8px_24px_rgba(20,184,166,0.35)]">
-              AH
+          {/* V3 Glass Profile Banner — large prominent tiles */}
+          <section className="relative p-7 rounded-[22px] border border-white/10 bg-white/5 backdrop-blur-[28px] shadow-[0_20px_60px_-20px_rgba(0,0,0,0.6)]">
+            {/* Identity row */}
+            <div className="flex items-center gap-5 pb-6 mb-6 border-b border-white/5">
+              <div className="w-[68px] h-[68px] rounded-2xl bg-gradient-to-br from-teal-400 to-teal-600 text-white font-bold text-[22px] flex items-center justify-center flex-shrink-0 shadow-[0_10px_30px_rgba(20,184,166,0.4)]">
+                AH
+              </div>
+              <div className="flex flex-col gap-1 flex-1 min-w-0">
+                <div className="text-[22px] font-bold text-slate-100 tracking-tight leading-tight">Asif Hussain</div>
+                <div className="flex items-center gap-3 text-[12px] text-slate-400">
+                  <span>5'10" · 38 yrs</span>
+                  <span className="w-1 h-1 rounded-full bg-slate-600" />
+                  <span className="px-2 py-0.5 rounded-full bg-teal-500/10 text-teal-400 border border-teal-500/20 text-[11px] font-medium">
+                    IF 14:00–18:00
+                  </span>
+                </div>
+              </div>
             </div>
 
-            <div className="flex flex-col gap-0.5 flex-1 min-w-[150px]">
-              <div className="text-[17px] font-bold text-slate-100">Asif Hussain</div>
-              <div className="text-xs text-slate-400">5'10" · 38 yrs · IF 14:00–18:00</div>
-            </div>
+            {/* Stat tile grid */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              {/* Current */}
+              <div className="p-4 rounded-2xl bg-slate-900/50 border border-white/5 flex flex-col gap-1.5 hover:border-white/10 transition-colors">
+                <div className="text-[10px] text-slate-400 uppercase tracking-widest font-semibold">Current</div>
+                <div className="flex items-baseline gap-1.5">
+                  <div className="text-[28px] font-extrabold tabular-nums text-slate-100 leading-none">182.4</div>
+                  <div className="text-[12px] text-slate-500 font-medium">lb</div>
+                </div>
+                <div className="text-[10.5px] text-green-400 font-medium tabular-nums flex items-center gap-1">
+                  <span>▼ 0.6</span>
+                  <span className="text-slate-500 font-normal">vs last wk</span>
+                </div>
+              </div>
 
-            <div className="flex flex-col gap-0.5">
-              <div className="text-[10px] text-slate-400 uppercase tracking-wider">Current</div>
-              <div className="text-[17px] font-bold tabular-nums">182.4 lb</div>
-            </div>
+              {/* Goal */}
+              <div className="p-4 rounded-2xl bg-slate-900/50 border border-white/5 flex flex-col gap-1.5 hover:border-white/10 transition-colors">
+                <div className="text-[10px] text-slate-400 uppercase tracking-widest font-semibold">Goal</div>
+                <div className="flex items-baseline gap-1.5">
+                  <div className="text-[28px] font-extrabold tabular-nums text-slate-100 leading-none">175.0</div>
+                  <div className="text-[12px] text-slate-500 font-medium">lb</div>
+                </div>
+                <div className="text-[10.5px] text-slate-400 tabular-nums">
+                  <span className="text-orange-400 font-semibold">7.4 lb</span> to go
+                </div>
+              </div>
 
-            <div className="flex flex-col gap-0.5">
-              <div className="text-[10px] text-slate-400 uppercase tracking-wider">vs last wk</div>
-              <div className="text-[17px] font-bold tabular-nums text-green-500">▼ 0.6</div>
-            </div>
+              {/* Calories ring tile */}
+              <div className="p-4 rounded-2xl bg-gradient-to-br from-teal-500/10 to-teal-500/5 border border-teal-500/20 flex items-center gap-4">
+                <div
+                  className="relative w-[68px] h-[68px] rounded-full flex items-center justify-center flex-shrink-0"
+                  style={ringStyle}
+                >
+                  <div className="absolute inset-[5px] bg-slate-900 rounded-full" />
+                  <span className="relative text-[14px] font-extrabold tabular-nums leading-none text-teal-300">{caloriesPct}%</span>
+                </div>
+                <div className="flex flex-col gap-0.5 min-w-0">
+                  <div className="text-[10px] text-teal-300/70 uppercase tracking-widest font-semibold">Calories</div>
+                  <div className="text-[18px] font-extrabold tabular-nums text-slate-100 leading-tight">320<span className="text-slate-500 font-medium text-[13px]"> / 2000</span></div>
+                  <div className="text-[10.5px] text-green-400 font-medium">1,680 remaining</div>
+                </div>
+              </div>
 
-            <div className="flex flex-col gap-0.5">
-              <div className="text-[10px] text-slate-400 uppercase tracking-wider">Goal</div>
-              <div className="text-[17px] font-bold tabular-nums">175.0</div>
-            </div>
-
-            <div
-              className="relative w-[72px] h-[72px] rounded-full flex items-center justify-center flex-shrink-0 ml-2"
-              style={ringStyle}
-            >
-              <div className="absolute inset-[6px] bg-slate-900/60 backdrop-blur-[20px] rounded-full" />
-              <span className="relative text-[15px] font-extrabold tabular-nums leading-none">{caloriesPct}%</span>
-            </div>
-
-            <div className="flex flex-col items-end gap-0.5 ml-1">
-              <span className="text-[10px] text-slate-400 uppercase tracking-wider">Calories today</span>
-              <span className="text-[17px] font-bold tabular-nums">320 / 2000</span>
-              <span className="text-[10.5px] text-green-500">1680 remaining</span>
+              {/* Streak / activity tile */}
+              <div className="p-4 rounded-2xl bg-gradient-to-br from-orange-500/10 to-orange-500/5 border border-orange-500/20 flex items-center gap-4">
+                <div className="w-[52px] h-[52px] rounded-2xl bg-orange-500/15 border border-orange-500/30 flex items-center justify-center text-2xl flex-shrink-0">
+                  🔥
+                </div>
+                <div className="flex flex-col gap-0.5 min-w-0">
+                  <div className="text-[10px] text-orange-300/70 uppercase tracking-widest font-semibold">Streak</div>
+                  <div className="flex items-baseline gap-1.5">
+                    <div className="text-[28px] font-extrabold tabular-nums text-slate-100 leading-none">12</div>
+                    <div className="text-[12px] text-slate-500 font-medium">days</div>
+                  </div>
+                  <div className="text-[10.5px] text-orange-300 font-medium">on plan</div>
+                </div>
+              </div>
             </div>
           </section>
 
-          {/* Compact Date Selector */}
-          <section className="flex items-center justify-between px-4 py-2.5 bg-slate-900 border border-slate-800 rounded-2xl">
-            <button className="w-8 h-8 rounded-lg flex items-center justify-center text-slate-400 hover:bg-slate-800 hover:text-slate-100 transition-colors">‹</button>
-            <div className="flex flex-col items-center gap-px cursor-pointer">
-              <div className="text-[10px] text-teal-500 uppercase tracking-widest font-semibold">Today</div>
-              <div className="text-[15px] font-bold text-slate-100">Saturday · May 3</div>
-            </div>
-            <button className="w-8 h-8 rounded-lg flex items-center justify-center text-slate-400 hover:bg-slate-800 hover:text-slate-100 transition-colors">›</button>
-          </section>
+          {/* Day Header — sticky, governs all panels below */}
+          <DayHeader
+            currentDate={currentDate}
+            dayOffset={dayOffset}
+            dateLabel={dateLabel}
+            dateRel={dateRel}
+            onPrev={() => setDayOffset((v) => v - 1)}
+            onNext={() => setDayOffset((v) => v + 1)}
+            onToday={() => setDayOffset(0)}
+            onPickDate={(d) => {
+              const diff = Math.round((d.getTime() - baseDate.getTime()) / 86400000);
+              setDayOffset(diff);
+            }}
+            calendarOpen={calendarOpen}
+            setCalendarOpen={setCalendarOpen}
+          />
+
+          {/* Panels re-animate when date changes via the key */}
+          <div
+            key={dayOffset}
+            className="rounded-[22px] bg-slate-900/40 border border-slate-800 shadow-[0_20px_60px_-20px_rgba(0,0,0,0.7),0_4px_16px_-8px_rgba(0,0,0,0.5)] backdrop-blur-sm p-3 md:p-4 flex flex-col gap-3"
+          >
 
           {/* Spirituality Panel */}
-          <Panel icon="🕌" title="Spirituality" subtitle="5 daily prayers · sticky chips" libTag="~/shared-services/prayer-times">
+          <Panel icon="🕌" title="Spirituality" subtitle="5 daily prayers · sticky chips" libTag="~/shared-services/prayer-times" accent="violet">
             <div className="flex flex-wrap gap-2.5">
-              <Chip label="Fajr" meta="5:14 am" selected={true} />
-              <Chip label="Zohr" meta="1:02 pm" selected={true} />
-              <Chip label="Asr" meta="4:38 pm" selected={false} />
-              <Chip label="Maghrib" meta="7:51 pm" selected={false} />
-              <Chip label="Isha" meta="9:17 pm" selected={false} />
+              <Chip label="Fajr"    meta="5:14 am" selected={true}  theme="gold" />
+              <Chip label="Zohr"    meta="1:02 pm" selected={true}  theme="gold" />
+              <Chip label="Asr"     meta="4:38 pm" selected={false} theme="gold" />
+              <Chip label="Maghrib" meta="7:51 pm" selected={false} theme="gold" />
+              <Chip label="Isha"    meta="9:17 pm" selected={false} theme="gold" />
             </div>
           </Panel>
 
@@ -233,106 +731,271 @@ function App() {
           <Panel
             icon="🥊"
             title="Workout"
-            subtitle="Walk · Kickboxing (5×/wk) · Weights (multi-session)"
-            libTag="workoutLibrary.routines · title field"
+            subtitle="One-of selection per category · daily log"
+            libTag="workoutLibrary · daily routines"
+            accent="orange"
           >
-            <div className="flex flex-wrap gap-2.5 mb-3">
-              <Chip
+            <div ref={pickerWrapRef}>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4 pt-2">
+              <WorkoutTile
+                icon="🚶"
                 label="Walk"
-                meta="10 min · daily"
+                subtitle={workoutSelection.walk ? `${walkMinutes} min today` : '10 min · daily target'}
+                accent="teal"
                 selected={workoutSelection.walk}
-                onClick={() => setWorkoutSelection((prev) => ({ ...prev, walk: !prev.walk }))}
+                onToggle={() => {
+                  setWorkoutSelection((prev) => {
+                    const next = !prev.walk;
+                    setOpenPicker(next ? 'walk' : (openPicker === 'walk' ? null : openPicker));
+                    return { ...prev, walk: next };
+                  });
+                }}
+                items={workoutSelection.walk ? [{
+                  id: 'walk-today',
+                  primary: `${walkMinutes} min`,
+                  secondary: 'walking',
+                  status: 'logged',
+                }] : []}
+                onItemClick={() => setOpenPicker('walk')}
+                onItemRemove={() => {
+                  setWorkoutSelection((p) => ({ ...p, walk: false }));
+                  if (openPicker === 'walk') setOpenPicker(null);
+                }}
+                addLabel={`+ Edit duration`}
+                onAdd={() => setOpenPicker('walk')}
+                emptyHint="No walk logged"
               />
-              <Chip
+
+              <WorkoutTile
+                icon="🥊"
                 label="Kickboxing"
-                meta="2 / 5 wk"
+                subtitle={workoutSelection.kickboxing ? `${kickRounds} rounds · ${kickTotalMin} min` : '2 / 5 sessions per week'}
+                accent="orange"
                 selected={workoutSelection.kickboxing}
-                onClick={() => setWorkoutSelection((prev) => ({ ...prev, kickboxing: !prev.kickboxing }))}
+                onToggle={() => {
+                  setWorkoutSelection((prev) => {
+                    const next = !prev.kickboxing;
+                    setOpenPicker(next ? 'kick' : (openPicker === 'kick' ? null : openPicker));
+                    return { ...prev, kickboxing: next };
+                  });
+                }}
+                items={workoutSelection.kickboxing ? [{
+                  id: 'kick-today',
+                  primary: `${kickRounds} rounds`,
+                  secondary: `${kickTotalMin} min · 2m work / 1m rest`,
+                  status: 'logged',
+                }] : []}
+                onItemClick={() => setOpenPicker('kick')}
+                onItemRemove={() => {
+                  setWorkoutSelection((p) => ({ ...p, kickboxing: false }));
+                  if (openPicker === 'kick') setOpenPicker(null);
+                }}
+                addLabel="+ Edit rounds"
+                onAdd={() => setOpenPicker('kick')}
+                emptyHint="No kickboxing logged"
               />
-              <Chip
+
+              <WorkoutTile
+                icon="🏋️"
                 label="Weights"
-                meta="Select routine"
+                subtitle={
+                  workoutSelection.weights && sessions.length > 0
+                    ? (sessions[0].status === 'done' ? 'Routine complete' : sessions[0].status === 'in-progress' ? 'Routine in progress' : 'Routine queued')
+                    : 'Pick today’s routine'
+                }
+                accent="sky"
                 selected={workoutSelection.weights}
-                onClick={() => setWorkoutSelection((prev) => ({ ...prev, weights: !prev.weights }))}
+                onToggle={() => {
+                  setWorkoutSelection((prev) => {
+                    const next = !prev.weights;
+                    setOpenPicker(next ? 'weights' : (openPicker === 'weights' ? null : openPicker));
+                    return { ...prev, weights: next };
+                  });
+                }}
+                items={workoutSelection.weights ? sessions.map((s) => ({
+                  id: s.id,
+                  primary: s.title,
+                  secondary: s.meta,
+                  status: s.status,
+                })) : []}
+                onItemClick={() => setOpenPicker('weights')}
+                onItemRemove={(id) => removeSession(id)}
+                addLabel={sessions.length > 0 ? '↻ Swap routine' : '+ Choose routine'}
+                onAdd={() => setOpenPicker('weights')}
+                emptyHint="No routine selected — tap to choose"
               />
             </div>
 
-            {/* Weights Routine Picker Dropdown */}
-            {workoutSelection.weights && (
-              <div className="mb-4 bg-slate-800 border border-slate-700 rounded-xl p-2 shadow-xl relative animate-in fade-in slide-in-from-top-2">
-                <div className="text-[10px] text-slate-400 uppercase tracking-widest font-semibold px-2 pt-1 pb-2">
-                  Select a Routine
-                </div>
-                <div className="flex flex-col gap-1">
-                  {[
-                    { title: 'Chest & Triceps', meta: '6 exercises · ~45 min' },
-                    { title: 'Back & Biceps', meta: '6 exercises · ~45 min' },
-                    { title: 'Shoulders', meta: '5 exercises · ~40 min' },
-                    { title: 'Quads & Hamstrings', meta: '6 exercises · ~50 min' },
-                  ].map((routine, idx) => (
-                    <div
-                      key={idx}
-                      className="flex items-center justify-between p-2.5 rounded-lg hover:bg-slate-700/50 cursor-pointer border border-transparent hover:border-slate-600 transition-all group"
-                    >
-                      <div>
-                        <div className="text-sm font-semibold text-slate-200 group-hover:text-teal-400 transition-colors">
-                          {routine.title}
-                        </div>
-                        <div className="text-[10.5px] text-slate-400">{routine.meta}</div>
-                      </div>
-                      <button className="w-7 h-7 rounded-full bg-slate-900 border border-slate-700 flex items-center justify-center text-teal-500 font-bold group-hover:bg-teal-500 group-hover:text-white group-hover:border-teal-500 transition-colors">
-                        +
-                      </button>
+            {/* Walk — quick-preset pills (auto-collapses on outside-click or 2s idle) */}
+            {workoutSelection.walk && openPicker === 'walk' && (
+              <div
+                onMouseMove={resetIdleTimer}
+                onMouseDown={resetIdleTimer}
+                onClick={resetIdleTimer}
+                className="mb-3 bg-slate-800/60 border border-slate-700 rounded-xl p-3 animate-in fade-in slide-in-from-top-2"
+              >
+                <div className="flex items-center justify-between mb-2.5">
+                  <div className="flex items-center gap-2">
+                    <span className="text-[10px] text-slate-400 uppercase tracking-widest font-semibold">Walk duration</span>
+                    <span className="text-[11px] text-slate-500">· tap a preset or use ±</span>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <button
+                      onClick={() => setWalkMinutes((v) => Math.max(0, v - 5))}
+                      aria-label="Decrease 5 minutes"
+                      className="w-7 h-7 rounded-lg bg-slate-900 border border-slate-700 text-slate-300 hover:bg-slate-700 hover:text-white text-sm font-bold transition-colors"
+                    >−</button>
+                    <div className="px-2.5 min-w-[68px] text-center">
+                      <span className="text-[15px] font-bold tabular-nums text-teal-300">{walkMinutes}</span>
+                      <span className="text-[11px] text-slate-400 ml-1">min</span>
                     </div>
-                  ))}
+                    <button
+                      onClick={() => setWalkMinutes((v) => Math.min(180, v + 5))}
+                      aria-label="Increase 5 minutes"
+                      className="w-7 h-7 rounded-lg bg-slate-900 border border-slate-700 text-slate-300 hover:bg-slate-700 hover:text-white text-sm font-bold transition-colors"
+                    >+</button>
+                  </div>
+                </div>
+                <div className="flex flex-wrap gap-1.5">
+                  {[10, 20, 30, 45, 60].map((preset) => {
+                    const active = walkMinutes === preset;
+                    return (
+                      <button
+                        key={preset}
+                        onClick={() => setWalkMinutes(preset)}
+                        className={`px-3 py-1.5 rounded-full text-[12px] font-semibold tabular-nums transition-all border ${
+                          active
+                            ? 'bg-teal-500 border-teal-400 text-white shadow-[0_4px_12px_-2px_rgba(20,184,166,0.45)]'
+                            : 'bg-slate-900 border-slate-700 text-slate-300 hover:border-teal-500/50 hover:text-teal-300 hover:bg-slate-800'
+                        }`}
+                      >
+                        {preset} min
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
             )}
 
-            {/* Session Tiles Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-4">
-              {sessions.map((s) => {
-                const done = s.status === 'done';
-                const tileCls = done
-                  ? 'bg-teal-500/10 border border-teal-500/40 rounded-xl overflow-hidden'
-                  : 'bg-slate-800 border border-orange-500/50 rounded-xl overflow-hidden';
-                const iconCls = done
-                  ? 'w-6 h-6 rounded-full bg-teal-500 flex items-center justify-center text-white text-[11px] font-bold'
-                  : 'w-6 h-6 rounded-full bg-orange-500/20 border-2 border-orange-500 flex items-center justify-center text-orange-500 text-[11px] font-bold';
-                const labelCls = done ? 'text-green-500 font-semibold' : 'text-orange-500 font-semibold';
-                return (
-                  <div key={s.id} className={tileCls}>
-                    <div className="flex items-center justify-between p-3">
-                      <div className="flex items-center gap-2.5 cursor-pointer min-w-0">
-                        <div className={iconCls}>{done ? '✓' : '▶'}</div>
-                        <div className="min-w-0">
-                          <div className="text-sm font-semibold text-slate-100 truncate">{s.title}</div>
-                          <div className="text-[10.5px] text-slate-400 mt-0.5 truncate">{s.meta}</div>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-2 text-[11px] text-slate-400 flex-shrink-0">
-                        <span className={labelCls}>{s.statusLabel}</span>
-                        <button
-                          type="button"
-                          onClick={(e) => { e.stopPropagation(); removeSession(s.id); }}
-                          aria-label={`Remove ${s.title}`}
-                          title="Remove workout"
-                          className="w-6 h-6 rounded-full bg-slate-900/80 border border-slate-700 flex items-center justify-center text-slate-400 hover:bg-red-500/15 hover:border-red-500/50 hover:text-red-400 transition-colors text-[14px] leading-none"
-                        >
-                          −
-                        </button>
-                        <span className="text-slate-500">›</span>
-                      </div>
-                    </div>
+            {/* Kickboxing — quick-preset rounds (each round = 2 min + 1 min rest) */}
+            {workoutSelection.kickboxing && openPicker === 'kick' && (
+              <div
+                onMouseMove={resetIdleTimer}
+                onMouseDown={resetIdleTimer}
+                onClick={resetIdleTimer}
+                className="mb-3 bg-slate-800/60 border border-slate-700 rounded-xl p-3 animate-in fade-in slide-in-from-top-2"
+              >
+                <div className="flex items-center justify-between mb-2.5">
+                  <div className="flex items-center gap-2">
+                    <span className="text-[10px] text-slate-400 uppercase tracking-widest font-semibold">Kickboxing rounds</span>
+                    <span className="text-[11px] text-slate-500">· 2 min work · 1 min rest</span>
                   </div>
-                );
-              })}
-              {sessions.length === 0 && (
-                <div className="md:col-span-2 text-center text-[11px] text-slate-500 italic py-6 border border-dashed border-slate-700 rounded-xl">
-                  No workouts logged yet — tap a chip above to add one.
+                  <div className="flex items-center gap-1.5">
+                    <button
+                      onClick={() => setKickRounds((v) => Math.max(0, v - 1))}
+                      aria-label="Decrease one round"
+                      className="w-7 h-7 rounded-lg bg-slate-900 border border-slate-700 text-slate-300 hover:bg-slate-700 hover:text-white text-sm font-bold transition-colors"
+                    >−</button>
+                    <div className="px-2.5 min-w-[110px] text-center leading-tight">
+                      <div className="text-[15px] font-bold tabular-nums text-orange-300">
+                        {kickRounds}<span className="text-[11px] text-slate-400 font-medium ml-1">rds</span>
+                      </div>
+                      <div className="text-[10px] text-slate-500 tabular-nums mt-px">≈ {kickTotalMin} min total</div>
+                    </div>
+                    <button
+                      onClick={() => setKickRounds((v) => Math.min(20, v + 1))}
+                      aria-label="Increase one round"
+                      className="w-7 h-7 rounded-lg bg-slate-900 border border-slate-700 text-slate-300 hover:bg-slate-700 hover:text-white text-sm font-bold transition-colors"
+                    >+</button>
+                  </div>
                 </div>
-              )}
-            </div>
+                <div className="flex flex-wrap gap-1.5">
+                  {[3, 5, 8, 10, 12].map((preset) => {
+                    const active = kickRounds === preset;
+                    const totalMin = preset * 2 + Math.max(0, preset - 1);
+                    return (
+                      <button
+                        key={preset}
+                        onClick={() => setKickRounds(preset)}
+                        className={`px-3 py-1.5 rounded-full text-[12px] font-semibold tabular-nums transition-all border flex items-baseline gap-1 ${
+                          active
+                            ? 'bg-orange-500 border-orange-400 text-white shadow-[0_4px_12px_-2px_rgba(249,115,22,0.45)]'
+                            : 'bg-slate-900 border-slate-700 text-slate-300 hover:border-orange-500/50 hover:text-orange-300 hover:bg-slate-800'
+                        }`}
+                      >
+                        <span>{preset} rds</span>
+                        <span className={`text-[10px] font-normal ${active ? 'text-white/80' : 'text-slate-500'}`}>· {totalMin}m</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
+            {/* Weights — routine picker (auto-collapses on outside-click or 2s idle) */}
+            {workoutSelection.weights && openPicker === 'weights' && (
+              <div
+                onMouseMove={resetIdleTimer}
+                onMouseDown={resetIdleTimer}
+                onClick={resetIdleTimer}
+                className="mb-3 bg-slate-800/60 border border-slate-700 rounded-xl p-3 animate-in fade-in slide-in-from-top-2"
+              >
+                <div className="flex items-center justify-between mb-2.5">
+                  <span className="text-[10px] text-slate-400 uppercase tracking-widest font-semibold">Today’s routine</span>
+                  <span className="text-[11px] text-slate-500">· one routine per day</span>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                  {[
+                    { id: 'chest-tris',  title: 'Chest & Triceps',     meta: '6 exercises · ~45 min' },
+                    { id: 'back-bis',    title: 'Back & Biceps',       meta: '6 exercises · ~45 min' },
+                    { id: 'shoulders',   title: 'Shoulders',           meta: '5 exercises · ~40 min' },
+                    { id: 'legs',        title: 'Quads & Hamstrings',  meta: '6 exercises · ~50 min' },
+                  ].map((routine) => {
+                    const isCurrent = sessions[0]?.id === routine.id;
+                    return (
+                      <div
+                        key={routine.id}
+                        className={`flex items-center justify-between p-2.5 rounded-lg cursor-pointer border transition-all group ${
+                          isCurrent
+                            ? 'bg-sky-500/10 border-sky-500/50'
+                            : 'bg-slate-900/60 hover:bg-slate-900 border-slate-800 hover:border-sky-500/40'
+                        }`}
+                        onClick={() => {
+                          if (isCurrent) return;
+                          // Replace the single slot — swap routines
+                          setSessions([{
+                            id: routine.id,
+                            title: routine.title,
+                            meta: routine.meta + ' · queued',
+                            status: 'pending',
+                            statusLabel: 'Queued',
+                          }]);
+                        }}
+                      >
+                        <div className="min-w-0">
+                          <div className={`text-sm font-semibold truncate transition-colors ${
+                            isCurrent ? 'text-sky-300' : 'text-slate-100 group-hover:text-sky-300'
+                          }`}>{routine.title}</div>
+                          <div className="text-[10.5px] text-slate-400 truncate">{routine.meta}</div>
+                        </div>
+                        <button
+                          aria-label={isCurrent ? `${routine.title} is today’s routine` : `Switch to ${routine.title}`}
+                          disabled={isCurrent}
+                          className={`w-7 h-7 rounded-full border flex items-center justify-center font-bold flex-shrink-0 transition-colors ${
+                            isCurrent
+                              ? 'bg-sky-500 border-sky-400 text-white'
+                              : 'bg-slate-900 border-slate-700 text-sky-400 group-hover:bg-sky-500 group-hover:text-white group-hover:border-sky-500'
+                          }`}
+                        >
+                          {isCurrent ? '✓' : '↻'}
+                        </button>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+            </div>{/* /pickerWrapRef */}
           </Panel>
 
           {/* Cannabis Panel */}
@@ -341,6 +1004,7 @@ function App() {
             title="Cannabis"
             subtitle="2 sessions · taper week 2 / 8 · 15 / 73 mg today"
             libTag="cannabisProducts · session planner"
+            accent="emerald"
           >
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               <div className="bg-slate-800 rounded-xl p-3.5 flex flex-col gap-2">
@@ -388,6 +1052,7 @@ function App() {
             title="Food"
             subtitle="Intermittent fasting · feeding window 2:00 – 6:00 pm"
             libTag="meals library · weekly auto-plan"
+            accent="amber"
           >
             <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-xl p-2.5 px-3.5 flex items-center justify-between text-xs text-slate-200 flex-wrap gap-2 mb-3.5">
               <div className="flex items-center gap-2">
@@ -462,6 +1127,7 @@ function App() {
               ✓ Complete Day
             </button>
           </section>
+          </div>{/* /panels-rekey wrapper */}
         </main>
       </div>
     </div>
