@@ -1,11 +1,15 @@
 /**
- * SettingsView.test.jsx — AC-P1C-C7
- * Settings shell smoke tests.
+ * SettingsView.test.jsx — AC-P1D-D3
+ * Updated for real SettingsView (replaced shell from AC-P1C-C7).
  */
-import { describe, it, expect } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { describe, it, expect, vi } from 'vitest';
+import { render, screen, fireEvent } from '@testing-library/react';
 import { MemoryRouter, Routes, Route } from 'react-router-dom';
 import { SettingsView } from '../SettingsView.jsx';
+
+// Mock URL.createObjectURL since jsdom doesn't support it
+global.URL.createObjectURL = vi.fn(() => 'blob:mock-url');
+global.URL.revokeObjectURL = vi.fn();
 
 function renderSettings() {
   return render(
@@ -17,7 +21,7 @@ function renderSettings() {
   );
 }
 
-describe('SettingsView (shell)', () => {
+describe('SettingsView (real)', () => {
   it('renders without crashing', () => {
     renderSettings();
     expect(document.body.textContent).toBeTruthy();
@@ -30,25 +34,36 @@ describe('SettingsView (shell)', () => {
 
   it('shows "Settings" heading', () => {
     renderSettings();
-    expect(screen.getByText(/settings/i)).toBeTruthy();
+    expect(screen.getByRole('heading', { name: /settings/i })).toBeTruthy();
   });
 
-  it('mentions theme toggle in description', () => {
+  it('renders theme toggle switch', () => {
     renderSettings();
-    expect(document.body.textContent.toLowerCase()).toMatch(/theme/);
+    expect(screen.getByRole('checkbox', { name: /dark mode/i })).toBeTruthy();
   });
 
-  it('mentions export in description', () => {
+  it('theme toggle changes label when clicked', () => {
     renderSettings();
-    expect(document.body.textContent.toLowerCase()).toMatch(/export/);
+    const toggle = screen.getByRole('checkbox', { name: /dark mode/i });
+    const isInitiallyChecked = toggle.checked;
+    fireEvent.click(toggle);
+    expect(toggle.checked).toBe(!isInitiallyChecked);
   });
 
-  it('mentions P1.D as the full-UX phase', () => {
+  it('renders export data button', () => {
     renderSettings();
-    expect(document.body.textContent).toMatch(/P1\.D/);
+    expect(screen.getByRole('button', { name: /export/i })).toBeTruthy();
   });
 
-  it('does NOT access store (no provider needed)', () => {
-    expect(() => renderSettings()).not.toThrow();
+  it('renders feature flags section', () => {
+    renderSettings();
+    expect(document.querySelector('[data-testid="settings-feature-flags"]')).toBeTruthy();
+  });
+
+  it('export button triggers download (blob created)', () => {
+    renderSettings();
+    const exportBtn = screen.getByRole('button', { name: /export/i });
+    fireEvent.click(exportBtn);
+    expect(URL.createObjectURL).toHaveBeenCalled();
   });
 });
