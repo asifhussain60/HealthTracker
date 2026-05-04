@@ -26,7 +26,7 @@
 /* eslint-disable react-refresh/only-export-components */
 import { Navigate } from 'react-router-dom';
 import { AppShell } from './AppShell.jsx';
-import { TodayView }     from '../views/TodayView.jsx';
+import { DashboardView } from '../views/DashboardView.jsx';
 import { ProfileView }   from '../views/ProfileView.jsx';
 import { SettingsView }  from '../views/SettingsView.jsx';
 import { PlannerView }   from '../views/PlannerView.jsx';
@@ -64,7 +64,7 @@ export const routerConfig = [
     element: <AppShell />,
     children: [
       // Route 1 — Dashboard
-      { index: true, element: <TodayView /> },
+      { index: true, element: <DashboardView /> },
 
       // Route 2 — Profile editor
       { path: 'profile', element: <ProfileView /> },
