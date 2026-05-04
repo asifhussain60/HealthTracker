@@ -1,6 +1,6 @@
 # HealthTracker — Data Model
 
-**Status:** active · **Owner:** architect · **Last updated:** 2026-05-04 (PF-12: regen-immutability of eaten slots; canonical `DayClosure` with snapshot `schemaVersion`)
+**Status:** active · **Owner:** architect · **Last updated:** 2026-05-04 (solo-user scope locked; multi-user fields removed from Todo. Prior update same day: PF-12 regen-immutability of eaten slots; canonical `DayClosure` with snapshot `schemaVersion`.)
 
 This document is the canonical schema reference. Slices conform to it. Migrations enforce it. The auditor's Pass 4 (Brittleness) checks for drift.
 
@@ -9,15 +9,17 @@ This document is the canonical schema reference. Slices conform to it. Migration
 ```ts
 type AuditFields = {
   id: string;            // UUID v4
-  userId: string;        // owner — 'me' today, real user id Phase 2
+  userId: string;        // owner — always the constant 'me' under solo-user scope
   createdAt: string;     // ISO 8601
   updatedAt: string;     // ISO 8601
-  createdBy: string;     // userId of creator
-  updatedBy: string;     // userId of last editor
+  createdBy: string;     // userId of creator (= 'me')
+  updatedBy: string;     // userId of last editor (= 'me')
   deletedAt: string | null;  // soft-delete timestamp; null = active
   schemaVersion: number;     // see migrations/
 };
 ```
+
+> **Solo-user scope (2026-05-04):** `userId` is always the constant `'me'`. The field is retained on `AuditFields` for forward-compatibility (cheap to keep, expensive to add back) and to keep HT-CORE-010 enforced in already-shipped selectors. Do not interpret `userId` as preparation for multi-user — multi-user is explicitly out of scope per `_workspace/plan/program-roadmap.md` § 0.5.
 
 Soft-delete only. Hard-delete is a P0 violation.
 
@@ -299,11 +301,10 @@ type Todo = AuditFields & {
   tags: string[];
   parentId: string | null;
   recurrence: 'daily' | 'weekly' | 'weekdays' | null;
-  // Phase 2 additions (scaffolded with field, no UI today):
-  assigneeId: string | null;
-  assignerId: string | null;
 };
 ```
+
+> **Solo-user scope (2026-05-04):** no assignment fields. The `userId` field on `AuditFields` is always the constant `'me'`. The `assigneeId` / `assignerId` fields previously scaffolded here for a Phase-2 multi-user world have been removed per `_workspace/plan/program-roadmap.md` § 0.5.
 
 ### workoutSlice.logs[] : WorkoutLog
 

@@ -125,4 +125,4 @@ Otherwise: make grounded best-effort decisions and keep moving (CORE-049 Silent 
 
 ## What this app is becoming
 
-Today: client-only React SPA on localStorage. Phase 2: Supabase backend, Google SSO, multi-user with TODO assignment, PWA with offline sync. Engineer abstractions now (StorageAdapter, AuthContext, repository layer, audit fields, schemaVersion) so the swap is transparent. See `reference/product/feature-roadmap.md`.
+Solo-user PWA on localStorage. Optional cloud-backup-and-multi-device-sync for the same single user is the only Phase 2 motion; multi-user, assignment, and external auth are out of scope (locked 2026-05-04, see `_workspace/plan/program-roadmap.md` § 0.5). Audit fields + schemaVersion stay; `AuthContext` is collapsed to a 5-line `CURRENT_USER_ID = 'me'` constant at `app/src/data/auth/currentUser.js`. See `reference/product/feature-roadmap.md`.

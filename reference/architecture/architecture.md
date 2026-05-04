@@ -1,12 +1,12 @@
 # HealthTracker — Architecture Rules
 
-**Status:** active · **Owner:** architect · **Last updated:** 2026-05-03
+**Status:** active · **Owner:** architect · **Last updated:** 2026-05-04 (solo-user scope locked; rule 5 flipped to sync mutations; rule 1 rewritten; rule 4 annotated)
 
 This document is the single source of truth for HealthTracker's architectural rules. The auditor enforces against it. Violations are P0 unless explicitly documented as accepted technical debt in `_workspace/scratch/observed-debt.md`.
 
 ## North star
 
-A solo-user React SPA today; a multi-user authenticated PWA tomorrow. The architecture today is engineered so the swap to backend (Phase 2) requires no rewrite — only the storage adapter changes. Selectors, repositories, components, and views never know whether they're talking to localStorage or to Supabase.
+A **solo-user** React SPA today; a **solo-user PWA with optional cloud-backup + multi-device sync** tomorrow. The architecture is engineered so the swap from localStorage to a personal Supabase project (Phase 2) requires no rewrite — only the storage adapter changes. Selectors, repositories, components, and views never know whether they're talking to localStorage or to Supabase. Multi-user, sharing, assignment, and external auth are explicitly out of scope per `_workspace/plan/program-roadmap.md` § 0.5.
 
 ## Layering (top-down)
 
@@ -76,11 +76,11 @@ Cross-references:
 
 ## Hard rules
 
-1. **No view imports the store directly.** Views call repositories: `useFoodRepo()`, `useCannabisRepo()`, etc. Repositories wrap the slice; tomorrow they'll wrap fetch().
-2. **Every record carries audit fields.** See `data-model.md`. Enforced by HT-CORE-008.
+1. **No view imports the store directly.** Views call repositories: `useCannabisRepo()`, `useMealsRepo()`, etc. Repositories wrap the slice and the storage adapter; the view-doesn't-import-store boundary is preserved across the Phase 2 LocalStorage→Supabase adapter swap.
+2. **Every record carries audit fields.** See `data-model.md`. Enforced by HT-CORE-008. `userId` is always the constant `'me'` under solo-user scope.
 3. **Every persisted blob carries `schemaVersion`.** Enforced by HT-CORE-009; migration registry in `data/migrations/index.js`.
-4. **Selectors filter by `currentUser.id`.** Even when single-user. Enforced by HT-CORE-010.
-5. **Mutations are async by signature.** Even local writes return `Promise<void>` or `Promise<Result>`. The view never has to change when storage becomes networked.
+4. **Selectors filter by `currentUser.id`.** Even when single-user. Enforced by HT-CORE-010. *Solo-user scope (2026-05-04):* new selectors are not required to filter by `userId`; existing filters in shipped code stay (cheap to keep; tearing them out is churn). `currentUser.id === 'me'` is a constant exported from `app/src/data/auth/currentUser.js`, not a hook.
+5. **Mutations are sync.** *(rewritten 2026-05-04 under solo-user scope)* localStorage is sync, and the rescoped Phase 2 (cloud backup + multi-device sync, still solo) does not require networked storage during a write tick — sync happens *after* the local commit, transparently to the repo caller via a background queue. Repositories return values directly, not Promises. The view-doesn't-import-store rule still applies; the layering invariant is preserved without an async signature.
 6. **Calculators are pure.** No side effects. No state reads. Inputs in, outputs out. Tested in isolation.
 7. **No business logic in views.** If logic appears in JSX, hoist it to a selector or calculator.
 8. **No inline styles unless a CSS variable bridge.** Inline `style={{ '--var': value }}` is allowed only for values that can't live in CSS classes (dynamic ring fill %, mood color).
@@ -131,32 +131,37 @@ Cross-references:
 ```js
 // data/adapters/StorageAdapter.js
 export class StorageAdapter {
-  async load() { /* returns persisted state */ }
-  async save(state) { /* persists state */ }
-  async healthCheck() { /* returns { ok: boolean, ...details } */ }
+  // Hydration is sync: the adapter holds an in-memory snapshot fed from the
+  // backing store on init. Repositories read from this snapshot synchronously.
+  load() { /* returns persisted state from in-memory snapshot */ }
+  save(state) { /* updates in-memory snapshot synchronously, queues persistence */ }
+  // Networked persistence (Phase 2) runs asynchronously inside a background
+  // queue, never on the write hot path. Conflict resolution is last-write-wins.
+  healthCheck() { /* returns { ok: boolean, ...details } */ }
 }
 ```
 
-`LocalStorageAdapter` implements this for today. `SupabaseAdapter` implements it for Phase 2. The store talks only to the adapter.
+`LocalStorageAdapter` implements this for today (snapshot-write-through is effectively instant). `SupabaseAdapter` implements it for Phase 2 with a dirty-flag background queue so repos retain sync semantics. The store talks only to the adapter.
 
 ## Auth contract
 
+*(rewritten 2026-05-04 under solo-user scope — no React Context, no hook)*
+
 ```js
-// contexts/AuthContext.jsx
-const useCurrentUser = () => useContext(AuthContext);
-// Returns: { id, role: 'owner' | 'member' | 'viewer', email?, name? }
-// Today: { id: 'me', role: 'owner' }
-// Tomorrow: hydrated from Supabase session
+// app/src/data/auth/currentUser.js
+export const CURRENT_USER_ID = 'me';
 ```
 
-Every selector that filters records uses `useCurrentUser().id`.
+That's the entire auth surface. There is no `AuthContext`, no `useCurrentUser` hook, no role enum. Already-shipped selectors that consume `currentUser.id` resolve to `CURRENT_USER_ID` — i.e., the string `'me'`. Phase 2's optional cloud-backup adapter uses a long-lived device key for Supabase row ownership; that key is per-device and is never exposed to selectors or views.
 
 ## Permissions contract
 
 ```js
 // data/permissions/can.js
 can(user, action, resource) → boolean
-// Today returns true; gets real logic in Phase 2.
+// Always returns true under solo-user scope (one principal, no other users
+// to authorize against). Kept as a stable seam: feature gates that need
+// per-feature toggling go through `uiSlice.featureFlags`, not through can().
 ```
 
 ## Feature flags
@@ -193,8 +198,11 @@ URL routing is deferred — the view-registry is structured so React Router can 
 - **Service worker** in production; cache-first static, network-first data.
 - **Manifest** with maskable + any icons + wide screenshot for Windows install prompt.
 
-## What's out of scope (Phase 0–4)
+## What's out of scope (Phase 0–5)
 
+- **Multi-user.** Sharing, assignment, delegation, invites, family/group accounts. Locked solo-user 2026-05-04 per `_workspace/plan/program-roadmap.md` § 0.5.
+- **External auth.** Google SSO, OAuth, email/password sign-in. Phase 2 uses a long-lived device key only.
+- **RLS / row-level-security policies.** No multi-tenant surface to defend.
 - React Native / native shells.
 - Server-side rendering.
 - Multi-region deployment.

@@ -1,6 +1,8 @@
 # HealthTracker — Feature Roadmap (product framing)
 
-**Status:** active · **Owner:** architect · **Last updated:** 2026-05-04 (reconciled with program-roadmap.md; superseded the legacy 4-phase scheme).
+**Status:** active · **Owner:** architect · **Last updated:** 2026-05-04 (solo-user scope locked; multi-user / sharing / assignment removed from P2 + P3).
+
+> **Scope:** solo-user. Multi-user / sharing / assignment is explicitly out of scope as of 2026-05-04. See `_workspace/plan/program-roadmap.md` § 0.5 for the authoritative scope statement.
 
 > **This document is the product framing of the roadmap.** The canonical execution authority — universal phase shape, 7-commit close-out recipe, refactor + cleanup cadence, full commit maps — is `_workspace/plan/program-roadmap.md`. When the two disagree, `program-roadmap.md` wins. This file's job is to communicate *user-facing themes* and *gating user value* per phase; not to enumerate commits.
 
@@ -14,8 +16,8 @@ The legacy 4-phase scheme (P0..P4 with P1 = "Cannabis Redesign + Meals") was ret
 |---|---|---|
 | **P0** | Refactor + scaffolding (no user-visible change) | Auditor + challenger PASS; sweep catalogue empty; tag `phase-0-complete` |
 | **P1** | SPA build — local-first, planner-first | All 16 routes work; `/plan` is canonical entry; report-dimension matrix delivered; Lighthouse ≥ 90; tag `phase-1-complete` |
-| **P2** | Backend swap — Supabase + Google SSO + multi-user | Zero data loss across LS→Supabase migration; multi-user works; RLS prevents cross-user reads; offline edits sync deterministically; tag `phase-2-complete` |
-| **P3** | TODOs + assignment + collaboration | Todo lifecycle works for self-assigned and delegated; notifications deliver; delegation history append-only; tag `phase-3-complete` |
+| **P2** | Cloud backup + multi-device sync (still solo) | Zero data loss across LS→Supabase migration; same user signed in on phone + desktop converges; offline edits sync deterministically; tag `phase-2-complete` |
+| **P3** | TODO UX (single-user) | Solo todo lifecycle works (open/done/snoozed); recurrence creates the next instance; opt-in self-reminders deliver; tag `phase-3-complete` |
 | **P4** | Shared services + LLM | Prayer-times live; HealthData adapters auto-import; Assistant produces daily summaries; degradation tested; tag `phase-4-complete` |
 | **P5** | Production hardening + analytics | Zero `[OPEN]` debt; security review passed; full export/import works; `program-v1` tag pushed; post-mortem written |
 
@@ -50,23 +52,23 @@ Ship the full HealthTracker SPA on localStorage with planner-first framing, libr
 
 ---
 
-## Phase 2 — Backend swap (Supabase + auth + multi-user)
+## Phase 2 — Cloud backup + multi-device sync (still solo)
 
-Swap localStorage for Supabase behind the existing `StorageAdapter` interface; add Google SSO; enable multi-user with assignment scaffolding for Phase 3 todos.
+*(rescoped 2026-05-04 — solo-user scope)* Swap localStorage for an optional cloud-backed `StorageAdapter` so the same single user can use HealthTracker across their devices. No multi-user, no Google SSO, no RLS, no assignment. Auth is a long-lived device key issued at first install — no interactive sign-in flow.
 
-**Build sub-phases:** A (Postgres schema + RLS + pgcrypto) · B (Auth + repository swap behind feature flag, dual-write canary) · C (RLS + multi-user UX + assignment scaffolding) · D (offline sync via PWA service worker upgrade).
+**Build sub-phases:** A (cloud schema mirror, pgcrypto envelope retained) · B (`StorageAdapter` swap behind a feature flag with dual-write canary) · C (multi-device offline sync via PWA service worker upgrade, last-write-wins).
 
-**User-visible deliverable:** sign-in with Google, two devices stay in sync, offline edits reconcile on reconnect.
+**User-visible deliverable:** the same user signed in across phone + desktop sees converged data, with offline edits reconciling on reconnect.
 
 ---
 
-## Phase 3 — TODOs + assignment + collaboration
+## Phase 3 — TODO UX (single-user)
 
-Activate the Todo schema scaffolded in Phase 0; add assignment UX, notifications, and a delegation-history view.
+*(rescoped 2026-05-04 — solo-user scope)* Activate the Todo schema scaffolded in Phase 0 as a personal TODO list. No assignment, no delegation, no notifications-for-others.
 
-**Build sub-phases:** A (todo schema activation + lifecycle) · B (assignment UX) · C (notifications + delegation history).
+**Build sub-phases:** A (todo schema activation + lifecycle: open/done/snoozed) · B (recurrence engine + snooze handler) · C (optional self-reminders via web push).
 
-**User-visible deliverable:** todo list works for self-assigned and delegated todos, with web-push notifications and a per-todo delegation timeline.
+**User-visible deliverable:** solo todo list with recurrence, snooze, due dates, optional self-reminders.
 
 ---
 
@@ -82,13 +84,13 @@ Integrate real prayer-times (replaces P1 stub), HealthData adapters (Apple Healt
 
 ## Phase 5 — Production hardening + analytics
 
-Make HealthTracker production-ready: telemetry, security audit, export/import maturity, and a final hardening pass that retires every remaining scaffold.
+*(rescoped 2026-05-04 — solo-user scope)* Make HealthTracker production-ready for the single user: opt-in telemetry, device-local data review, export/import maturity, and a final hardening pass that retires every remaining scaffold. The original "external multi-user security audit" framing is dropped — there is no multi-user surface to attack.
 
-**Build sub-phases:** A (opt-in telemetry + cohort metrics, zero PII) · B (perf re-baseline against P1 budget) · C (security + privacy audit) · D (export/import maturity, including LLM journal summaries).
+**Build sub-phases:** A (opt-in telemetry + cohort metrics, zero PII) · B (perf re-baseline against P1 budget) · C (device-local data review + export/import maturity) · D (export bundle hardening, including LLM journal summaries).
 
 **Close-out sub-phase E** — Program close-out: full audit, retire ALL scaffolds, `git tag program-v1`, post-mortem written.
 
-**User-visible deliverable:** export/import works for the entire user dataset, security review passed, app ready for general availability.
+**User-visible deliverable:** export/import works for the entire user dataset, device-local data review passed, app ready for daily personal use.
 
 ---
 

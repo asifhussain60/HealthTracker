@@ -1,7 +1,7 @@
 # HealthTracker Framework
 
 **Version:** 1.0
-**Last updated:** 2026-05-03
+**Last updated:** 2026-05-04 (solo-user scope locked)
 **Status:** active
 
 This document is the central governance contract for the HealthTracker repo. It lists the agents, file ownership, rules of engagement, and cross-references to the active execution plan. Update this file when phases land, agents change, or governance rules evolve.
@@ -10,7 +10,7 @@ This document is the central governance contract for the HealthTracker repo. It 
 
 ## What HealthTracker is
 
-A personal/family health-tracking React SPA. Today: solo, client-side only (Vite + React + Zustand + localStorage), Mac-primary with first-class Windows support via PWA. Future (Phase 2): Google SSO, multi-user with task assignment, Supabase backend. The codebase is engineered now so the future shift requires no rewrite — abstractions stay; storage adapter swaps.
+A **solo-user** personal health-tracking React SPA. Today: client-side only (Vite + React + Zustand + localStorage), Mac-primary with first-class Windows support via PWA. Phase 2 adds optional cloud-backup + multi-device sync against a personal Supabase project for the **same** single user across phone + desktop — no Google SSO, no multi-user, no sharing, no assignment. Multi-user is explicitly out of scope per `_workspace/plan/program-roadmap.md` § 0.5. The codebase keeps the `StorageAdapter` abstraction so the localStorage→Supabase swap remains transparent.
 
 ## Authority and routing
 
