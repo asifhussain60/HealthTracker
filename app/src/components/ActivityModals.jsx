@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { Modal } from './Modal';
 import { useStore } from '../data/store';
-import { format } from 'date-fns';
 import { WORKOUT_TYPES } from '../data/seed';
 
 export function StepsModal({ onClose }) {

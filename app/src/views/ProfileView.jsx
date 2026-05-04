@@ -1,6 +1,5 @@
 import { useState, useRef } from 'react';
 import { useStore } from '../data/store';
-import { ConfirmModal } from '../components/Modal';
 
 function Toggle({ checked, onChange }) {
   return (

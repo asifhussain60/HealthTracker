@@ -137,7 +137,7 @@ let localStorageStore = {};
 
 beforeEach(() => {
   localStorageStore = {};
-  global.localStorage = {
+  globalThis.localStorage = {
     getItem: (key) => localStorageStore[key] ?? null,
     setItem: (key, value) => { localStorageStore[key] = value; },
     removeItem: (key) => { delete localStorageStore[key]; },
@@ -278,7 +278,7 @@ describe('runMigrations — v0 fixture forward', () => {
 describe('runMigrations — audit-field completeness', () => {
   const AUDIT_KEYS = ['id', 'userId', 'createdAt', 'updatedAt', 'createdBy', 'updatedBy', 'deletedAt', 'schemaVersion'];
 
-  function assertAuditFields(records, sliceName) {
+  function assertAuditFields(records, _sliceName) {
     for (const rec of records) {
       for (const key of AUDIT_KEYS) {
         expect(rec).toHaveProperty(key, undefined !== rec[key] ? rec[key] : undefined);

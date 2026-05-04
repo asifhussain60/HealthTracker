@@ -25,6 +25,7 @@ function RingChart({ value, max, colorClass = 'ring-teal', size = 90, stroke = 9
 
 // ── Horizontal Macro Bar ───────────────────────────────────────
 // colorClass: bar-teal | bar-yellow | bar-orange
+// eslint-disable-next-line no-unused-vars -- C2 will render this when macro tracking lands
 function MacroBar({ label, value, max, colorClass = 'bar-teal' }) {
   const pct = Math.min(100, max > 0 ? (value / max) * 100 : 0);
   return (
@@ -76,7 +77,6 @@ export function TodayView() {
   const steps    = workoutLog?.steps || 0;
 
   const getDailyCannabisPlan = useStore((s) => s.getDailyCannabisPlan);
-  const deleteCannabisLog = useStore((s) => s.deleteCannabisLog);
 
   const [quickAdd, setQuickAdd] = useState(null);
   const [cannabisModal, setCannabisModal] = useState({ open: false, planSession: null, isExtra: false });
@@ -312,7 +312,6 @@ export function TodayView() {
               ) : (
                 dailyPlan.map((ps, i) => {
                   const logged = planLogs[i];
-                  const prod   = inventory.find((p) => p.id === ps.productId);
                   return (
                     <div key={ps.sessionNumber} className={`cp-plan-card${logged ? ' cp-plan-card--done' : ''}`}>
                       <div className="cp-plan-num">{ps.sessionNumber}</div>

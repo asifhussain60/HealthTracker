@@ -222,7 +222,6 @@ function migrateLegacyToV3(state) {
   }
 
   // ── Step 2: Drop foodSlice ────────────────────────────────────────────────
-  // eslint-disable-next-line no-unused-vars
   const { foodLogs: _dropped, ...withoutFood } = state;
 
   // ── Step 3: Backfill audit fields across all slice arrays ─────────────────

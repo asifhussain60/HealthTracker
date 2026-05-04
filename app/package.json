@@ -14,7 +14,8 @@
     "test": "vitest",
     "test:run": "vitest --run",
     "test:ui": "vitest --ui",
-    "coverage": "vitest --run --coverage"
+    "coverage": "vitest --run --coverage",
+    "preflight": "npm run lint && npm run test:run && npm run build"
   },
   "dependencies": {
     "date-fns": "^4.1.0",

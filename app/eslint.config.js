@@ -14,8 +14,12 @@ export default defineConfig([
       reactRefresh.configs.vite,
     ],
     languageOptions: {
-      globals: globals.browser,
+      globals: { ...globals.browser, ...globals.node, global: 'readonly' },
       parserOptions: { ecmaFeatures: { jsx: true } },
+    },
+    rules: {
+      // Allow intentionally-unused function parameters prefixed with _
+      'no-unused-vars': ['error', { argsIgnorePattern: '^_', varsIgnorePattern: '^_' }],
     },
   },
 ])

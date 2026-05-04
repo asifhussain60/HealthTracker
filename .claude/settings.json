@@ -11,6 +11,17 @@
           }
         ]
       }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "if echo \"$CLAUDE_TOOL_INPUT\" | grep -q '\\bgit push\\b'; then npm --prefix \"$CLAUDE_PROJECT_DIR/app\" run preflight; fi"
+          }
+        ]
+      }
     ]
   }
 }
