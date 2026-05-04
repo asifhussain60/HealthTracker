@@ -1,6 +1,6 @@
 /**
- * ProfileView.test.jsx — AC-P1C-C6
- * Profile shell smoke tests.
+ * ProfileView.test.jsx — AC-P1D-D2
+ * Updated for real ProfileEditor (replaced shell from AC-P1C-C6).
  */
 import { describe, it, expect } from 'vitest';
 import { render, screen } from '@testing-library/react';
@@ -17,7 +17,7 @@ function renderProfile() {
   );
 }
 
-describe('ProfileView (shell)', () => {
+describe('ProfileView (real editor)', () => {
   it('renders without crashing', () => {
     renderProfile();
     expect(document.body.textContent).toBeTruthy();
@@ -28,18 +28,18 @@ describe('ProfileView (shell)', () => {
     expect(document.querySelector('[data-testid="profile-view"]')).toBeTruthy();
   });
 
-  it('shows "Profile editor" heading', () => {
+  it('renders Identity section heading', () => {
     renderProfile();
-    expect(screen.getByText(/profile editor/i)).toBeTruthy();
+    expect(screen.getByText(/identity/i)).toBeTruthy();
   });
 
-  it('mentions P1.D as the full-UX phase', () => {
+  it('renders Save button', () => {
     renderProfile();
-    expect(document.body.textContent).toMatch(/P1\.D/);
+    expect(screen.getByRole('button', { name: /save/i })).toBeTruthy();
   });
 
-  it('does NOT crash with no store context', () => {
-    // Profile shell should not access the store
-    expect(() => renderProfile()).not.toThrow();
+  it('renders Manage Fasting-Safe Items deep-link button', () => {
+    renderProfile();
+    expect(screen.getByRole('button', { name: /fasting.safe/i })).toBeTruthy();
   });
 });
