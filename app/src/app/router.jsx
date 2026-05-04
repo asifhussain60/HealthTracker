@@ -19,7 +19,11 @@
  * 14  /profile/fasting-safe      Fasting-safe items library
  * 15  /profile/sweet-tooth       Sweet-tooth items library
  * 16  /plan                      Planner (full UX P1.D)
+ *
+ * ESLint: react-refresh/only-export-components suppressed — this module
+ * intentionally exports both `routerConfig` data and inline route wrapper components.
  */
+/* eslint-disable react-refresh/only-export-components */
 import { Navigate } from 'react-router-dom';
 import { AppShell } from './AppShell.jsx';
 import { TodayView }        from '../views/TodayView.jsx';

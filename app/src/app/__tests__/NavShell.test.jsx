@@ -2,7 +2,7 @@
  * NavShell.test.jsx — AC-P1C-C2
  * Breakpoint dispatcher: BottomNav <600 / NavRail 600-904 / SideDrawer ≥905
  */
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { describe, it, expect, afterEach, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { NavShell, NAV_ITEMS } from '../NavShell.jsx';

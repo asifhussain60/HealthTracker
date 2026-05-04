@@ -10,7 +10,11 @@
  *   Food /food   · Workouts /workouts · Cannabis /cannabis
  *
  * Settings is a profile-menu item (not a primary nav item).
+ *
+ * ESLint: react-refresh/only-export-components suppressed — this module
+ * intentionally exports both the NavShell component and the NAV_ITEMS config.
  */
+/* eslint-disable react-refresh/only-export-components */
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useMediaQuery } from './useMediaQuery.js';
 import { BottomNav }  from '../components/primitives/BottomNav.jsx';

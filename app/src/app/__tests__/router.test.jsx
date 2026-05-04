@@ -3,7 +3,7 @@
  * Every route resolves; deep-link works; sub-routes render; no 404s.
  */
 import { describe, it, expect } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { render } from '@testing-library/react';
 import { RouterProvider, createMemoryRouter } from 'react-router-dom';
 import { routerConfig } from '../router.jsx';
 
