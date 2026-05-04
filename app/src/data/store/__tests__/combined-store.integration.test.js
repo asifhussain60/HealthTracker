@@ -6,8 +6,11 @@
  * avoid React render-loop issues with persist middleware + renderHook.
  *
  * The setup.js provides an in-memory localStorage polyfill.
+ *
+ * B10 addition: migration-wiring integration test (schemaVersion promotion).
  */
 import { describe, it, expect, beforeEach } from 'vitest';
+import { runMigrations } from '../../migrations';
 import { useStore } from '../index';
 import { SEED_PROFILE, SEED_INVENTORY, SEED_WEIGHT_HISTORY } from '../../seed';
 
@@ -155,6 +158,26 @@ describe('combined-store integration', () => {
 
   it('importJSON returns false on invalid input', () => {
     expect(useStore.getState().importJSON('not-valid-json')).toBe(false);
+  });
+
+  // ── B10 migration wiring ───────────────────────────────────────────────────
+  // Integration test: verify runMigrations is importable and promotes a v0 blob to v3.
+  // Full onRehydrateStorage wiring is exercised via the persist middleware at app load;
+  // this test validates the migration contract from the store's perspective.
+  it('runMigrations produces schemaVersion 3 from a v0-shaped state blob', () => {
+    const v0Blob = {
+      inventory: [{ id: 'p1', name: 'Blue Dream', form: 'flower' }],
+      cannabisLogs: [],
+      mealTemplates: [],
+      workoutLogs: [],
+      weightHistory: [],
+      items: [],
+      profile: { name: 'Test User' },
+    };
+    const migrated = runMigrations(v0Blob);
+    expect(migrated.schemaVersion).toBe(3);
+    expect(migrated.inventory[0].userId).toBe('me');
+    expect(migrated.profile.dailyCalorieTarget).toBe(2000);
   });
 
   // ── Shape invariant ────────────────────────────────────────────────────────

@@ -20,6 +20,7 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
 import { SEED_PROFILE, SEED_INVENTORY, SEED_WEIGHT_HISTORY } from '../seed';
+import { runMigrations } from '../migrations';
 
 import { cannabisSliceInitial, createCannabisSlice } from './cannabisSlice';
 import { mealSliceInitial, createMealSlice } from './mealSlice';
@@ -177,7 +178,25 @@ export const useStore = create(
       weightHistory: state.weightHistory,
       mealTemplates: state.mealTemplates,
       photos: state.photos,
+      schemaVersion: state.schemaVersion,
       // foodLogs intentionally omitted — removed per D13
     }),
+
+    /**
+     * onRehydrateStorage — runs the v_legacy → v3 migration on every load.
+     * Idempotent: if the persisted blob is already at schemaVersion 3, runMigrations
+     * returns the blob unchanged. This guarantees existing users' data is upgraded
+     * transparently on first launch after the B10 commit.
+     *
+     * AC-P0-B10 / HT-CORE-009
+     */
+    onRehydrateStorage: () => (rehydratedState, error) => {
+      if (error || !rehydratedState) return;
+      const migrated = runMigrations(rehydratedState);
+      // Only write back if the migration actually changed something.
+      if (migrated !== rehydratedState) {
+        useStore.setState(migrated);
+      }
+    },
   })
 );

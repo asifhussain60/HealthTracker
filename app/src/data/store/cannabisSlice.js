@@ -12,6 +12,7 @@
 
 import { format } from 'date-fns';
 import { planDay } from '../calculators/cannabisPlanner.js';
+import { stampNewRecord, stampUpdate, stampSoftDelete } from '../repositories/_internal/auditFields.js';
 
 const today = () => format(new Date(), 'yyyy-MM-dd');
 
@@ -41,7 +42,42 @@ export function createCannabisSlice(set, get) {
         cannabisLogs: s.cannabisLogs.filter((e) => e.id !== id),
       })),
 
-    // ── Inventory ──────────────────────────────────────────────────
+    // ── Inventory (Unified Library Pattern — B10 DEBT-001 resolved) ──────────
+
+    /**
+     * Adds a new cannabis product with full audit fields.
+     * @param {Object} input
+     */
+    addCannabisProduct: (input) => {
+      const record = stampNewRecord(input);
+      set((s) => ({ inventory: [...s.inventory, record] }));
+      return record;
+    },
+
+    /**
+     * Merges patch onto an existing cannabis product and bumps audit fields.
+     * @param {string} id
+     * @param {Object} patch
+     */
+    updateCannabisProduct: (id, patch) =>
+      set((s) => ({
+        inventory: s.inventory.map((p) =>
+          p.id === id ? stampUpdate(p, patch) : p
+        ),
+      })),
+
+    /**
+     * Soft-deletes a cannabis product by setting deletedAt.
+     * @param {string} id
+     */
+    removeCannabisProduct: (id) =>
+      set((s) => ({
+        inventory: s.inventory.map((p) =>
+          p.id === id ? stampSoftDelete(p) : p
+        ),
+      })),
+
+    // ── Legacy inventory update (kept for backward-compat; prefer updateCannabisProduct) ──
     updateInventoryItem: (id, updates) =>
       set((s) => ({
         inventory: s.inventory.map((p) =>
