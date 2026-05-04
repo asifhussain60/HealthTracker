@@ -1,5 +1,5 @@
 /**
- * routes.js — View registry.
+ * routes.jsx — View registry.
  *
  * AC-P0-C6
  * Describes every view available in the app. App.jsx and nav components
@@ -12,7 +12,11 @@
  *   component: React component
  *   icon:     JSX       — SVG icon for nav
  *   navOrder: number    — sort order in nav (negative = hidden from nav)
+ *
+ * ESLint: react-refresh/only-export-components is intentionally suppressed —
+ * this is a registry module that mixes icon components with data exports.
  */
+/* eslint-disable react-refresh/only-export-components */
 
 import { TodayView }     from '../views/TodayView';
 import { InventoryView } from '../views/InventoryView';
