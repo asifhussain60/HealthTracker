@@ -31,7 +31,7 @@ const ACTIVITY_TYPES = ['Walk', 'Kickboxing', 'Weights'];
  */
 export function WorkoutPanel({
   weightSessions = [],
-  workoutLogs = [],
+  workoutLogs: _workoutLogs = [],
   routines = [],
   dailyCap = 2,
   isClosed = false,

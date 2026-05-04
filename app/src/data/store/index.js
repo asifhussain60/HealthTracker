@@ -33,6 +33,7 @@ import { prayerSliceInitial, createPrayerSlice } from './prayerSlice';
 import { weightSessionsSliceInitial, createWeightSessionsSlice } from './weightSessionsSlice';
 import { fastingIntakeSliceInitial, createFastingIntakeSlice } from './fastingIntakeSlice';
 import { sweetToothSliceInitial, createSweetToothSlice } from './sweetToothSlice';
+import { workSessionsSliceInitial, createWorkSessionsSlice } from './workSessionsSlice';
 
 // ── Combined initial state ────────────────────────────────────────────────────
 // Seed data is injected here, at the boundary where slices meet persistence.
@@ -71,6 +72,9 @@ const combinedInitial = {
 
   // sweetToothSlice — AC-P1E-E6
   ...sweetToothSliceInitial,
+
+  // workSessionsSlice — AC-P1E-E7
+  ...workSessionsSliceInitial,
 };
 
 // ── Store factory (exported for testing getInitialState support) ────────────
@@ -89,6 +93,7 @@ function buildStore(set, get) {
     ...createWeightSessionsSlice(set, get),
     ...createFastingIntakeSlice(set, get),
     ...createSweetToothSlice(set, get),
+    ...createWorkSessionsSlice(set, get),
 
     // ── Export / Import helpers (cross-slice; live on combined store) ────────
     exportJSON: () => {
@@ -223,6 +228,8 @@ export const useStore = create(
       fastingIntake: state.fastingIntake,
       // sweetToothSlice — AC-P1E-E6
       dailySlips: state.dailySlips,
+      // workSessionsSlice — AC-P1E-E7
+      workSessions: state.workSessions,
     }),
 
     /**

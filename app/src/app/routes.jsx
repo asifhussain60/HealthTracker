@@ -18,7 +18,7 @@
  */
 /* eslint-disable react-refresh/only-export-components */
 
-import { TodayView }     from '../views/TodayView';
+import { DashboardView } from '../views/DashboardView';
 import { InventoryView } from '../views/InventoryView';
 import { HistoryView }   from '../views/HistoryView';
 import { ProfileView }   from '../views/ProfileView';
@@ -73,7 +73,7 @@ export const ROUTES = [
     id:        'today',
     title:     'Today',
     label:     'Today',
-    component: TodayView,
+    component: DashboardView,
     icon:      CalendarIcon,
     navOrder:  0,
   },
