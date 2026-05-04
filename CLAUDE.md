@@ -7,7 +7,8 @@ You are Claude Code working on the HealthTracker repo.
 0. `DESIGN-REQUIREMENTS.md` — canonical north-star (MD3 spec, 12 locked decisions, unified Library Pattern, phase plan).
 1. `framework.md` — governance contract, agent registry, file ownership.
 2. `reference/governance/ht-core-rules.yaml` — the 10 non-negotiable rules.
-3. `_workspace/plan/` — newest handoff is the active commit map; first `⬜` is the next task.
+3. `_workspace/plan/program-roadmap.md` — program-level shape: universal phase anatomy (PF → build → close-out → handoff), refactor + cleanup cadence, 6-phase roadmap.
+4. `_workspace/plan/` — newest handoff is the active commit map; first `⬜` is the next task.
 
 Agents live in `.claude/agents/` (Anthropic format with YAML frontmatter). Skills live in `.claude/skills/<name>/SKILL.md`. The legacy `.github/agents/` tree has been removed (2026-05-03).
 

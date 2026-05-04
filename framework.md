@@ -53,6 +53,7 @@ Full registry: `.github/agents/AGENT-INDEX.md`.
 | `ht-plan` | `.claude/skills/ht-plan/SKILL.md` | Phase + commit-map maintenance |
 | `ht-audit` | `.claude/skills/ht-audit/SKILL.md` | 4-pass auditor procedure |
 | `ht-architecture-review` | `.claude/skills/ht-architecture-review/SKILL.md` | Architecture-first review template |
+| `ht-close-out` | `.claude/skills/ht-close-out/SKILL.md` | Mandatory 7-commit phase close-out recipe (refactor → debt → sweep → audit → doc-sync → perf → tag) |
 
 ## Slash commands
 
