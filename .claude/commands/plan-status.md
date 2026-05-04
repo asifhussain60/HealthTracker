@@ -13,9 +13,9 @@ Summarize all phases by status: which is active, which is in DoR review, which h
    ls _workspace/ideas/
    ```
 2. For each, parse the frontmatter (`status:`, `priority:`, `created:`).
-3. List all handoffs in `_workspace/handoffs/`:
+3. List all handoffs in `_workspace/plan/`:
    ```bash
-   ls _workspace/handoffs/
+   ls _workspace/plan/
    ```
 4. For the active handoff, count the commit-map status:
    - ⬜ pending

@@ -27,7 +27,7 @@ A personal/family health-tracking React SPA. Today: solo, client-side only (Vite
 | DEBUG | `core/auditor` | (none) | NONE |
 | QUERY | `healthtracker` | (none) | NONE |
 
-Full matrix: `reference/intent-routing.yaml`. Gate definitions: `reference/governance-gates.yaml`.
+Full matrix: `reference/governance/intent-routing.yaml`. Gate definitions: `reference/governance/governance-gates.yaml`.
 
 ## Agents
 
@@ -64,7 +64,7 @@ Full registry: `.github/agents/AGENT-INDEX.md`.
 | `/exec-next` | Execute next ⬜ in active commit map |
 | `/challenge` | Run `challenger` against current branch |
 | `/plan-status` | Summarize all phases by status |
-| `/sync-guidelines` | Re-scrape Anthropic learn; diff `reference/anthropic-guidelines.yaml` for human approval |
+| `/sync-guidelines` | Re-scrape Anthropic learn; diff `reference/governance/anthropic-guidelines.yaml` for human approval |
 
 ## Architecture
 
@@ -83,23 +83,29 @@ HealthTracker/
 │   └── hooks/                      ← Claude Code hooks
 ├── _workspace/                     ← UNTRACKED — plans, handoffs, scratch
 │   ├── ideas/                      ← execution plans
-│   ├── handoffs/                   ← phase handoff docs with commit maps
-│   ├── scratch/                    ← debt log, sweep catalogue, audit trail
+│   ├── plan/                       ← phase handoff docs + forward-looking checklists
+│   ├── scratch/                    ← append-only logs (debt, sweep, audit trail)
 │   └── archive/                    ← superseded artifacts
 ├── reference/                      ← SSOT for canonical references
-│   ├── ht-core-rules.yaml
-│   ├── anthropic-guidelines.yaml
-│   ├── uiux-heuristics.yaml
-│   ├── intent-routing.yaml
-│   ├── governance-gates.yaml
-│   ├── phase-template.yaml
-│   ├── architecture.md
-│   ├── data-model.md
-│   ├── design-system.md
-│   ├── feature-roadmap.md
-│   ├── test-strategy.md
-│   ├── privacy.md
-│   └── response-templates.md
+│   ├── governance/
+│   │   ├── ht-core-rules.yaml
+│   │   ├── governance-gates.yaml
+│   │   ├── anthropic-guidelines.yaml
+│   │   ├── intent-routing.yaml
+│   │   └── phase-template.yaml
+│   ├── architecture/
+│   │   ├── architecture.md
+│   │   ├── data-model.md
+│   │   └── test-strategy.md
+│   ├── design/
+│   │   ├── design-system.md
+│   │   ├── uiux-heuristics.yaml
+│   │   └── response-templates.md
+│   ├── product/
+│   │   ├── feature-roadmap.md
+│   │   ├── meal-library-seed.md
+│   │   └── privacy.md
+│   └── wireframes/                 ← runnable HTML mockups
 └── app/                            ← the React SPA
     └── src/
 ```
@@ -114,13 +120,13 @@ HealthTracker/
 | `.github/agents/*.agent.md` | `architect` | Frontmatter required. Mark deprecation; do not silently delete. |
 | `.claude/commands/*.md` | `architect` | Keep aligned with `framework.md` command table. |
 | `_workspace/ideas/*.md` | `planner` | Locked DoR before any commit; phases A..N with gates. |
-| `_workspace/handoffs/*.md` | `planner` + `executor` | Commit map is canonical work queue. |
+| `_workspace/plan/*.md` | `planner` + `executor` | Commit map is canonical work queue; forward-looking checklists. |
 | `_workspace/scratch/observed-debt.md` | `debt-logger` (append-only) | Never silently resolves; tracked as work. |
 | `app/src/**` | `executor` | Tests-first. PR-shape commits matching commit map. |
 
 ## Rules of engagement
 
-The 10 HT-CORE rules in `reference/ht-core-rules.yaml` are non-negotiable. Highlights:
+The 10 HT-CORE rules in `reference/governance/ht-core-rules.yaml` are non-negotiable. Highlights:
 
 1. **HT-CORE-001 — Architecture-First.** Every IMPLEMENT/FIX/REFACTOR begins with an architectural assessment.
 2. **HT-CORE-002 — Tests-First.** Tests must be written before implementation.
@@ -174,7 +180,7 @@ At the start of every new conversation:
 ```bash
 git log --oneline -10
 git branch --show-current
-ls _workspace/handoffs/
+ls _workspace/plan/
 ```
 
 Output:

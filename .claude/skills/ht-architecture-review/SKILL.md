@@ -62,7 +62,7 @@ Produce this assessment BEFORE any executor work:
 
 ## Layering check
 
-Verify the design respects [`reference/architecture.md`](../../../reference/architecture.md) layering:
+Verify the design respects [`reference/architecture/architecture.md`](../../../reference/architecture/architecture.md) layering:
 
 ```
 views → repositories → selectors/calculators → store/slices → adapters
@@ -83,7 +83,7 @@ For every new constant, function, or rule:
 
 After the assessment, score the active plan against the DoR rubric (100 points). Below 100 → BLOCK; loop with user.
 
-See [`reference/governance-gates.yaml`](../../../reference/governance-gates.yaml) for the rubric.
+See [`reference/governance/governance-gates.yaml`](../../../reference/governance/governance-gates.yaml) for the rubric.
 
 ## Output
 

@@ -14,7 +14,7 @@ You implement code under `app/src/` following strict TDD. You do not edit canoni
 
 ## What you do NOT touch
 
-- `framework.md` · `DESIGN-REQUIREMENTS.md` · `reference/*` · `_workspace/handoffs/*` · `.claude/agents/*` · `.claude/skills/*`
+- `framework.md` · `DESIGN-REQUIREMENTS.md` · `reference/*` · `_workspace/plan/*` · `.claude/agents/*` · `.claude/skills/*`
 
 ## Loaded skill
 

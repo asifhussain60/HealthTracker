@@ -40,6 +40,8 @@ These were confirmed via interactive Q&A and are inputs to every architect commi
 | 21 | Sweet Tooth scope (2026-05-04) | Independent panel + slice + Profile sub-route; never embedded in Food (Q8) |
 | 22 | PWA topology (2026-05-04) | Dropped from P0; lands once in P1.F (final sub-phase) (Q10) |
 | 23 | Performance budget (2026-05-04) | LCP < **1.8 s** on 4G; initial JS ≤ **180 KB gz**; lazy-load charts (Q11) |
+| 24 | Planner-first framing (2026-05-04) | `/plan` route with explicit **"Plan my week"** hero CTA is the canonical entry surface; auto-Sunday generation remains the background fallback. Food panel on Today **consumes `mealPlanSlice.days[today]`** (does not write `foodLogs` / `mealLogsSlice`); calories shown in the profile-banner ring are **derived** from `refCalories × plateWeight/refWeight` per decision #9 — no manual calorie entry on Today. Meal library is the single source of meal calorie truth (HT-CORE-003). |
+| 25 | BottomNav 5-destination roster (2026-05-04) | Mobile BottomNav slots (in order): **Today · Plan · Food · Workouts · Cannabis**. Profile + Settings ride the top-app-bar avatar dropdown (MD3 secondary-destination pattern). NavRail (tablet) shows all 7 canonical parents; SideDrawer (desktop) adds the 9 library sub-routes as collapsible groups. Resolves Decision #24 nav-cap collision: 7 canonical parents > MD3 BottomNav cap of 5. |
 
 ## 3 · Material Design 3 Design Language
 
@@ -62,7 +64,7 @@ These were confirmed via interactive Q&A and are inputs to every architect commi
 | `surface`, `surface-variant`, `surface-container-*` | Layout neutrals at three elevation levels |
 | `on-*` variants | Foreground text on each surface |
 
-Dark-first. Light theme is a sibling token map, swap via `[data-theme="light"]`. Detailed token list lives in [reference/design-system.md](reference/design-system.md) (to be updated to MD3 token names in Phase 1 / B-styles).
+Dark-first. Light theme is a sibling token map, swap via `[data-theme="light"]`. Detailed token list lives in [reference/design/design-system.md](reference/design/design-system.md) (to be updated to MD3 token names in Phase 1 / B-styles).
 
 ### Typography
 System stack (`-apple-system, "Segoe UI Variable", system-ui, ...`). Tabular numerals on data. Six type scales: `display-lg, headline, title, body, label, caption`.
@@ -249,12 +251,22 @@ Cross-reference: § 11.5.7.
 
 | Breakpoint | Range | Navigation |
 |---|---|---|
-| Mobile | 0 – 599 px | **Bottom navigation bar** (5 destinations max), top app bar with title + actions |
-| Tablet | 600 – 904 px | **Navigation rail** (icon-only, left edge) |
-| Small desktop | 905 – 1239 px | **Collapsible side drawer** (icons + labels, collapses to rail) |
-| Desktop | 1240 px + | **Persistent side drawer**, optional right-side detail panel |
+| Mobile | 0 – 599 px | **Bottom navigation bar** — 5 destinations: **Today · Plan · Food · Workouts · Cannabis** (Profile + Settings via avatar menu). Top app bar carries title + avatar dropdown. |
+| Tablet | 600 – 904 px | **Navigation rail** (icon-only, left edge) — all 7 canonical parents (`/`, `/plan`, `/food`, `/workouts`, `/cannabis`, `/profile`, `/settings`). |
+| Small desktop | 905 – 1239 px | **Collapsible side drawer** — 7 parents + 9 library sub-routes as collapsible groups; collapses to rail. |
+| Desktop | 1240 px + | **Persistent side drawer** — same content as small desktop; optional right-side detail panel. |
 
 App shell renders the navigation chrome and the route outlet. Routes are **code-split** and **lazy-loaded**. Skeleton loader covers any route taking > 100 ms to mount.
+
+### 4.1 BottomNav roster rationale (Decision #25)
+
+The 5-slot mobile BottomNav roster is locked as **Today · Plan · Food · Workouts · Cannabis**, with Profile + Settings demoted to the top-app-bar avatar dropdown. Reasoning:
+
+- **(a) Plan is canonical entry per Decision #24** — the "Plan my week" hero CTA is the primary user intent for the planner-first framing; BottomNav presence is non-negotiable.
+- **(b) Today is the daily-checkoff surface** — highest-frequency thumb-reach destination; must occupy the leftmost slot.
+- **(c) Food / Workouts / Cannabis are the three planned domains** — keeping all three on BottomNav reinforces planner-first symmetry (each slot maps to a slice the planner writes).
+- **(d) Profile / Settings are infrequent destinations** — MD3 explicitly recommends moving low-frequency destinations to an avatar dropdown when BottomNav is at its 5-slot cap; an overflow drawer is rejected as anti-pattern.
+- **(e) Library sub-routes are deep-link only on mobile** — reachable via each parent route's "Library" link (e.g., `/food` → `/food/library`); no flat exposure in BottomNav, NavRail covers them on tablet+.
 
 ### Container-aware layouts
 Cards adapt to their container, not the viewport. A dashboard tile in a 2-column grid renders differently than the same tile in a single-column drawer.
@@ -266,6 +278,7 @@ Per locked decision #16, every library declared in § 11.5.6 has a deep-linkable
 | Route | Section | Notes |
 |---|---|---|
 | `/` | **Dashboard** | Today's checklist + summary tiles. Replaces the legacy "Today" view. |
+| `/plan` | **Planner** | Planner-first entry surface (decision #24). Hero "Plan my week" CTA, 7×4 meal grid, per-day Lock + workout chip + cannabis tiles, Build shopping list. See § 6.6. |
 | `/food` | **Food** | Today's meals + IF state; weekly planner |
 | `/food/library` | **Meals Library** | `<LibraryView<MealInventoryItem>>` |
 | `/workouts` | **Workouts** | Today's session + Strength Gains placeholder |
@@ -365,7 +378,11 @@ The accordion **single-open invariant** is canon (mobile-first cognitive load, s
    | (b) feeding-window pending | solid `--surface-variant`, `○` outlined check | `Lunch · feeding window` | scheduled time |
    | (c) post-window | 50 % opacity (dimmed), outlined check | `Snack · post-window` | "window closed at 6 pm" |
 
-   Cell layout: `[36 px icon] [1fr name + slot + time stack] [110 px cal-input] [32 px check]`. The cal input is an inline number field with `cal` suffix; the check button is circular (32×32, radius-pill, **filled `--primary` when ✓**, outlined `--on-surface-dim` when pending).
+   Cell layout: `[36 px icon] [1fr name + slot + time stack] [110 px plate-weight chip] [32 px check]`. The 110 px chip is **display-only** and shows e.g. `"320g of 380g ref · 680 cal"` — calories are *derived* (`refCalories × plateWeight/refWeight`) per decisions #9 + #24, never typed inline. Tapping the chip opens a bottom sheet to edit `plateWeight` for that slot (the `MealPlanSlot.plateWeight` field — total mass on the plate; renamed from `totalWeightWithPlate` 2026-05-04). The check button is circular (32×32, radius-pill, **filled `--primary` when ✓**, outlined `--on-surface-dim` when pending).
+
+   Each slot is read out of `mealPlanSlice.days[today].{breakfast|lunch|dinner|snack|shakes[]}`; checking ✓ writes `eaten=true, eatenAt=now()` back to the plan slot. **No `mealLogsSlice` / `foodLogs` collection exists** — the plan blob *is* the consumption log (decision #24).
+
+   When `mealPlanSlice.days[today]` is empty, the meal list is replaced by an `<EmptyState>` carrying a smaller (48 px tall) duplicate of the `/plan` hero CTA: pill button "Plan my week" → deep-link to `/plan`.
 
    Below the meal list: algorithm-transparency footer — `Each calorie input sums into the profile-banner ring. Weekly plan auto-generated every Sunday from favorites; tap meal to swap.` libTag: `meals library · weekly auto-plan`.
 
@@ -377,6 +394,40 @@ The accordion **single-open invariant** is canon (mobile-first cognitive load, s
 
 ### 6.5 Day-complete footer
 Centered `primary` filled pill button: "✓ Complete Day" → confirmation modal → locks the day. Locked banner shows summary + "⚠️ Unlock (logged as violation)" outlined button.
+
+### 6.6 Planner route (`/plan`) *(adopted 2026-05-04, decision #24)*
+
+`/plan` is the canonical **planner-first** entry surface — separate from the dashboard `/`. The dashboard is the *checklist*; `/plan` is the *intent*.
+
+**Top-of-route hero CTA.** Centered, filled `--primary` pill, the single most prominent control on the route:
+
+| Property | Value |
+|---|---|
+| Height | **96 px** |
+| Min-width | **320 px** (auto-grows on desktop up to 480 px) |
+| Border radius | `var(--radius-pill)` |
+| Font | `var(--text-title)` (24 px), weight 600 |
+| Label | `Plan my week` |
+| Caption (dim, beneath) | `auto-fires Sundays · tap to manually rebuild` (`var(--text-caption)`, `var(--on-surface-dim)`) |
+| Action | `generateWeeklyPlan({ startDate=thisSunday, profile, libraries })` → writes `mealPlanSlice` + `workoutPlanSlice` (cannabis already in `cannabisPlanSlice`) |
+
+**7×4 meal grid.** Below the hero CTA. Rows = the 7 days of the active week (Mon–Sun within `[thisSunday-7, thisSaturday]`); columns = `Breakfast · Lunch · Dinner · Snack`. Cells render `<MealPlanSlotCard>` (icon + meal name + category chip + `refCalories` summary). A single-row **shake strip** trails each day-row for `shakes[]` (0..N).
+
+**Per-day Lock pill.** Tonal pill at left of each day-row labelled `🔒 Lock` / `🔓 Unlock`. Toggling sets `mealPlanSlice.days[date].locked`; D16's `WeeklyPlanGenerator` honors `locks[]` so locked rows survive regeneration.
+
+**Per-slot tap-to-swap.** Tapping any `<MealPlanSlotCard>` opens a bottom sheet listing same-category meals from `mealLibrary` ranked by `favoriteStars`; tap a card → slot updated → bottom sheet closes. No category-mixing.
+
+**Per-day workout chip.** Below each day's meal row, a single chip shows the day's `workoutPlanSlot` (e.g., `Walk 30 min` / `LIIFT4 — Chest+Tri` / `Kickboxing 45 min`).
+
+**Per-day cannabis tiles.** Below the workout chip, a 2-column read-only preview of the day's two planned cannabis sessions (time · product · dose) — same visual language as `<CannabisSessionTile>` from § 6.4, but read-only on `/plan`.
+
+**Build shopping list.** Secondary tonal button at the foot of the route. Aggregates `ingredients` across `WeeklyPlan.days[*].meals[*]` and renders the result in a bottom sheet (Phase 1 — paste-friendly text; CSV/email export deferred).
+
+**Algorithm-transparency footer (§ 7.1):** italic caption — `Favorites-weighted · no repeat within 3 days · category-constrained · cap-aware · cannabis taper-aware. Locked rows survive regeneration.`
+
+**Empty-state hand-off pattern.** When `<FoodPanel>` on `/` finds `mealPlanSlice.days[today]` empty, the panel replaces the meal list with an `<EmptyState>` carrying a smaller (48 px tall) duplicate of the same "Plan my week" pill that deep-links to `/plan`. This is the single CTA that bridges the *no-plan* state on Today back to the planner — no other entry to plan generation exists in the dashboard.
+
+libTag: `meals library · weekly auto-plan` (matches the Food panel libTag — they are two views of the same library).
 
 ## 7 · UX Behavior
 
@@ -462,16 +513,26 @@ Enforced by `npm run preflight` bundle-budget check (decision #19) gating every 
 └────────────────────────────────────────────────────────┘
          │
 ┌────────▼────────────────────────────────────────────────┐
-│  Routes (Dashboard · Food · Workouts · Cannabis · ...)  │
+│  Routes (Dashboard · Plan · Food · Workouts · …)        │
 │  Code-split, lazy-loaded                                 │
 └────────┬────────────────────────────────────────────────┘
          │
 ┌────────▼────────────────────────────────────────────────┐
 │  Feature components (cards · accordions · tiles)        │
+│   PlannerView · FoodPanel · WorkoutPanel · …            │
 └────────┬────────────────────────────────────────────────┘
          │
 ┌────────▼────────────────────────────────────────────────┐
 │  Primitives (Tile · Card · Chip · Button · …)           │
+└────────┬────────────────────────────────────────────────┘
+         │
+┌────────▼────────────────────────────────────────────────┐
+│  WeeklyPlanGenerator service (decision #24)             │
+│   reads:  libraries (meals · routines · products)        │
+│   writes: mealPlanSlice · workoutPlanSlice               │
+│   delegates cannabis day-plan to getDailyCannabisPlan()  │
+│   does NOT write logs (no foodLogs / mealLogsSlice)      │
+│   strategies: mealStrategy · workoutStrategy · cannabisStrategy │
 └────────┬────────────────────────────────────────────────┘
          │
 ┌────────▼────────────────────────────────────────────────┐
@@ -489,7 +550,7 @@ Enforced by `npm run preflight` bundle-budget check (decision #19) gating every 
 └─────────────────────────────────────────────────────────┘
 ```
 
-The **adapter pattern is load-bearing** — it's the seam that lets Phase 2's Supabase swap be a one-file change. See [reference/architecture.md](reference/architecture.md).
+The **adapter pattern is load-bearing** — it's the seam that lets Phase 2's Supabase swap be a one-file change. See [reference/architecture/architecture.md](reference/architecture/architecture.md).
 
 ## 11.5 · Unified Library Pattern
 
@@ -624,7 +685,7 @@ If a future panel does not source from a library, it is by definition **not a da
 
 ## 12 · Data Model
 
-Canonical schema in [reference/data-model.md](reference/data-model.md). Highlights:
+Canonical schema in [reference/architecture/data-model.md](reference/architecture/data-model.md). Highlights:
 
 - Every record carries audit fields: `id, userId, createdAt, updatedAt, createdBy, updatedBy, deletedAt, schemaVersion` (HT-CORE-008).
 - Every persisted blob carries `schemaVersion` and has a registered migration (HT-CORE-009).
@@ -681,7 +742,7 @@ In `.claude/commands/<name>.md`. Each command is a thin wrapper that loads the r
 | **P5** | shared-services Repo | Spin out `~/PROJECTS/shared-services/prayer-times` (consumed by HT and journal); evaluate other extracted services |
 
 ### P0 close-out checklist (the active work)
-See [_workspace/handoffs/phase-0-refactor-handoff.md](_workspace/handoffs/phase-0-refactor-handoff.md). Per decision #13, **B10 lands a single `v_legacy → v3` migration** (no separate B10.5/B13.5; v1/v2 collapsed). PWA dropped from P0 (decision #22).
+See [_workspace/plan/phase-0-refactor-handoff.md](_workspace/plan/phase-0-refactor-handoff.md). Per decision #13, **B10 lands a single `v_legacy → v3` migration** (no separate B10.5/B13.5; v1/v2 collapsed). PWA dropped from P0 (decision #22).
 
 ### P1 work breakdown (canonical, capability-spine ordering — decision #17)
 - **P1.A — Storage & repository layer.** `StorageAdapter`, `LibraryRepo<T>`, `AuditFields` decorator, user-scoped selectors. No UI.
@@ -705,7 +766,7 @@ P1 adds: `/md3-review` returns clean.
 
 ## 18 · Non-Negotiable Rules (HT-CORE)
 
-Defined in [reference/ht-core-rules.yaml](reference/ht-core-rules.yaml). All 10 in force at all times.
+Defined in [reference/governance/ht-core-rules.yaml](reference/governance/ht-core-rules.yaml). All 10 in force at all times.
 
 | Code | Rule |
 |---|---|
@@ -726,7 +787,7 @@ Repo cleanup is staged in `_workspace/scratch/cleanup-checklist.md`. Destructive
 
 ## 20 · How to Use This Document
 
-- **Start every conversation** by reading this file + `framework.md` Cold Start Protocol + the active handoff in `_workspace/handoffs/`.
+- **Start every conversation** by reading this file + `framework.md` Cold Start Protocol + the active handoff in `_workspace/plan/`.
 - **Architect commits** update Sections 1–18 of this document.
 - **Executor commits** never modify this document — they consume it.
 - **When in doubt**, this document overrides earlier scattered design notes.

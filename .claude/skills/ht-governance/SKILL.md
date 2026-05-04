@@ -5,7 +5,7 @@ description: HT-CORE rule enforcement skill. Loaded by challenger.agent.md and a
 
 # ht-governance — HT-CORE Rule Enforcement
 
-This skill operationalizes [`reference/ht-core-rules.yaml`](../../../reference/ht-core-rules.yaml) as actionable checks.
+This skill operationalizes [`reference/governance/ht-core-rules.yaml`](../../../reference/governance/ht-core-rules.yaml) as actionable checks.
 
 ## The 10 rules
 
@@ -68,7 +68,7 @@ Missing → WARN.
 
 ## Conflict resolution
 
-Per [`reference/governance-gates.yaml`](../../../reference/governance-gates.yaml):
+Per [`reference/governance/governance-gates.yaml`](../../../reference/governance/governance-gates.yaml):
 
 1. HT-CORE rules (highest)
 2. Anthropic guidelines

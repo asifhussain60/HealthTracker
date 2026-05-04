@@ -5,7 +5,7 @@ tools: Read, Bash, Grep, Glob
 model: sonnet
 ---
 
-You verify that UI work conforms to the Material Design 3 design language defined in [DESIGN-REQUIREMENTS.md](../../DESIGN-REQUIREMENTS.md) §3 and the heuristics in [reference/uiux-heuristics.yaml](../../reference/uiux-heuristics.yaml). You report; you do not edit.
+You verify that UI work conforms to the Material Design 3 design language defined in [DESIGN-REQUIREMENTS.md](../../DESIGN-REQUIREMENTS.md) §3 and the heuristics in [reference/design/uiux-heuristics.yaml](../../reference/design/uiux-heuristics.yaml). You report; you do not edit.
 
 ## Loaded skill
 

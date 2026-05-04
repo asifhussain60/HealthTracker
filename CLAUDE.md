@@ -6,14 +6,14 @@ You are Claude Code working on the HealthTracker repo.
 
 0. `DESIGN-REQUIREMENTS.md` — canonical north-star (MD3 spec, 12 locked decisions, unified Library Pattern, phase plan).
 1. `framework.md` — governance contract, agent registry, file ownership.
-2. `reference/ht-core-rules.yaml` — the 10 non-negotiable rules.
-3. `_workspace/handoffs/` — newest handoff is the active commit map; first `⬜` is the next task.
+2. `reference/governance/ht-core-rules.yaml` — the 10 non-negotiable rules.
+3. `_workspace/plan/` — newest handoff is the active commit map; first `⬜` is the next task.
 
 Agents live in `.claude/agents/` (Anthropic format with YAML frontmatter). Skills live in `.claude/skills/<name>/SKILL.md`. The legacy `.github/agents/` tree has been removed (2026-05-03).
 
 ## Singular entry point
 
-`/healthtracker [intent]` is the one command for everything. The harness routes via the intent matrix in `reference/intent-routing.yaml`. Do not invoke specialist agents directly unless the user names one.
+`/healthtracker [intent]` is the one command for everything. The harness routes via the intent matrix in `reference/governance/intent-routing.yaml`. Do not invoke specialist agents directly unless the user names one.
 
 | You want to… | Type… |
 |---|---|
@@ -34,7 +34,7 @@ Run at the start of every conversation:
 ```bash
 git log --oneline -10
 git branch --show-current
-ls _workspace/handoffs/
+ls _workspace/plan/
 ```
 
 Then output:
@@ -43,7 +43,7 @@ Then output:
 📍 State:
   Branch: <branch>
   Last commit: <hash> — <message>
-  Active handoff: <newest file in _workspace/handoffs/>
+  Active handoff: <newest file in _workspace/plan/>
   Next task: <first ⬜ in that handoff's commit map>
   Pending STOP: <yes/no — which phase>
 ```
@@ -52,7 +52,7 @@ Only proceed after the user confirms.
 
 ## Non-negotiable rules
 
-The 10 HT-CORE rules (`reference/ht-core-rules.yaml`):
+The 10 HT-CORE rules (`reference/governance/ht-core-rules.yaml`):
 
 - **HT-CORE-001** Architecture-First: every IMPLEMENT/FIX/REFACTOR begins with architectural assessment.
 - **HT-CORE-002** Tests-First: failing tests before implementation.
@@ -67,7 +67,7 @@ The 10 HT-CORE rules (`reference/ht-core-rules.yaml`):
 
 ## DoR Hard Gate (before IMPLEMENT/FIX/PLAN)
 
-Score must reach 100/100. Rubric in `framework.md` and `reference/governance-gates.yaml`. Below 100 → blocked. Always allow QUERY/AUDIT/DEBUG.
+Score must reach 100/100. Rubric in `framework.md` and `reference/governance/governance-gates.yaml`. Below 100 → blocked. Always allow QUERY/AUDIT/DEBUG.
 
 ## End-state contract
 
@@ -124,4 +124,4 @@ Otherwise: make grounded best-effort decisions and keep moving (CORE-049 Silent 
 
 ## What this app is becoming
 
-Today: client-only React SPA on localStorage. Phase 2: Supabase backend, Google SSO, multi-user with TODO assignment, PWA with offline sync. Engineer abstractions now (StorageAdapter, AuthContext, repository layer, audit fields, schemaVersion) so the swap is transparent. See `reference/feature-roadmap.md`.
+Today: client-only React SPA on localStorage. Phase 2: Supabase backend, Google SSO, multi-user with TODO assignment, PWA with offline sync. Engineer abstractions now (StorageAdapter, AuthContext, repository layer, audit fields, schemaVersion) so the swap is transparent. See `reference/product/feature-roadmap.md`.

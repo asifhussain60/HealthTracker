@@ -10,7 +10,7 @@ Identify the active handoff, find the first `⬜` commit, and execute it.
 
 1. **Locate active handoff:**
    ```bash
-   ls -t _workspace/handoffs/*.md | head -1
+   ls -t _workspace/plan/*.md | head -1
    ```
 
 2. **Find first ⬜ commit:**
@@ -21,7 +21,7 @@ Identify the active handoff, find the first `⬜` commit, and execute it.
 
 3. **Apply pre-gate:**
    - Look up the commit's intent (most are IMPLEMENT or REFACTOR).
-   - Apply `reference/governance-gates.yaml` pre-gate.
+   - Apply `reference/governance/governance-gates.yaml` pre-gate.
    - If gate blocks, surface and end with proceed gate.
 
 4. **Delegate:**

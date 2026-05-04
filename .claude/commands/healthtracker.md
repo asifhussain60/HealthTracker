@@ -18,12 +18,12 @@ $ARGUMENTS
 
 If `$ARGUMENTS` is empty or contains only `/healthtracker`, render the introduction:
 - Show available sub-commands and one-line descriptions.
-- Show the active commit map state from `_workspace/handoffs/`.
+- Show the active commit map state from `_workspace/plan/`.
 - End with `### ⚡ If you say proceed [intent], I will:` listing top 3 next actions.
 
 If `$ARGUMENTS` contains a natural-language request:
-1. Classify intent against `reference/intent-routing.yaml`.
-2. Apply the pre-gate from `reference/governance-gates.yaml`.
+1. Classify intent against `reference/governance/intent-routing.yaml`.
+2. Apply the pre-gate from `reference/governance/governance-gates.yaml`.
 3. Delegate to the right specialist agent.
 4. End with the standard end-state contract.
 

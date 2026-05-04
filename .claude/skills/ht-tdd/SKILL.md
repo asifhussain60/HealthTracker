@@ -11,7 +11,7 @@ This skill enforces HT-CORE-002 (Tests-First). Loaded by `.github/agents/core/ex
 
 ### RED — write failing test
 
-1. Identify the test tier (smoke / unit / component / integration / regression — see [`reference/test-strategy.md`](../../../reference/test-strategy.md)).
+1. Identify the test tier (smoke / unit / component / integration / regression — see [`reference/architecture/test-strategy.md`](../../../reference/architecture/test-strategy.md)).
 2. Place the test file in the correct location:
    - Calculators: `app/src/data/calculators/__tests__/`
    - Selectors: `app/src/data/selectors/__tests__/`

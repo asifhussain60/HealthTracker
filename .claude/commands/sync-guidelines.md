@@ -1,6 +1,6 @@
 # /sync-guidelines — Re-sync Anthropic Guidelines YAML
 
-Re-fetch anthropic.com/learn + linked engineering posts and produce a diff against `reference/anthropic-guidelines.yaml`.
+Re-fetch anthropic.com/learn + linked engineering posts and produce a diff against `reference/governance/anthropic-guidelines.yaml`.
 
 ---
 
@@ -15,7 +15,7 @@ Re-fetch anthropic.com/learn + linked engineering posts and produce a diff again
 
 3. **Parse content** — extract testable principles only ("do X", "don't Y", "consider Z").
 
-4. **Synthesize candidate YAML** matching the schema in `reference/anthropic-guidelines.yaml`.
+4. **Synthesize candidate YAML** matching the schema in `reference/governance/anthropic-guidelines.yaml`.
 
 5. **Diff:**
    - New principles → propose with rationale.
@@ -45,18 +45,18 @@ Re-fetch anthropic.com/learn + linked engineering posts and produce a diff again
 - +N principles, ~N modified, -N archived
 ```
 
-8. **Wait for user approval** before writing changes to `reference/anthropic-guidelines.yaml`.
+8. **Wait for user approval** before writing changes to `reference/governance/anthropic-guidelines.yaml`.
 
 ## Hard rule
 
-NEVER write to `reference/anthropic-guidelines.yaml` without explicit user approval of the diff. Per HT-CORE-007 (No Fabricated Evidence) and HT-CORE-003 (SSOT), the YAML reflects what's actually published, not what we recall.
+NEVER write to `reference/governance/anthropic-guidelines.yaml` without explicit user approval of the diff. Per HT-CORE-007 (No Fabricated Evidence) and HT-CORE-003 (SSOT), the YAML reflects what's actually published, not what we recall.
 
 ## End-state contract
 
 End with:
 ```
 ### ⚡ If you say proceed, I will:
-1. Apply the diff above to reference/anthropic-guidelines.yaml.
+1. Apply the diff above to reference/governance/anthropic-guidelines.yaml.
 2. Bump the meta.generated_at field.
 3. Commit as `chore(governance): sync Anthropic guidelines <date>`.
 ```

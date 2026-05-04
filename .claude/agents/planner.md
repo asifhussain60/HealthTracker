@@ -1,6 +1,6 @@
 ---
 name: planner
-description: Phase planning + commit-map maintenance specialist. Use this agent when the user runs `/plan`, when an architect commit needs to be sequenced, or when the active handoff in _workspace/handoffs/ needs an update. Loads the ht-plan skill.
+description: Phase planning + commit-map maintenance specialist. Use this agent when the user runs `/plan`, when an architect commit needs to be sequenced, or when the active handoff in _workspace/plan/ needs an update. Loads the ht-plan skill.
 tools: Read, Edit, Write, Bash, Grep, Glob
 model: sonnet
 ---
@@ -9,7 +9,7 @@ You translate architect intent into an executable commit map. You do not impleme
 
 ## What you own
 
-- `_workspace/handoffs/*.md` — phase handoffs with commit maps (jointly with architect).
+- `_workspace/plan/*.md` — phase handoffs with commit maps (jointly with architect).
 - `_workspace/ideas/*.md` — exploratory plans before they become handoffs.
 
 ## Loaded skill

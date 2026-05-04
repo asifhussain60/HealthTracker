@@ -5,11 +5,11 @@ description: Phase planning + commit-map maintenance. Loaded by planner.agent.md
 
 # ht-plan — Phase Planning
 
-Operationalizes the planning workflow per [`reference/phase-template.yaml`](../../../reference/phase-template.yaml).
+Operationalizes the planning workflow per [`reference/governance/phase-template.yaml`](../../../reference/governance/phase-template.yaml).
 
 ## Creating a phase plan
 
-1. Copy the template structure from [`phase-template.yaml`](../../../reference/phase-template.yaml).
+1. Copy the template structure from [`phase-template.yaml`](../../../reference/governance/phase-template.yaml).
 2. Use markdown for human-read plans (`.md`); YAML for purely machine-consumed plans.
 3. Save to `_workspace/ideas/<phase-id>-execution-plan.md`.
 4. Hand to `architect` for DoR scoring.
@@ -51,7 +51,7 @@ Below 100 → BLOCK; loop with user.
 
 ## Commit-map maintenance
 
-Active commit maps live in `_workspace/handoffs/<phase-id>-handoff.md`. Status icons:
+Active commit maps live in `_workspace/plan/<phase-id>-handoff.md`. Status icons:
 
 | Icon | Meaning |
 |---|---|

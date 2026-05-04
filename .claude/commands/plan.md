@@ -15,11 +15,11 @@ $ARGUMENTS
 ## Behavior
 
 If `$ARGUMENTS` is empty:
-- Read `_workspace/ideas/` and `_workspace/handoffs/` to summarize current state.
+- Read `_workspace/ideas/` and `_workspace/plan/` to summarize current state.
 - Identify the active phase, its DoR status, and the next ⬜ commit.
 
 If `$ARGUMENTS` describes a new phase:
-- Use [`reference/phase-template.yaml`](../../../reference/phase-template.yaml).
+- Use [`reference/governance/phase-template.yaml`](../../../reference/governance/phase-template.yaml).
 - Save as `_workspace/ideas/<phase-id>-execution-plan.md`.
 - Hand off to `architect` for DoR scoring (must hit 100/100).
 
