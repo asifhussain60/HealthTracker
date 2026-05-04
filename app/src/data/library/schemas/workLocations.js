@@ -25,6 +25,7 @@ export const workLocationsSchema = defineLibrarySchema({
     { key: 'favoriteStars', label: 'Stars', type: 'stars' },
   ],
   categories: ['office', 'remote', 'hybrid', 'client-site', 'field', 'other'],
+  categoryField: 'locationType',
   sortOptions: [
     { key: 'name', label: 'Name', direction: 'asc' },
     { key: 'favoriteStars', label: 'Stars', direction: 'desc' },
